@@ -1,4 +1,4 @@
-# Indexing is temporarily paused while this deployment is being tested.
-# Say "Enable indexing" to switch this to Allow: / with the sitemap reference.
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://prompt-hub-3t3.pages.dev/sitemap.xml
