@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt — SmartPrompts</title>
+  <meta id="meta-description" name="description" content="View and copy this AI prompt from SmartPrompts." />
+  <meta property="og:type" content="article" />
+  <meta id="meta-og-title" property="og:title" content="Prompt — SmartPrompts" />
+  <meta id="meta-og-description" property="og:description" content="View and copy this AI prompt from SmartPrompts." />
+  <meta id="meta-og-url" property="og:url" content="https://smartprompts.netlify.app/prompt.html" />
+  <link id="canonical-link" rel="canonical" href="https://smartprompts.netlify.app/prompt.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
+
+  <!-- ======= HEADER ======= -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo">
+        <svg class="site-logo-mark" width="30" height="30" viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#logoGrad2)"/>
+          <path d="M11 21.5L16 10.5L21 21.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13 17.5H19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="logoGrad2" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#4f7df5"/>
+              <stop offset="100%" stop-color="#c15ce8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="site-logo-text">
+          SmartPrompts
+          <small>The Ultimate ChatGPT Prompt Library</small>
+        </span>
+      </a>
+
+      <nav class="site-nav">
+        <a href="index.html" class="site-nav-link">Home</a>
+        <a href="index.html#category-browse" class="site-nav-link">Categories</a>
+        <a href="index.html#trending-section" class="site-nav-link">Trending</a>
+        <a href="#" class="site-nav-link">Submit Prompt</a>
+        <a href="#" class="site-nav-link">About</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="index.html" class="icon-btn" aria-label="Search prompts" title="Search prompts">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">
+          <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
+        <a href="#" class="btn-login">Login</a>
+        <a href="#" class="btn-signup">Sign Up</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======= PROMPT DETAIL (populated by JS) ======= -->
+  <main id="prompt-detail">
+    <!-- Loading state -->
+    <div class="prompt-page-wrap">
+      <div class="skeleton" style="height:14px;width:100px;margin-bottom:2.5rem;border-radius:4px;"></div>
+      <div class="skeleton" style="height:22px;width:80px;margin-bottom:1.2rem;border-radius:4px;"></div>
+      <div class="skeleton" style="height:48px;width:80%;margin-bottom:0.5rem;border-radius:6px;"></div>
+      <div class="skeleton" style="height:2px;width:48px;margin:1.75rem 0;"></div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.75rem;">
+        <div class="skeleton" style="height:12px;width:60px;margin-bottom:1rem;border-radius:3px;"></div>
+        <div class="skeleton" style="height:140px;border-radius:6px;"></div>
+      </div>
+      <div class="skeleton" style="height:42px;width:140px;margin-top:1.25rem;border-radius:6px;"></div>
+    </div>
+  </main>
+
+  <!-- ======= FOOTER ======= -->
+  <footer class="site-footer">
+    <p>SmartPrompts &mdash; A free, open AI prompt library &mdash; Built with ♥ and vanilla JS</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

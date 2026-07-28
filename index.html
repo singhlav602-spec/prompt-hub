@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>SmartPrompts – Free AI Prompt Library</title>
+
+  <meta name="description" content="SmartPrompts is a free AI prompt library with powerful prompts for ChatGPT, YouTube, coding, business and education. Copy and use instantly." />
+
+  <meta name="keywords" content="AI prompts, ChatGPT prompts, prompt library, AI tools, prompt engineering" />
+
+  <meta property="og:title" content="SmartPrompts – Free AI Prompt Library" />
+  <meta property="og:description" content="Browse powerful AI prompts for YouTube, coding, business, and productivity. Copy and use instantly." />
+  <meta property="og:type" content="website" />
+  <link rel="canonical" href="https://smartprompts.netlify.app/" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
+
+  <!-- ======= HEADER ======= -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo">
+        <svg class="site-logo-mark" width="30" height="30" viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#logoGrad)"/>
+          <path d="M11 21.5L16 10.5L21 21.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13 17.5H19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#4f7df5"/>
+              <stop offset="100%" stop-color="#c15ce8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="site-logo-text">
+          SmartPrompts
+          <small>The Ultimate ChatGPT Prompt Library</small>
+        </span>
+      </a>
+
+      <nav class="site-nav">
+        <a href="index.html" class="site-nav-link active">Home</a>
+        <a href="#category-browse" class="site-nav-link">Categories</a>
+        <a href="#trending-section" class="site-nav-link">Trending</a>
+        <a href="#" class="site-nav-link">Submit Prompt</a>
+        <a href="#" class="site-nav-link">About</a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="header-search-btn" class="icon-btn" type="button" aria-label="Search prompts" title="Search prompts">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">
+          <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
+        <a href="#" class="btn-login">Login</a>
+        <a href="#" class="btn-signup">Sign Up</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======= HERO ======= -->
+  <section class="hero">
+    <div class="hero-flex">
+    <div class="hero-copy">
+    <div class="hero-badge" id="hero-badge">✨ Premium Prompts</div>
+    <h1 class="hero-title">Find the Perfect<br/><span class="hero-title-gradient">AI Prompt</span></h1>
+    <p>Explore, discover, and use a free, growing library of hand-crafted prompts for ChatGPT, Claude, Gemini &amp; more.</p>
+
+    <!-- Hero search -->
+    <div class="hero-search-row">
+      <div class="search-wrap" style="max-width:560px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          id="search-hero"
+          class="search-input"
+          type="search"
+          placeholder="Search prompts, topics or use cases…"
+          autocomplete="off"
+        />
+      </div>
+      <button type="button" class="btn-search" onclick="document.getElementById('search-hero').focus()">Search</button>
+    </div>
+
+    <div class="hero-tags" id="hero-tags">
+      <span class="hero-tags-label">Popular:</span>
+      <!-- Populated by JS from real category data -->
+    </div>
+    </div>
+
+    <div class="hero-art" aria-hidden="true">
+      <div class="hero-art-card">
+        <span class="hero-art-dot"></span><span class="hero-art-dot"></span><span class="hero-art-dot"></span>
+        <div class="hero-art-line" style="width:85%"></div>
+        <div class="hero-art-line" style="width:65%"></div>
+        <div class="hero-art-line" style="width:75%"></div>
+        <div class="hero-art-line" style="width:50%"></div>
+      </div>
+      <div class="hero-art-badge hero-art-badge-1">✨</div>
+      <div class="hero-art-badge hero-art-badge-2">AI</div>
+      <div class="hero-art-badge hero-art-badge-3">💬</div>
+    </div>
+    </div>
+  </section>
+
+  <!-- ======= STATS BAR ======= -->
+  <section class="site-stats" id="site-stats">
+    <!-- Populated by JS with real numbers -->
+  </section>
+
+  <!-- ======= TRENDING NOW ======= -->
+  <section class="trending-section" id="trending-section" style="display:none;">
+    <div class="trending-label">
+      <span class="trending-fire">🔥</span> Trending Right Now
+    </div>
+    <div class="trending-grid" id="trending-grid"></div>
+  </section>
+
+  <!-- ======= CATEGORY BROWSE ======= -->
+  <div class="category-browse" id="category-browse">
+    <div class="filters">
+      <div class="section-heading-row">
+        <div class="filter-label section-heading-bar">Browse by Category</div>
+        <a href="#category-tail" class="link-view-all" id="view-all-categories">View all categories
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+      <div class="category-grid" id="category-grid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="category-tail" id="category-tail">
+        <!-- Small long-tail categories, populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= PROMO BANNER ======= -->
+  <section class="promo-banner">
+    <div class="promo-banner-icon">✨</div>
+    <div class="promo-banner-copy">
+      <div class="promo-banner-title">New Prompts Added Regularly</div>
+      <div class="promo-banner-sub">Stay updated with the latest and most useful AI prompts.</div>
+    </div>
+    <a href="#category-browse" class="promo-banner-cta">Explore Now
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </section>
+  <section class="newsletter-bar">
+    <div class="newsletter-icon">🎁</div>
+    <div class="newsletter-copy">
+      <div class="newsletter-title">Get the best prompts delivered to your inbox</div>
+      <div class="newsletter-sub">Join the list and never miss new high-quality prompts.</div>
+    </div>
+    <form class="newsletter-form" id="newsletter-form">
+      <input type="email" id="newsletter-email" placeholder="Enter your email address" required />
+      <button type="submit">Subscribe Now
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </form>
+  </section>
+
+  <!-- ======= STATS BAR / LIST HEADER (shown once a category or search is active) ======= -->
+  <div class="stats-bar" id="list-header" style="display:none;">
+    <a href="#" class="back-link" id="back-to-categories" style="margin:0;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      All Categories
+    </a>
+    <div class="stats-count" id="prompt-count">Loading prompts…</div>
+  </div>
+
+  <!-- ======= PROMPT GRID ======= -->
+  <main>
+    <div class="prompt-grid" id="prompt-grid" style="display:none;">
+      <!-- Skeleton placeholders while loading -->
+      <div class="prompt-card" style="pointer-events:none;gap:1rem;">
+        <div class="skeleton" style="height:22px;width:70px;"></div>
+        <div class="skeleton" style="height:28px;width:85%;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+        <div class="skeleton" style="height:18px;width:100px;margin-top:0.5rem;"></div>
+      </div>
+      <div class="prompt-card" style="pointer-events:none;gap:1rem;">
+        <div class="skeleton" style="height:22px;width:80px;"></div>
+        <div class="skeleton" style="height:28px;width:75%;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+        <div class="skeleton" style="height:18px;width:100px;margin-top:0.5rem;"></div>
+      </div>
+      <div class="prompt-card" style="pointer-events:none;gap:1rem;">
+        <div class="skeleton" style="height:22px;width:60px;"></div>
+        <div class="skeleton" style="height:28px;width:90%;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+        <div class="skeleton" style="height:18px;width:100px;margin-top:0.5rem;"></div>
+      </div>
+    </div>
+  </main>
+
+
+  <!-- ======= FOOTER ======= -->
+  <footer class="site-footer">
+    <p>SmartPrompts &mdash; A free, open AI prompt library &mdash; Built with ♥ and vanilla JS</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
