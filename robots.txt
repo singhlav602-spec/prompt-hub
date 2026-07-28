@@ -1,4 +1,2 @@
 User-agent: *
-Allow: /
-
-Sitemap: https://prompt-hub-3t3.pages.dev/sitemap.xml
+Disallow: /
