@@ -105,7 +105,9 @@ function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All')
     );
   }
 
-  if (filtered.length === 0) {
+  const totalMatches = filtered.length;
+
+  if (totalMatches === 0) {
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">🔍</div>
@@ -113,15 +115,28 @@ function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All')
         <p>Try a different search term or category.</p>
       </div>
     `;
-    return filtered.length;
+    return 0;
   }
 
-  filtered.forEach((prompt, i) => {
-    const card = buildCard(prompt, i * 50);
+  // Cap how many cards get built at once — rendering hundreds of DOM nodes
+  // for a broad match (e.g. a single common letter) is what made typing feel
+  // sluggish. Narrowing the search still reveals more as the list shortens.
+  const RENDER_CAP = 60;
+  const toRender = filtered.slice(0, RENDER_CAP);
+
+  toRender.forEach((prompt, i) => {
+    const card = buildCard(prompt, i * 25);
     container.appendChild(card);
   });
 
-  return filtered.length;
+  if (totalMatches > RENDER_CAP) {
+    const note = document.createElement('div');
+    note.className = 'render-cap-note';
+    note.textContent = `Showing first ${RENDER_CAP} of ${totalMatches} matches — narrow your search to see more specific results.`;
+    container.appendChild(note);
+  }
+
+  return totalMatches;
 }
 
 /* ---- Copy to Clipboard ---- */
@@ -360,22 +375,33 @@ async function initIndexPage() {
     showCategoryBrowse();
   }
 
-  /* --- Search handlers: typing always searches across all categories --- */
-  function handleSearch(val) {
-    if (searchInput) searchInput.value = val;
-    if (searchHero)  searchHero.value  = val;
-    if (val.trim()) {
-      showList('All', val);
-    } else {
-      showCategoryBrowse();
-    }
+  /* --- Search handlers: typing always searches across all categories.
+     Debounced so rapid typing on mobile doesn't trigger a full re-render
+     (and re-filter of 2000+ prompts) on every single keystroke. --- */
+  let searchDebounceTimer = null;
+
+  function handleSearch(val, sourceEl) {
+    // Only sync the OTHER input, never write back into the one being typed in —
+    // re-assigning .value on the focused element mid-keystroke is what was
+    // causing the jumpy/losing-focus feel on some mobile keyboards.
+    if (searchInput && searchInput !== sourceEl) searchInput.value = val;
+    if (searchHero && searchHero !== sourceEl) searchHero.value = val;
+
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+      if (val.trim()) {
+        showList('All', val);
+      } else {
+        showCategoryBrowse();
+      }
+    }, 150);
   }
 
   if (searchInput) {
-    searchInput.addEventListener('input', e => handleSearch(e.target.value));
+    searchInput.addEventListener('input', e => handleSearch(e.target.value, searchInput));
   }
   if (searchHero) {
-    searchHero.addEventListener('input', e => handleSearch(e.target.value));
+    searchHero.addEventListener('input', e => handleSearch(e.target.value, searchHero));
   }
 }
 
