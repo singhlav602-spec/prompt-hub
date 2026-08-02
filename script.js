@@ -264,6 +264,8 @@ async function initIndexPage() {
   const categoryGridEl  = document.getElementById('category-grid');
   const categoryTailEl  = document.getElementById('category-tail');
   const listHeader      = document.getElementById('list-header');
+  const promoBanner     = document.querySelector('.promo-banner');
+  const newsletterBar   = document.querySelector('.newsletter-bar');
   const backLink        = document.getElementById('back-to-categories');
 
   let activeCategory = 'All';
@@ -299,6 +301,9 @@ async function initIndexPage() {
     if (searchInput) searchInput.value = '';
     if (searchHero) searchHero.value = '';
     categoryBrowse.style.display = '';
+    if (statsBar) statsBar.style.display = '';
+    if (promoBanner) promoBanner.style.display = '';
+    if (newsletterBar) newsletterBar.style.display = '';
     listHeader.style.display = 'none';
     grid.style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -308,6 +313,12 @@ async function initIndexPage() {
     activeCategory = category;
     searchTerm = term || '';
     categoryBrowse.style.display = 'none';
+    // Hide everything between the hero and the results so results land
+    // right under the search box instead of way down the page.
+    if (statsBar) statsBar.style.display = 'none';
+    if (trendingSection) trendingSection.style.display = 'none';
+    if (promoBanner) promoBanner.style.display = 'none';
+    if (newsletterBar) newsletterBar.style.display = 'none';
     listHeader.style.display = 'flex';
     grid.style.display = '';
     const count = renderGrid(prompts, grid, searchTerm, activeCategory);
