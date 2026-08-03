@@ -588,106 +588,106 @@
     "prompt": "Act as an expert prompt engineer. Analyze the following prompt and improve it for better clarity and results: [PROMPT]."
   },
   {
-    "slug": "viral-twitter-thread-builder",
-    "title": "Viral Twitter Thread Builder",
+    "slug": "viral-twitter-thread-builder-alt",
+    "title": "Viral Twitter Thread Builder (Alt)",
     "category": "Twitter",
     "preview": "Create a high-engagement Twitter thread.",
     "prompt": "Act as a social media strategist. Write a 10-tweet Twitter thread about [TOPIC]. Start with a powerful hook, provide actionable insights in each tweet, and end with a call-to-action encouraging replies and retweets."
   },
   {
-    "slug": "content-research-assistant",
-    "title": "Content Research Assistant",
+    "slug": "content-research-assistant-alt",
+    "title": "Content Research Assistant (Alt)",
     "category": "Research",
     "preview": "Research a topic and organize key insights.",
     "prompt": "Act as a research analyst. Research the topic [TOPIC] and present the findings in structured sections including key concepts, important statistics, and practical insights."
   },
   {
-    "slug": "product-launch-marketing-plan",
-    "title": "Product Launch Marketing Plan",
+    "slug": "product-launch-marketing-plan-alt",
+    "title": "Product Launch Marketing Plan (Alt)",
     "category": "Marketing",
     "preview": "Create a marketing strategy for launching a product.",
     "prompt": "Act as a marketing strategist. Design a product launch plan for [PRODUCT]. Include pre-launch strategy, launch-day campaign, and post-launch promotion."
   },
   {
-    "slug": "freelance-client-outreach-email",
-    "title": "Freelance Client Outreach Email",
+    "slug": "freelance-client-outreach-email-alt",
+    "title": "Freelance Client Outreach Email (Alt)",
     "category": "Freelancing",
     "preview": "Write an email to approach potential freelance clients.",
     "prompt": "Act as an experienced freelancer. Write a professional outreach email offering [SERVICE] to potential clients in the industry [INDUSTRY]. Keep the message concise and persuasive."
   },
   {
-    "slug": "ux-user-persona-generator",
-    "title": "UX User Persona Generator",
+    "slug": "ux-user-persona-generator-alt",
+    "title": "UX User Persona Generator (Alt)",
     "category": "UX",
     "preview": "Create detailed user personas for product design.",
     "prompt": "Act as a UX researcher. Create 3 user personas for a product that helps with [PRODUCT PURPOSE]. Include demographics, goals, pain points, and behavior patterns."
   },
   {
-    "slug": "ui-design-improvement-review",
-    "title": "UI Design Improvement Review",
+    "slug": "ui-design-improvement-review-alt",
+    "title": "UI Design Improvement Review (Alt)",
     "category": "UI",
     "preview": "Analyze UI design and suggest improvements.",
     "prompt": "Act as a UI design expert. Review the following UI concept: [UI DESCRIPTION]. Identify usability issues and suggest improvements."
   },
   {
-    "slug": "seo-meta-description-writer",
-    "title": "SEO Meta Description Writer",
+    "slug": "seo-meta-description-writer-alt",
+    "title": "SEO Meta Description Writer (Alt)",
     "category": "SEO",
     "preview": "Write optimized meta descriptions.",
     "prompt": "Act as an SEO specialist. Write 10 meta descriptions for a page about [TOPIC]. Each description should be under 160 characters and optimized for click-through rate."
   },
   {
-    "slug": "productivity-morning-routine",
-    "title": "Productivity Morning Routine",
+    "slug": "productivity-morning-routine-alt",
+    "title": "Productivity Morning Routine (Alt)",
     "category": "Productivity",
     "preview": "Create an effective morning routine.",
     "prompt": "Act as a productivity coach. Design a morning routine that helps someone achieve [GOAL]. Include time blocks and habits."
   },
   {
-    "slug": "learning-roadmap-generator",
-    "title": "Learning Roadmap Generator",
+    "slug": "learning-roadmap-generator-alt",
+    "title": "Learning Roadmap Generator (Alt)",
     "category": "Learning",
     "preview": "Create a roadmap for learning a new skill.",
     "prompt": "Act as a learning strategist. Create a step-by-step roadmap for learning [SKILL]. Include milestones, resources, and projects."
   },
   {
-    "slug": "financial-goal-planner",
-    "title": "Financial Goal Planner",
+    "slug": "financial-goal-planner-alt",
+    "title": "Financial Goal Planner (Alt)",
     "category": "Finance",
     "preview": "Plan financial goals and milestones.",
     "prompt": "Act as a financial advisor. Create a financial plan for achieving the goal [FINANCIAL GOAL]. Include saving strategy and timeline."
   },
   {
-    "slug": "data-analysis-report-generator",
-    "title": "Data Analysis Report Generator",
+    "slug": "data-analysis-report-generator-alt",
+    "title": "Data Analysis Report Generator (Alt)",
     "category": "Data Analysis",
     "preview": "Create a structured report from data insights.",
     "prompt": "Act as a data analyst. Generate a structured report from the dataset described here: [DATA DESCRIPTION]. Include summary, insights, and recommendations."
   },
   {
-    "slug": "python-code-explainer",
-    "title": "Python Code Explainer",
+    "slug": "python-code-explainer-alt",
+    "title": "Python Code Explainer (Alt)",
     "category": "Python",
     "preview": "Explain Python code step by step.",
     "prompt": "Act as a Python instructor. Explain the following Python code line by line: [CODE]. Include the purpose of each section."
   },
   {
-    "slug": "javascript-project-idea-generator",
-    "title": "JavaScript Project Idea Generator",
+    "slug": "javascript-project-idea-generator-alt",
+    "title": "JavaScript Project Idea Generator (Alt)",
     "category": "JavaScript",
     "preview": "Generate JavaScript project ideas.",
     "prompt": "Act as a programming mentor. Generate 12 JavaScript project ideas for someone learning web development."
   },
   {
-    "slug": "web-app-mvp-planner",
-    "title": "Web App MVP Planner",
+    "slug": "web-app-mvp-planner-alt",
+    "title": "Web App MVP Planner (Alt)",
     "category": "Web Development",
     "preview": "Plan the MVP features of a web app.",
     "prompt": "Act as a startup product manager. Define the MVP features for a web application that does [APP IDEA]."
   },
   {
-    "slug": "prompt-debugger",
-    "title": "Prompt Debugger",
+    "slug": "prompt-debugger-alt",
+    "title": "Prompt Debugger (Alt)",
     "category": "Prompt Engineering",
     "preview": "Improve prompts that produce poor AI results.",
     "prompt": "Act as an expert prompt engineer. Analyze the following prompt and improve it for better clarity and results: [PROMPT]."
@@ -2486,15 +2486,15 @@
     "prompt": "Act as a professional logo designer. Create 5 logo design concepts for a brand called [BRAND NAME]. Include style, colors, and typography suggestions."
   },
   {
-    "slug": "product-photo-generator",
-    "title": "Product Photo Generator",
+    "slug": "product-photo-generator-alt",
+    "title": "Product Photo Generator (Alt)",
     "category": "Ecommerce",
     "preview": "Generate professional product photo concepts.",
     "prompt": "Generate a professional product photo concept for [PRODUCT]. Include background style, lighting setup, and camera angle."
   },
   {
-    "slug": "ai-wallpaper-generator",
-    "title": "AI Wallpaper Generator",
+    "slug": "ai-wallpaper-generator-alt",
+    "title": "AI Wallpaper Generator (Alt)",
     "category": "AI Art",
     "preview": "Generate high-resolution wallpapers.",
     "prompt": "Create a cinematic 4K wallpaper featuring [THEME]. Use dramatic lighting and vibrant colors."
@@ -2549,15 +2549,15 @@
     "prompt": "Act as a startup advisor. Create a complete business plan for [BUSINESS IDEA]. Include target market, revenue model, marketing strategy, and financial projections."
   },
   {
-    "slug": "python-code-generator",
-    "title": "Python Code Generator",
+    "slug": "python-code-generator-alt",
+    "title": "Python Code Generator (Alt)",
     "category": "Coding",
     "preview": "Generate clean Python code.",
     "prompt": "Act as a senior Python developer. Write clean, well documented Python code to accomplish the task: [TASK]. Include comments and example usage."
   },
   {
-    "slug": "sql-query-generator",
-    "title": "SQL Query Generator",
+    "slug": "sql-query-generator-alt",
+    "title": "SQL Query Generator (Alt)",
     "category": "Coding",
     "preview": "Generate optimized SQL queries.",
     "prompt": "Act as a database expert. Write an optimized SQL query to perform the following task: [TASK]. Explain the query logic."
@@ -2696,8 +2696,8 @@
     "prompt": "Write a cold email to introduce [PRODUCT/SERVICE] to potential clients."
   },
   {
-    "slug": "instagram-caption-generator",
-    "title": "Instagram Caption Generator",
+    "slug": "instagram-caption-generator-alt",
+    "title": "Instagram Caption Generator (Alt)",
     "category": "Social Media",
     "preview": "Create engaging captions.",
     "prompt": "Generate 10 engaging Instagram captions about [TOPIC]. Include emojis and hashtags."
@@ -2717,15 +2717,15 @@
     "prompt": "Generate 10 professional LinkedIn headlines for someone working as [JOB ROLE]."
   },
   {
-    "slug": "resume-summary-writer",
-    "title": "Resume Summary Writer",
+    "slug": "resume-summary-writer-alt",
+    "title": "Resume Summary Writer (Alt)",
     "category": "Career",
     "preview": "Generate resume summaries.",
     "prompt": "Write a professional resume summary for a candidate applying for [JOB ROLE]."
   },
   {
-    "slug": "cover-letter-generator",
-    "title": "Cover Letter Generator",
+    "slug": "cover-letter-generator-alt",
+    "title": "Cover Letter Generator (Alt)",
     "category": "Career",
     "preview": "Create job cover letters.",
     "prompt": "Write a professional cover letter for a job application for [JOB ROLE]."
@@ -2773,15 +2773,15 @@
     "prompt": "Write a high-converting Shopify product page description for [PRODUCT]."
   },
   {
-    "slug": "ad-copy-generator",
-    "title": "Ad Copy Generator",
+    "slug": "ad-copy-generator-alt",
+    "title": "Ad Copy Generator (Alt)",
     "category": "Marketing",
     "preview": "Generate advertising copy.",
     "prompt": "Write 5 Facebook ad copy variations for promoting [PRODUCT]."
   },
   {
-    "slug": "facebook-post-generator",
-    "title": "Facebook Post Generator",
+    "slug": "facebook-post-generator-alt",
+    "title": "Facebook Post Generator (Alt)",
     "category": "Social Media",
     "preview": "Create Facebook content.",
     "prompt": "Write 5 engaging Facebook posts about [TOPIC]."
@@ -3125,8 +3125,8 @@
     "prompt": "Generate 20 YouTube Shorts ideas about [TOPIC]."
   },
   {
-    "slug": "ai-caption-generator",
-    "title": "Caption Generator",
+    "slug": "caption-generator-alt",
+    "title": "Caption Generator (Alt)",
     "category": "Social Media",
     "preview": "Generate captions.",
     "prompt": "Write 10 engaging captions about [TOPIC]."

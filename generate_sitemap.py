@@ -9,7 +9,7 @@ Usage:  python3 generate_sitemap.py
 import json
 import datetime
 
-DOMAIN = "https://prompt-hub-3t3.pages.dev"
+DOMAIN = "https://smart-prompt.in"
 TODAY = datetime.date.today().isoformat()
 
 with open("prompts.json", encoding="utf-8") as f:

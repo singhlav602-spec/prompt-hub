@@ -470,7 +470,7 @@ async function initPromptPage() {
   /* --- Set unique meta description, OG tags & canonical (critical for search CTR) --- */
   const pageDescription = (prompt.preview || prompt.prompt.slice(0, 140))
     + ` Free ${prompt.category} prompt — copy & use instantly.`;
-  const pageUrl = `https://prompt-hub-3t3.pages.dev/prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  const pageUrl = `https://smart-prompt.in/prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
 
   const metaDesc = document.getElementById('meta-description');
   if (metaDesc) metaDesc.setAttribute('content', pageDescription);
@@ -511,8 +511,8 @@ async function initPromptPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://prompt-hub-3t3.pages.dev/" },
-      { "@type": "ListItem", "position": 2, "name": prompt.category, "item": "https://prompt-hub-3t3.pages.dev/index.html#category-browse" },
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
+      { "@type": "ListItem", "position": 2, "name": prompt.category, "item": "https://smart-prompt.in/index.html#category-browse" },
       { "@type": "ListItem", "position": 3, "name": prompt.title, "item": pageUrl }
     ]
   };
