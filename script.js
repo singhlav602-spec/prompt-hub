@@ -9,7 +9,7 @@ let _promptsCache = null;
 async function fetchPrompts() {
   if (_promptsCache) return _promptsCache;
   try {
-    const res = await fetch('/api/prompts');
+    const res = await fetch('./prompts.json');
     if (!res.ok) throw new Error('Failed to load prompts.json');
     _promptsCache = await res.json();
     return _promptsCache;

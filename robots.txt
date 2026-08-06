@@ -1,6 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /admin.html
-Disallow: /api/admin/
 
 Sitemap: https://smart-prompt.in/sitemap.xml
