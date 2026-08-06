@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Admin — SmartPrompts</title>
+<style>
+  :root {
+    --bg: #0e0e10; --card: #16161a; --border: #2a2a32; --accent: #7c6cf0;
+    --accent-2: #4f7df5; --text: #e8e6df; --muted: #8a8894; --danger: #e0555f;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family: -apple-system, 'DM Sans', sans-serif; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  h1 { font-size: 1.4rem; margin: 0 0 1.2rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  input, textarea, select {
+    width: 100%; background: #1c1c22; border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.92rem; font-family: inherit; margin-top: 0.3rem;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  label { font-size: 0.78rem; color: var(--muted); display:block; margin-top: 0.7rem; }
+  label:first-child { margin-top: 0; }
+  button {
+    background: linear-gradient(120deg, var(--accent-2), var(--accent)); color: #fff; border: none;
+    border-radius: 8px; padding: 0.6rem 1.1rem; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+  }
+  button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  button.danger { background: var(--danger); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .row { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; }
+  .top-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+  .prompt-item { border-bottom: 1px solid var(--border); padding: 0.8rem 0; display:flex; justify-content:space-between; gap:0.75rem; align-items:flex-start; }
+  .prompt-item:last-child { border-bottom:none; }
+  .prompt-item .meta { font-size: 0.72rem; color: var(--muted); font-family: monospace; }
+  .prompt-item .title { font-weight:600; }
+  .msg { font-size: 0.82rem; padding: 0.5rem 0.75rem; border-radius: 6px; margin-top: 0.6rem; }
+  .msg.error { background: rgba(224,85,95,0.15); color: #f28a92; }
+  .msg.ok { background: rgba(124,108,240,0.15); color: #b3a8f5; }
+  .hidden { display:none !important; }
+  .ai-box { border: 1px dashed var(--accent); border-radius: 10px; padding: 0.9rem; margin-bottom: 1rem; }
+  .pager { display:flex; gap:0.5rem; justify-content:center; margin-top: 1rem; }
+  .stat { font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SmartPrompts — Admin</h1>
+
+  <!-- ===== LOGIN ===== -->
+  <div id="login-view" class="card hidden">
+    <label>Password</label>
+    <input type="password" id="login-password" placeholder="Admin password" />
+    <div class="row" style="margin-top:0.9rem;">
+      <button id="login-btn">Log in</button>
+    </div>
+    <div id="login-msg"></div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="dashboard-view" class="hidden">
+    <div class="top-row">
+      <span class="stat" id="total-stat">—</span>
+      <div class="row">
+        <button class="secondary" id="import-btn">Import existing prompts (one-time)</button>
+        <button class="secondary" id="logout-btn">Log out</button>
+      </div>
+    </div>
+    <div id="import-msg"></div>
+
+    <div class="card ai-box">
+      <label>✨ Generate a prompt with AI (Gemini) — describe a topic</label>
+      <input type="text" id="ai-topic" placeholder="e.g. Instagram caption for a coffee shop" />
+      <label>Category (optional — AI will pick one if blank)</label>
+      <input type="text" id="ai-category" placeholder="e.g. Social Media" />
+      <div class="row" style="margin-top:0.7rem;">
+        <button id="ai-generate-btn">Generate with AI</button>
+      </div>
+      <div id="ai-msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <strong id="form-heading">Add new prompt</strong>
+        <button class="secondary hidden" id="cancel-edit-btn">Cancel edit</button>
+      </div>
+      <input type="hidden" id="edit-id" />
+      <label>Title</label>
+      <input type="text" id="f-title" />
+      <label>Category</label>
+      <input type="text" id="f-category" />
+      <label>Preview (one line)</label>
+      <input type="text" id="f-preview" />
+      <label>Prompt text</label>
+      <textarea id="f-prompt"></textarea>
+      <div class="row" style="margin-top:0.9rem;">
+        <button id="save-btn">Save prompt</button>
+      </div>
+      <div id="save-msg"></div>
+    </div>
+
+    <div class="card">
+      <label>Search existing prompts</label>
+      <input type="text" id="search-input" placeholder="Search by title or content…" />
+      <div id="list-container" style="margin-top:0.8rem;"></div>
+      <div class="pager">
+        <button class="secondary" id="prev-page">← Prev</button>
+        <span class="stat" id="page-label" style="align-self:center;"></span>
+        <button class="secondary" id="next-page">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentPage = 1;
+let currentSearch = '';
+let editingId = null;
+
+function showMsg(el, text, type) {
+  el.innerHTML = text ? `<div class="msg ${type}">${text}</div>` : '';
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+  return { res, data: await res.json().catch(() => ({})) };
+}
+
+async function checkAuth() {
+  const { res } = await api('/api/admin/prompts?page=1');
+  if (res.status === 401) {
+    document.getElementById('login-view').classList.remove('hidden');
+    document.getElementById('dashboard-view').classList.add('hidden');
+  } else {
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('dashboard-view').classList.remove('hidden');
+    loadList();
+  }
+}
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const password = document.getElementById('login-password').value;
+  const msg = document.getElementById('login-msg');
+  const { res, data } = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password }) });
+  if (res.ok) { showMsg(msg, '', ''); checkAuth(); }
+  else showMsg(msg, data.error || 'Login failed', 'error');
+});
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await api('/api/admin/login', { method: 'DELETE' });
+  checkAuth();
+});
+
+document.getElementById('import-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('import-btn');
+  const msg = document.getElementById('import-msg');
+  if (!confirm('This imports all prompts from prompts.json into the database. Only needs to run once. Continue?')) return;
+  btn.disabled = true; btn.textContent = 'Importing… this can take a minute';
+  const { res, data } = await api('/api/admin/seed', { method: 'POST' });
+  btn.disabled = false; btn.textContent = 'Import existing prompts (one-time)';
+  if (res.ok) {
+    showMsg(msg, data.skipped ? data.message : `Imported ${data.imported} prompts successfully.`, 'ok');
+    loadList();
+  } else {
+    showMsg(msg, data.error || 'Import failed', 'error');
+  }
+});
+
+function escapeHtml(s) {
+  const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+}
+
+async function loadList() {
+  const { data } = await api(`/api/admin/prompts?page=${currentPage}&search=${encodeURIComponent(currentSearch)}`);
+  const container = document.getElementById('list-container');
+  document.getElementById('total-stat').textContent = `${data.total || 0} prompts total`;
+  document.getElementById('page-label').textContent = `Page ${data.page || 1}`;
+
+  if (!data.results || data.results.length === 0) {
+    container.innerHTML = '<p class="stat">No prompts found.</p>';
+    return;
+  }
+
+  container.innerHTML = data.results.map(p => `
+    <div class="prompt-item">
+      <div>
+        <div class="title">${escapeHtml(p.title)}</div>
+        <div class="meta">${escapeHtml(p.category)} · ${escapeHtml(p.slug)}</div>
+      </div>
+      <div class="row">
+        <button class="secondary" onclick="editPrompt(${p.id})">Edit</button>
+        <button class="danger" onclick="deletePrompt(${p.id}, '${escapeHtml(p.title).replace(/'/g, "\\'")}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+
+  window.__promptCache = data.results;
+}
+
+window.editPrompt = function(id) {
+  const p = (window.__promptCache || []).find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('f-title').value = p.title;
+  document.getElementById('f-category').value = p.category;
+  document.getElementById('f-preview').value = p.preview || '';
+  document.getElementById('f-prompt').value = p.prompt;
+  document.getElementById('form-heading').textContent = 'Edit prompt';
+  document.getElementById('cancel-edit-btn').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+document.getElementById('cancel-edit-btn').addEventListener('click', resetForm);
+
+function resetForm() {
+  editingId = null;
+  document.getElementById('edit-id').value = '';
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-category').value = '';
+  document.getElementById('f-preview').value = '';
+  document.getElementById('f-prompt').value = '';
+  document.getElementById('form-heading').textContent = 'Add new prompt';
+  document.getElementById('cancel-edit-btn').classList.add('hidden');
+}
+
+window.deletePrompt = async function(id, title) {
+  if (!confirm(`Delete "${title}"? This can't be undone.`)) return;
+  await api(`/api/admin/prompts?id=${id}`, { method: 'DELETE' });
+  loadList();
+};
+
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const msg = document.getElementById('save-msg');
+  const body = {
+    title: document.getElementById('f-title').value.trim(),
+    category: document.getElementById('f-category').value.trim(),
+    preview: document.getElementById('f-preview').value.trim(),
+    prompt: document.getElementById('f-prompt').value.trim(),
+  };
+  if (!body.title || !body.category || !body.prompt) {
+    showMsg(msg, 'Title, category, and prompt are required.', 'error');
+    return;
+  }
+  const url = editingId ? `/api/admin/prompts?id=${editingId}` : '/api/admin/prompts';
+  const method = editingId ? 'PUT' : 'POST';
+  const { res, data } = await api(url, { method, body: JSON.stringify(body) });
+  if (res.ok) {
+    showMsg(msg, `Saved (slug: ${data.slug})`, 'ok');
+    resetForm();
+    loadList();
+  } else {
+    showMsg(msg, data.error || 'Save failed', 'error');
+  }
+});
+
+document.getElementById('ai-generate-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('ai-generate-btn');
+  const msg = document.getElementById('ai-msg');
+  const topic = document.getElementById('ai-topic').value.trim();
+  const category = document.getElementById('ai-category').value.trim();
+  if (!topic) { showMsg(msg, 'Enter a topic first.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Generating…';
+  const { res, data } = await api('/api/admin/generate', { method: 'POST', body: JSON.stringify({ topic, category }) });
+  btn.disabled = false; btn.textContent = 'Generate with AI';
+  if (res.ok && data.draft) {
+    document.getElementById('f-title').value = data.draft.title || '';
+    document.getElementById('f-category').value = data.draft.category || category || '';
+    document.getElementById('f-preview').value = data.draft.preview || '';
+    document.getElementById('f-prompt').value = data.draft.prompt || '';
+    showMsg(msg, 'Draft filled in below — review and edit before saving.', 'ok');
+    document.getElementById('form-heading').scrollIntoView({ behavior: 'smooth' });
+  } else {
+    showMsg(msg, data.error || 'AI generation failed', 'error');
+  }
+});
+
+let searchDebounce;
+document.getElementById('search-input').addEventListener('input', (e) => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    currentSearch = e.target.value;
+    currentPage = 1;
+    loadList();
+  }, 300);
+});
+
+document.getElementById('prev-page').addEventListener('click', () => {
+  if (currentPage > 1) { currentPage--; loadList(); }
+});
+document.getElementById('next-page').addEventListener('click', () => {
+  currentPage++; loadList();
+});
+
+checkAuth();
+</script>
+</body>
+</html>
