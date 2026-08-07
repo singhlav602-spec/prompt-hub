@@ -184,22 +184,6 @@ async function initIndexPage() {
 
   const prompts = await fetchPrompts();
 
-  /* --- Trending flag isn't stored in the D1 database (only in the old
-     prompts.json), so re-apply it here from a fixed list of slugs — this
-     is what makes the trending strip below show up again. --- */
-  const TRENDING_SLUGS = new Set([
-    'lesson-plan-generator', 'universal-story-generator', 'story-to-image-motion-scenes',
-    'notebooklm-short-notes-generator', 'notebooklm-long-notes-generator', 'notebooklm-mindmap-generator',
-    'notebooklm-important-points', 'notebooklm-definition-generator', 'notebooklm-question-answer-generator',
-    'notebooklm-concept-explainer', 'ai-story-writer', 'ai-story-plot-generator',
-    'fantasy-world-story-builder', 'character-development-profile-generator', 'story-dialogue-writer',
-    'bedtime-story-generator', 'plot-twist-generator', 'genre-story-generator',
-    'story-continuation-writer', 'moral-story-generator', 'micro-fiction-generator',
-    'screenplay-scene-writer', 'poetry-generator', 'blog-post-outline-generator',
-    'swot-analysis-generator', 'instagram-reel-script-generator', 'mystery-plot-generator',
-  ]);
-  prompts.forEach(p => { if (TRENDING_SLUGS.has(p.slug)) p.trending = true; });
-
   /* --- Hero badge: real prompt count, rounded down for a clean honest figure --- */
   const heroBadge = document.getElementById('hero-badge');
   if (heroBadge) {
@@ -257,6 +241,9 @@ async function initIndexPage() {
       }
     });
   }
+
+  /* --- Featured blog banner: only shown within 24h of the newest post's publish time --- */
+  initFeaturedBlogBanner();
 
   /* --- Newsletter form (UI only — not yet connected to an email service) --- */
   const newsletterForm = document.getElementById('newsletter-form');
@@ -723,6 +710,194 @@ async function initPromptPage() {
   }
 }
 
+/* ============================================================
+   BLOG
+   ============================================================ */
+let _blogCache = null;
+
+async function fetchBlogPosts() {
+  if (_blogCache) return _blogCache;
+  try {
+    const res = await fetch('/api/blog');
+    if (!res.ok) throw new Error('Failed to load blog posts');
+    _blogCache = await res.json();
+    return _blogCache;
+  } catch (err) {
+    console.error('Error loading blog posts:', err);
+    return [];
+  }
+}
+
+function formatBlogDate(iso) {
+  try {
+    return new Date(iso + 'Z').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
+/* Converts already-escaped text into paragraphs on blank lines. */
+function textToParagraphs(escapedText) {
+  return escapedText
+    .split(/\n\s*\n/)
+    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+/* --- Homepage "new post" banner — only visible within 24h of the newest post's publish time --- */
+async function initFeaturedBlogBanner() {
+  const banner = document.getElementById('featured-blog-banner');
+  if (!banner) return;
+
+  const posts = await fetchBlogPosts();
+  if (!posts.length) return;
+
+  const newest = posts[0]; // /api/blog already orders by published_at DESC
+  const publishedMs = new Date(newest.published_at + 'Z').getTime();
+  const ageMs = Date.now() - publishedMs;
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  if (isNaN(publishedMs) || ageMs >= DAY_MS || ageMs < 0) return; // older than 24h (or bad date) — stays hidden, lives only in the blog list
+
+  document.getElementById('featured-blog-banner-title').textContent = newest.title;
+  document.getElementById('featured-blog-banner-link').href = `blog-post.html?slug=${encodeURIComponent(newest.slug)}`;
+  banner.classList.add('show');
+}
+
+/* --- Blog list page (blog.html) --- */
+async function initBlogListPage() {
+  const grid = document.getElementById('blog-grid');
+  if (!grid) return;
+
+  const posts = await fetchBlogPosts();
+  const emptyState = document.getElementById('blog-empty-state');
+
+  if (!posts.length) {
+    grid.style.display = 'none';
+    if (emptyState) emptyState.style.display = '';
+    return;
+  }
+
+  grid.innerHTML = posts.map(p => `
+    <a class="prompt-card animate-fade-up" href="blog-post.html?slug=${encodeURIComponent(p.slug)}">
+      <span class="card-date">${escapeHtml(formatBlogDate(p.published_at))}</span>
+      <div class="card-title">${escapeHtml(p.title)}</div>
+      <div class="card-preview blog-excerpt">${escapeHtml(p.excerpt || p.content.slice(0, 140) + '…')}</div>
+      <div class="card-footer">
+        <span class="card-open-btn">
+          Read post
+          <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </span>
+      </div>
+    </a>
+  `).join('');
+}
+
+/* --- Blog post detail page (blog-post.html) --- */
+async function initBlogPostPage() {
+  const detail = document.getElementById('blog-post-detail');
+  if (!detail) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
+  const posts = await fetchBlogPosts();
+  const post = slug ? posts.find(p => p.slug === slug) : null;
+
+  if (!post) {
+    detail.innerHTML = `
+      <div class="error-page animate-fade-up">
+        <div class="error-code">404</div>
+        <h2>Post Not Found</h2>
+        <p>We couldn't find that blog post.</p>
+        <a href="blog.html" class="btn-home">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Back to Blog
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  document.title = `${post.title} — SmartPrompts Blog`;
+  const metaDesc = document.getElementById('meta-description');
+  if (metaDesc) metaDesc.setAttribute('content', post.excerpt || post.title);
+  const canonical = document.getElementById('canonical-link');
+  if (canonical) canonical.href = `https://smart-prompt.in/blog-post.html?slug=${encodeURIComponent(post.slug)}`;
+
+  detail.innerHTML = `
+    <a href="blog.html" class="back-link animate-fade-up">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      All Posts
+    </a>
+    <h1 class="prompt-page-title animate-fade-up">${escapeHtml(post.title)}</h1>
+    <div class="blog-post-date animate-fade-up">${escapeHtml(formatBlogDate(post.published_at))}</div>
+    <div class="prompt-page-divider"></div>
+    <div class="blog-post-body animate-fade-up">${textToParagraphs(escapeHtml(post.content))}</div>
+  `;
+}
+
+/* ============================================================
+   SUBMIT PROMPT PAGE (submit.html)
+   ============================================================ */
+function initSubmitPage() {
+  const form = document.getElementById('submit-form');
+  if (!form) return;
+
+  const msg = document.getElementById('submit-msg');
+  const submitBtn = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      title: document.getElementById('s-title').value.trim(),
+      category: document.getElementById('s-category').value.trim(),
+      preview: document.getElementById('s-preview').value.trim(),
+      prompt: document.getElementById('s-prompt').value.trim(),
+      submitter_name: document.getElementById('s-name').value.trim(),
+      submitter_email: document.getElementById('s-email').value.trim(),
+      website: document.getElementById('s-website').value.trim(), // honeypot
+    };
+
+    if (!body.title || !body.category || !body.prompt) {
+      msg.textContent = 'Please fill in title, category, and prompt text.';
+      msg.style.color = '#e0555f';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        form.reset();
+        form.style.display = 'none';
+        msg.textContent = "Thanks! Your prompt has been submitted for review — we'll publish it once it's approved.";
+        msg.style.color = 'var(--accent)';
+      } else {
+        msg.textContent = data.error || 'Something went wrong — please try again.';
+        msg.style.color = '#e0555f';
+      }
+    } catch {
+      msg.textContent = 'Network error — please try again.';
+      msg.style.color = '#e0555f';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit for Review';
+    }
+  });
+}
+
 /* ---- Theme toggle (shared across index.html and prompt.html) ---- */
 function initThemeToggle() {
   const btn = document.getElementById('theme-toggle');
@@ -744,4 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
   initIndexPage();
   initPromptPage();
+  initBlogListPage();
+  initBlogPostPage();
+  initSubmitPage();
 });

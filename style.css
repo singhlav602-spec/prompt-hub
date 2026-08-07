@@ -8,11 +8,6 @@
 /* ---- Reset & Base ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
 :root {
   --bg:         #0e0e10;
   --bg-card:    #16161a;
@@ -256,7 +251,8 @@ body::before {
   margin: 0 auto;
   position: relative;
   background-image:
-    linear-gradient(180deg, rgba(14,14,16,0.15) 0%, rgba(14,14,16,0.8) 100%),
+    linear-gradient(180deg, rgba(14,14,16,0.55) 0%, var(--bg) 92%),
+    linear-gradient(90deg, var(--bg) 0%, rgba(14,14,16,0.35) 55%, transparent 100%),
     url('images/hero-banner.jpg');
   background-size: cover;
   background-position: center;
@@ -271,7 +267,8 @@ body::before {
 
 :root[data-theme="light"] .hero {
   background-image:
-    linear-gradient(180deg, rgba(250,249,245,0.15) 0%, rgba(250,249,245,0.85) 100%),
+    linear-gradient(180deg, rgba(250,249,245,0.55) 0%, var(--bg) 92%),
+    linear-gradient(90deg, var(--bg) 0%, rgba(250,249,245,0.45) 55%, transparent 100%),
     url('images/hero-banner.jpg');
 }
 
@@ -1712,4 +1709,141 @@ body::before {
   .filter-btn { font-size: 0.78rem; padding: 0.35rem 0.85rem; }
   .site-stats { grid-template-columns: 1fr 1fr; }
   .header-actions { gap: 0.4rem; }
+}
+
+/* ============================================
+   BLOG, ABOUT, SUBMIT — shared additions
+   ============================================ */
+
+/* Generic content page (About) reuses .prompt-page-wrap but needs simple
+   paragraph spacing without the prompt-specific boxes. */
+.simple-page .info-text { margin-bottom: 0.9rem; }
+.simple-page .info-text:last-child { margin-bottom: 0; }
+
+/* Blog card badge (date instead of category-tag color) */
+.card-date {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.blog-excerpt {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.blog-post-body {
+  font-size: 0.98rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+.blog-post-body p { margin: 0 0 1.1rem; }
+.blog-post-body p:last-child { margin-bottom: 0; }
+
+.blog-post-date {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+/* Featured "new post" banner on the homepage — only shown for 24h */
+.featured-blog-banner {
+  display: none;
+  max-width: var(--max-w);
+  margin: 0 auto 1.75rem;
+  padding: 0 2rem;
+}
+.featured-blog-banner.show { display: block; }
+.featured-blog-banner-inner {
+  background: linear-gradient(120deg, var(--accent-dim), var(--accent));
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  color: #fff;
+  text-decoration: none;
+}
+.featured-blog-banner-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(255,255,255,0.18);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.featured-blog-banner-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  flex: 1;
+  min-width: 200px;
+}
+.featured-blog-banner-cta {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Public forms (Submit Prompt) */
+.site-form-card {
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+}
+.site-form-card label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 1rem;
+  margin-bottom: 0.35rem;
+}
+.site-form-card label:first-child { margin-top: 0; }
+.site-form-card input,
+.site-form-card textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.site-form-card input:focus,
+.site-form-card textarea:focus { border-color: var(--accent); }
+.site-form-card textarea { min-height: 150px; resize: vertical; }
+.site-form-card .btn-submit {
+  margin-top: 1.3rem;
+  background: linear-gradient(120deg, var(--accent-2), var(--accent));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.site-form-card .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+.site-form-card .form-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+.honeypot-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+@media (max-width: 720px) {
+  .featured-blog-banner { padding: 0 1.25rem; }
 }

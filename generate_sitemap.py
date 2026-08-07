@@ -26,13 +26,36 @@ for p in prompts:
 
 urls = []
 
-# Homepage
+# Homepage + static pages
 urls.append({
     "loc": f"{DOMAIN}/",
     "lastmod": TODAY,
     "changefreq": "daily",
     "priority": "1.0",
 })
+urls.append({
+    "loc": f"{DOMAIN}/blog.html",
+    "lastmod": TODAY,
+    "changefreq": "daily",
+    "priority": "0.8",
+})
+urls.append({
+    "loc": f"{DOMAIN}/about.html",
+    "lastmod": TODAY,
+    "changefreq": "monthly",
+    "priority": "0.4",
+})
+urls.append({
+    "loc": f"{DOMAIN}/submit.html",
+    "lastmod": TODAY,
+    "changefreq": "monthly",
+    "priority": "0.4",
+})
+
+# NOTE: blog posts themselves aren't in this list — they live in the D1
+# `blog_posts` table now, not a static file, so this script can't see them.
+# Same gap already exists for prompts added via the admin panel (see the
+# prompts loop below, which still reads the static prompts.json snapshot).
 
 # One entry per unique prompt
 for p in unique_prompts:

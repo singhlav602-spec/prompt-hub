@@ -3,14 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prompt — SmartPrompts</title>
-  <meta id="meta-description" name="description" content="View and copy this AI prompt from SmartPrompts." />
+  <title>Submit a Prompt — SmartPrompts</title>
+  <meta name="description" content="Share your own AI prompt with the SmartPrompts community. Every submission is reviewed before it goes live." />
   <meta name="robots" content="index, follow" />
-  <meta property="og:type" content="article" />
-  <meta id="meta-og-title" property="og:title" content="Prompt — SmartPrompts" />
-  <meta id="meta-og-description" property="og:description" content="View and copy this AI prompt from SmartPrompts." />
-  <meta id="meta-og-url" property="og:url" content="https://smart-prompt.in/prompt.html" />
-  <link id="canonical-link" rel="canonical" href="https://smart-prompt.in/prompt.html" />
+  <link rel="canonical" href="https://smart-prompt.in/submit.html" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -30,11 +26,11 @@
     <div class="header-inner">
       <a href="index.html" class="site-logo">
         <svg class="site-logo-mark" width="30" height="30" viewBox="0 0 32 32" fill="none">
-          <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#logoGrad2)"/>
+          <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#logoGradSubmit)"/>
           <path d="M11 21.5L16 10.5L21 21.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13 17.5H19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
           <defs>
-            <linearGradient id="logoGrad2" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+            <linearGradient id="logoGradSubmit" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stop-color="#4f7df5"/>
               <stop offset="100%" stop-color="#c15ce8"/>
             </linearGradient>
@@ -49,9 +45,8 @@
       <nav class="site-nav">
         <a href="index.html" class="site-nav-link">Home</a>
         <a href="index.html#category-browse" class="site-nav-link">Categories</a>
-        <a href="index.html#trending-section" class="site-nav-link">Trending</a>
         <a href="blog.html" class="site-nav-link">Blog</a>
-        <a href="submit.html" class="site-nav-link">Submit Prompt</a>
+        <a href="submit.html" class="site-nav-link active">Submit Prompt</a>
         <a href="about.html" class="site-nav-link">About</a>
       </nav>
 
@@ -71,19 +66,46 @@
     </div>
   </header>
 
-  <!-- ======= PROMPT DETAIL (populated by JS) ======= -->
-  <main id="prompt-detail">
-    <!-- Loading state -->
-    <div class="prompt-page-wrap">
-      <div class="skeleton" style="height:14px;width:100px;margin-bottom:2.5rem;border-radius:4px;"></div>
-      <div class="skeleton" style="height:22px;width:80px;margin-bottom:1.2rem;border-radius:4px;"></div>
-      <div class="skeleton" style="height:48px;width:80%;margin-bottom:0.5rem;border-radius:6px;"></div>
-      <div class="skeleton" style="height:2px;width:48px;margin:1.75rem 0;"></div>
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.75rem;">
-        <div class="skeleton" style="height:12px;width:60px;margin-bottom:1rem;border-radius:3px;"></div>
-        <div class="skeleton" style="height:140px;border-radius:6px;"></div>
-      </div>
-      <div class="skeleton" style="height:42px;width:140px;margin-top:1.25rem;border-radius:6px;"></div>
+  <main class="prompt-page-wrap simple-page">
+    <a href="index.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to Library
+    </a>
+
+    <h1 class="prompt-page-title">Submit a Prompt</h1>
+    <p class="info-text" style="margin-bottom:1.75rem;">Got a prompt you use all the time? Share it with the community. Every submission is reviewed by hand before it's published — you'll see it live once it's approved.</p>
+
+    <div class="site-form-card">
+      <form id="submit-form">
+        <label for="s-title">Title</label>
+        <input type="text" id="s-title" placeholder="e.g. Weekly Meal Plan Generator" required maxlength="200" />
+
+        <label for="s-category">Category</label>
+        <input type="text" id="s-category" placeholder="e.g. Productivity, Business, Coding…" required maxlength="60" />
+
+        <label for="s-preview">Preview (one line — optional)</label>
+        <input type="text" id="s-preview" placeholder="A short line describing what it does" maxlength="400" />
+
+        <label for="s-prompt">Prompt text</label>
+        <textarea id="s-prompt" placeholder="Write your prompt here. Use [PLACEHOLDER] for anything the user should fill in." required maxlength="8000"></textarea>
+
+        <label for="s-name">Your name (optional)</label>
+        <input type="text" id="s-name" placeholder="How should we credit you?" maxlength="100" />
+
+        <label for="s-email">Your email (optional, not published)</label>
+        <input type="email" id="s-email" placeholder="In case we have questions" maxlength="200" />
+
+        <!-- Honeypot — hidden from real visitors, bots often fill every field -->
+        <div class="honeypot-field" aria-hidden="true">
+          <label for="s-website">Website</label>
+          <input type="text" id="s-website" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <button type="submit" class="btn-submit" id="submit-btn">Submit for Review</button>
+        <div class="form-hint" id="submit-msg"></div>
+      </form>
     </div>
   </main>
 
