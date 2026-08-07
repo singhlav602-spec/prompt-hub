@@ -184,6 +184,22 @@ async function initIndexPage() {
 
   const prompts = await fetchPrompts();
 
+  /* --- Trending flag isn't stored in the D1 database (only in the old
+     prompts.json), so re-apply it here from a fixed list of slugs — this
+     is what makes the trending strip below show up again. --- */
+  const TRENDING_SLUGS = new Set([
+    'lesson-plan-generator', 'universal-story-generator', 'story-to-image-motion-scenes',
+    'notebooklm-short-notes-generator', 'notebooklm-long-notes-generator', 'notebooklm-mindmap-generator',
+    'notebooklm-important-points', 'notebooklm-definition-generator', 'notebooklm-question-answer-generator',
+    'notebooklm-concept-explainer', 'ai-story-writer', 'ai-story-plot-generator',
+    'fantasy-world-story-builder', 'character-development-profile-generator', 'story-dialogue-writer',
+    'bedtime-story-generator', 'plot-twist-generator', 'genre-story-generator',
+    'story-continuation-writer', 'moral-story-generator', 'micro-fiction-generator',
+    'screenplay-scene-writer', 'poetry-generator', 'blog-post-outline-generator',
+    'swot-analysis-generator', 'instagram-reel-script-generator', 'mystery-plot-generator',
+  ]);
+  prompts.forEach(p => { if (TRENDING_SLUGS.has(p.slug)) p.trending = true; });
+
   /* --- Hero badge: real prompt count, rounded down for a clean honest figure --- */
   const heroBadge = document.getElementById('hero-badge');
   if (heroBadge) {
