@@ -163,7 +163,7 @@ document.getElementById('import-btn').addEventListener('click', async () => {
     showMsg(msg, data.skipped ? data.message : `Imported ${data.imported} prompts successfully.`, 'ok');
     loadList();
   } else {
-    showMsg(msg, data.error || 'Import failed', 'error');
+    showMsg(msg, (data.error || 'Import failed') + (data.detail ? `: ${data.detail}` : ''), 'error');
   }
 });
 
