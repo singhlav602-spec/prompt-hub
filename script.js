@@ -792,12 +792,32 @@ function formatBlogDate(iso) {
 }
 
 /* Applies simple markdown-style inline formatting to an already-escaped line:
-   **bold**, *italic* (or _italic_). */
+   **bold**, *italic* (or _italic_), [link text](url), and bare URLs typed
+   directly (auto-linked). */
 function applyInlineFormatting(line) {
-  return line
+  // Markdown-style links are pulled out into placeholders first, so the
+  // bare-URL auto-linker below doesn't also try to wrap the same URL again.
+  const linkStash = [];
+  let out = line.replace(/\[([^\[\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, text, url) => {
+    linkStash.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`);
+    return `\u0000LINK${linkStash.length - 1}\u0000`;
+  });
+
+  out = out
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/_(.+?)_/g, '<em>$1</em>');
+
+  // Auto-link any plain https://... URL typed straight into the text.
+  out = out.replace(/(https?:\/\/[^\s<]+)/g, url => {
+    const trailingPunct = url.match(/[).,!?;:]+$/);
+    const clean = trailingPunct ? url.slice(0, -trailingPunct[0].length) : url;
+    const tail = trailingPunct ? trailingPunct[0] : '';
+    return `<a href="${clean}" target="_blank" rel="noopener noreferrer">${clean}</a>${tail}`;
+  });
+
+  out = out.replace(/\u0000LINK(\d+)\u0000/g, (m, i) => linkStash[Number(i)]);
+  return out;
 }
 
 /* Converts already-escaped text into HTML. Blank lines start new paragraphs;

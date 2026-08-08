@@ -2017,6 +2017,13 @@ body::before {
 .blog-post-body h2:first-child, .blog-post-body h3:first-child { margin-top: 0; }
 .blog-post-body h2 { font-size: 1.4rem; }
 .blog-post-body h3 { font-size: 1.15rem; }
+.blog-post-body a {
+  color: var(--accent-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+.blog-post-body a:hover { color: var(--accent); }
 
 .blog-post-date {
   font-family: var(--font-mono);

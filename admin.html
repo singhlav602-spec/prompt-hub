@@ -159,8 +159,9 @@
           <button type="button" class="secondary" id="fmt-italic" title="Italic"><i>I</i></button>
           <button type="button" class="secondary" id="fmt-h2" title="Big heading">H2</button>
           <button type="button" class="secondary" id="fmt-h3" title="Smaller heading">H3</button>
+          <button type="button" class="secondary" id="fmt-link" title="Link">🔗 Link</button>
         </div>
-        <textarea id="blog-content" class="tall" placeholder="Blank lines become new paragraphs. Select text and use the buttons above for bold/italic/headings — or type **bold**, *italic*, ## Heading yourself."></textarea>
+        <textarea id="blog-content" class="tall" placeholder="Blank lines become new paragraphs. Select text and use the buttons above for bold/italic/headings/links — or type **bold**, *italic*, ## Heading, [link text](https://...) yourself. Plain https:// URLs get auto-linked too."></textarea>
         <div class="checkbox-row">
           <input type="checkbox" id="blog-show-home" checked />
           <label for="blog-show-home">Show on homepage banner for the first 24 hours</label>
@@ -483,6 +484,11 @@ document.getElementById('fmt-bold').addEventListener('click', () => wrapBlogSele
 document.getElementById('fmt-italic').addEventListener('click', () => wrapBlogSelection('*', '*', 'italic text'));
 document.getElementById('fmt-h2').addEventListener('click', () => prefixBlogLine('## ', 'Heading'));
 document.getElementById('fmt-h3').addEventListener('click', () => prefixBlogLine('### ', 'Smaller heading'));
+document.getElementById('fmt-link').addEventListener('click', () => {
+  const url = prompt('Link URL (must start with https://):', 'https://');
+  if (!url || !/^https?:\/\//.test(url)) return;
+  wrapBlogSelection('[', `](${url})`, 'link text');
+});
 
 document.getElementById('blog-cancel-edit-btn').addEventListener('click', resetBlogForm);
 
