@@ -107,6 +107,12 @@
         <input type="text" id="f-category" />
         <label>Preview (one line)</label>
         <input type="text" id="f-preview" />
+        <label>Tag</label>
+        <select id="f-tag">
+          <option value="normal">Simple (no badge)</option>
+          <option value="hot">🔥 Hot</option>
+          <option value="trending">✨ Trending — glows on top of homepage for 1 week</option>
+        </select>
         <label>Prompt text</label>
         <textarea id="f-prompt"></textarea>
         <div class="row" style="margin-top:0.9rem;">
@@ -263,7 +269,7 @@ async function loadList() {
   container.innerHTML = data.results.map(p => `
     <div class="prompt-item">
       <div>
-        <div class="title">${escapeHtml(p.title)}</div>
+        <div class="title">${escapeHtml(p.title)} ${p.tag === 'trending' ? '<span class="badge" style="background:var(--accent)">TRENDING</span>' : ''}${p.tag === 'hot' ? '<span class="badge" style="background:#e08a1a">HOT</span>' : ''}</div>
         <div class="meta">${escapeHtml(p.category)} · ${escapeHtml(p.slug)}</div>
       </div>
       <div class="row">
@@ -284,6 +290,7 @@ window.editPrompt = function(id) {
   document.getElementById('f-title').value = p.title;
   document.getElementById('f-category').value = p.category;
   document.getElementById('f-preview').value = p.preview || '';
+  document.getElementById('f-tag').value = p.tag || 'normal';
   document.getElementById('f-prompt').value = p.prompt;
   document.getElementById('form-heading').textContent = 'Edit prompt';
   document.getElementById('cancel-edit-btn').classList.remove('hidden');
@@ -298,6 +305,7 @@ function resetForm() {
   document.getElementById('f-title').value = '';
   document.getElementById('f-category').value = '';
   document.getElementById('f-preview').value = '';
+  document.getElementById('f-tag').value = 'normal';
   document.getElementById('f-prompt').value = '';
   document.getElementById('form-heading').textContent = 'Add new prompt';
   document.getElementById('cancel-edit-btn').classList.add('hidden');
@@ -315,6 +323,7 @@ document.getElementById('save-btn').addEventListener('click', async () => {
     title: document.getElementById('f-title').value.trim(),
     category: document.getElementById('f-category').value.trim(),
     preview: document.getElementById('f-preview').value.trim(),
+    tag: document.getElementById('f-tag').value,
     prompt: document.getElementById('f-prompt').value.trim(),
   };
   if (!body.title || !body.category || !body.prompt) {
@@ -346,6 +355,7 @@ document.getElementById('ai-generate-btn').addEventListener('click', async () =>
     document.getElementById('f-title').value = data.draft.title || '';
     document.getElementById('f-category').value = data.draft.category || category || '';
     document.getElementById('f-preview').value = data.draft.preview || '';
+    document.getElementById('f-tag').value = 'normal';
     document.getElementById('f-prompt').value = data.draft.prompt || '';
     showMsg(msg, 'Draft filled in below — review and edit before saving.', 'ok');
     document.getElementById('form-heading').scrollIntoView({ behavior: 'smooth' });
