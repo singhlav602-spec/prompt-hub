@@ -1926,6 +1926,7 @@ body::before {
   .site-nav { display: none; }
   .site-logo-text small { display: none; }
   .btn-login { display: none; }
+  .btn-signup { display: none; }
   .mobile-menu-toggle { display: flex; }
   .icon-nav-bar { display: flex; }
 

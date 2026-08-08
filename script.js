@@ -971,6 +971,7 @@ function initThemeToggle() {
    reach Blog/About/etc. on small screens without widening the header) ---- */
 function initMobileNav() {
   const header = document.querySelector('.site-header');
+  const headerInner = document.querySelector('.site-header .header-inner');
   const nav = document.querySelector('.site-header .site-nav');
   const actions = document.querySelector('.site-header .header-actions');
   if (!header || !nav || document.querySelector('.mobile-menu-toggle')) return;
@@ -985,7 +986,8 @@ function initMobileNav() {
       <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
     </svg>
   `;
-  if (actions) actions.insertBefore(toggle, actions.firstChild);
+  // Leftmost item in the header — standard mobile placement, before the logo.
+  if (headerInner) headerInner.insertBefore(toggle, headerInner.firstChild);
 
   const panel = document.createElement('div');
   panel.className = 'mobile-nav-panel';
