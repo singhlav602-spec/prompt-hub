@@ -391,13 +391,16 @@ async function initIndexPage() {
   });
 
   /* --- Featured Prompts: one pick per top category, no invented view
-     counts — just an honest, varied sample of the library --- */
+     counts — just an honest, varied sample of the library.
+     Skips anything already shown in the Trending strip above, so the
+     homepage isn't showing the same prompt twice. --- */
   const topPromptsList = document.getElementById('top-prompts-list');
   if (topPromptsSection && topPromptsList) {
+    const trendingSlugs = new Set(trending.map(p => p.slug));
     const usedCats = new Set();
     const picks = [];
     for (const [cat] of topCats) {
-      const p = prompts.find(x => x.category === cat);
+      const p = prompts.find(x => x.category === cat && !trendingSlugs.has(x.slug));
       if (p && !usedCats.has(cat)) { picks.push(p); usedCats.add(cat); }
       if (picks.length >= 5) break;
     }
@@ -788,15 +791,53 @@ function formatBlogDate(iso) {
   }
 }
 
-/* Converts already-escaped text into paragraphs on blank lines. */
+/* Applies simple markdown-style inline formatting to an already-escaped line:
+   **bold**, *italic* (or _italic_). */
+function applyInlineFormatting(line) {
+  return line
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>');
+}
+
+/* Converts already-escaped text into HTML. Blank lines start new paragraphs;
+   a line starting with ## or ### becomes a heading; **bold** / *italic* work
+   anywhere. */
 function textToParagraphs(escapedText) {
   return escapedText
     .split(/\n\s*\n/)
-    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+    .map(block => {
+      const headingMatch = block.trim().match(/^(#{2,3})\s+(.+)$/);
+      if (headingMatch) {
+        const tag = headingMatch[1].length === 2 ? 'h2' : 'h3';
+        return `<${tag}>${applyInlineFormatting(headingMatch[2])}</${tag}>`;
+      }
+      const lines = block.split('\n').map(applyInlineFormatting);
+      return `<p>${lines.join('<br>')}</p>`;
+    })
     .join('');
 }
 
-/* --- Homepage "new post" banner — only visible within 24h of the newest post's publish time --- */
+/* --- Homepage "new post" banner ---
+   Priority: a manually pinned post always shows (until unpinned).
+   Otherwise, the newest post shows for its first 24h — but only if
+   "show on homepage" was ticked for it in the admin panel.
+   Once a visitor actually opens that post, it's remembered (localStorage)
+   so the banner stops nagging them about a post they've already read. */
+function getSeenBannerSlugs() {
+  try { return JSON.parse(localStorage.getItem('sp_seen_blog_banners') || '[]'); } catch (e) { return []; }
+}
+function markBannerSlugSeen(slug) {
+  try {
+    const seen = getSeenBannerSlugs();
+    if (!seen.includes(slug)) {
+      seen.push(slug);
+      while (seen.length > 50) seen.shift(); // keep it small
+      localStorage.setItem('sp_seen_blog_banners', JSON.stringify(seen));
+    }
+  } catch (e) { /* localStorage unavailable — banner just keeps showing, harmless */ }
+}
+
 async function initFeaturedBlogBanner() {
   const banner = document.getElementById('featured-blog-banner');
   if (!banner) return;
@@ -804,15 +845,26 @@ async function initFeaturedBlogBanner() {
   const posts = await fetchBlogPosts();
   if (!posts.length) return;
 
-  const newest = posts[0]; // /api/blog already orders by published_at DESC
-  const publishedMs = new Date(newest.published_at + 'Z').getTime();
-  const ageMs = Date.now() - publishedMs;
-  const DAY_MS = 24 * 60 * 60 * 1000;
+  const pinned = posts.find(p => p.pinned);
+  let featured = null;
 
-  if (isNaN(publishedMs) || ageMs >= DAY_MS || ageMs < 0) return; // older than 24h (or bad date) — stays hidden, lives only in the blog list
+  if (pinned) {
+    featured = pinned;
+  } else {
+    const newest = posts[0]; // /api/blog already orders by published_at DESC
+    if (newest.show_on_home) {
+      const publishedMs = new Date(newest.published_at + 'Z').getTime();
+      const ageMs = Date.now() - publishedMs;
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      if (!isNaN(publishedMs) && ageMs >= 0 && ageMs < DAY_MS) featured = newest;
+    }
+  }
 
-  document.getElementById('featured-blog-banner-title').textContent = newest.title;
-  document.getElementById('featured-blog-banner-link').href = `blog-post.html?slug=${encodeURIComponent(newest.slug)}`;
+  if (!featured) return;
+  if (getSeenBannerSlugs().includes(featured.slug)) return; // this visitor already opened it
+
+  document.getElementById('featured-blog-banner-title').textContent = featured.title;
+  document.getElementById('featured-blog-banner-link').href = `blog-post.html?slug=${encodeURIComponent(featured.slug)}`;
   banner.classList.add('show');
 }
 
@@ -875,6 +927,7 @@ async function initBlogPostPage() {
   }
 
   document.title = `${post.title} — SmartPrompts Blog`;
+  markBannerSlugSeen(post.slug);
   const metaDesc = document.getElementById('meta-description');
   if (metaDesc) metaDesc.setAttribute('content', post.excerpt || post.title);
   const canonical = document.getElementById('canonical-link');

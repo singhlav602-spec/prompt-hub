@@ -28,6 +28,14 @@
     border-radius: 8px; padding: 0.6rem 1.1rem; font-weight: 600; font-size: 0.88rem; cursor: pointer;
   }
   button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .editor-toolbar { display:flex; gap:0.4rem; margin-top:0.4rem; }
+  .editor-toolbar button { padding: 0.35rem 0.65rem; font-size: 0.8rem; }
+  .checkbox-row { display:flex; align-items:center; gap:0.5rem; margin-top:0.9rem; }
+  .checkbox-row input { width:auto; margin-top:0; }
+  .checkbox-row label { margin-top:0; font-size:0.85rem; color: var(--text); }
+  .badge { display:inline-block; font-size:0.68rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px; margin-right:0.35rem; }
+  .badge.pinned { background: rgba(124,108,240,0.18); color: var(--accent); }
+  .badge.home { background: rgba(76,175,125,0.18); color: var(--ok); }
   button.danger { background: var(--danger); }
   button.ok { background: var(--ok); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -146,12 +154,22 @@
         <label>Excerpt (one line, shown in the blog list)</label>
         <input type="text" id="blog-excerpt" />
         <label>Content</label>
-        <textarea id="blog-content" class="tall" placeholder="Plain text is fine — blank lines become new paragraphs."></textarea>
+        <div class="editor-toolbar">
+          <button type="button" class="secondary" id="fmt-bold" title="Bold"><b>B</b></button>
+          <button type="button" class="secondary" id="fmt-italic" title="Italic"><i>I</i></button>
+          <button type="button" class="secondary" id="fmt-h2" title="Big heading">H2</button>
+          <button type="button" class="secondary" id="fmt-h3" title="Smaller heading">H3</button>
+        </div>
+        <textarea id="blog-content" class="tall" placeholder="Blank lines become new paragraphs. Select text and use the buttons above for bold/italic/headings — or type **bold**, *italic*, ## Heading yourself."></textarea>
+        <div class="checkbox-row">
+          <input type="checkbox" id="blog-show-home" checked />
+          <label for="blog-show-home">Show on homepage banner for the first 24 hours</label>
+        </div>
         <div class="row" style="margin-top:0.9rem;">
           <button id="blog-save-btn">Publish post</button>
         </div>
         <div id="blog-save-msg"></div>
-        <p class="stat" style="margin-top:0.6rem;">New posts show as a "Latest from the Blog" banner on the homepage for the first 24 hours, then move into the regular blog list.</p>
+        <p class="stat" style="margin-top:0.6rem;">A pinned post (📌 in the list below) always shows on the homepage banner, regardless of age, until you unpin it.</p>
       </div>
 
       <div class="card">
@@ -395,11 +413,16 @@ async function loadBlogList() {
   container.innerHTML = data.results.map(p => `
     <div class="prompt-item">
       <div>
-        <div class="title">${escapeHtml(p.title)}</div>
+        <div class="title">
+          ${p.pinned ? '<span class="badge pinned">📌 Pinned</span>' : ''}
+          ${!p.pinned && p.show_on_home ? '<span class="badge home">🏠 Homepage (24h)</span>' : ''}
+          ${escapeHtml(p.title)}
+        </div>
         <div class="meta">${escapeHtml(p.slug)} · published ${new Date(p.published_at + 'Z').toLocaleString()}</div>
         ${p.excerpt ? `<div class="body-preview">${escapeHtml(p.excerpt)}</div>` : ''}
       </div>
       <div class="row">
+        <button class="secondary" onclick="toggleBlogPin(${p.id}, ${p.pinned ? 'true' : 'false'})">${p.pinned ? 'Unpin' : 'Pin'}</button>
         <button class="secondary" onclick="editBlogPost(${p.id})">Edit</button>
         <button class="danger" onclick="deleteBlogPost(${p.id}, '${escapeHtml(p.title).replace(/'/g, "\\'")}')">Delete</button>
       </div>
@@ -408,6 +431,11 @@ async function loadBlogList() {
 
   window.__blogCache = data.results;
 }
+
+window.toggleBlogPin = async function(id, currentlyPinned) {
+  await api(`/api/admin/blog?id=${id}`, { method: 'PATCH', body: JSON.stringify({ pinned: !currentlyPinned }) });
+  loadBlogList();
+};
 
 window.editBlogPost = async function(id) {
   let p = (window.__blogCache || []).find(x => x.id === id);
@@ -424,10 +452,37 @@ window.editBlogPost = async function(id) {
   document.getElementById('blog-title').value = p.title;
   document.getElementById('blog-excerpt').value = p.excerpt || '';
   document.getElementById('blog-content').value = p.content || '';
+  document.getElementById('blog-show-home').checked = !!p.show_on_home;
   document.getElementById('blog-form-heading').textContent = 'Edit blog post';
   document.getElementById('blog-cancel-edit-btn').classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
+
+/* Toolbar: wraps the selected text in the content textarea with markdown
+   syntax (or inserts a placeholder if nothing is selected). */
+function wrapBlogSelection(before, after, placeholder) {
+  const ta = document.getElementById('blog-content');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const selected = ta.value.slice(start, end) || placeholder;
+  ta.value = ta.value.slice(0, start) + before + selected + after + ta.value.slice(end);
+  ta.focus();
+  ta.selectionStart = start + before.length;
+  ta.selectionEnd = start + before.length + selected.length;
+}
+function prefixBlogLine(prefix, placeholder) {
+  const ta = document.getElementById('blog-content');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const lineStart = ta.value.lastIndexOf('\n', start - 1) + 1;
+  const selected = ta.value.slice(start, end) || placeholder;
+  ta.value = ta.value.slice(0, lineStart) + prefix + ta.value.slice(lineStart, start) + selected + ta.value.slice(end);
+  ta.focus();
+  const newPos = lineStart + prefix.length + (start - lineStart) + selected.length;
+  ta.selectionStart = ta.selectionEnd = newPos;
+}
+document.getElementById('fmt-bold').addEventListener('click', () => wrapBlogSelection('**', '**', 'bold text'));
+document.getElementById('fmt-italic').addEventListener('click', () => wrapBlogSelection('*', '*', 'italic text'));
+document.getElementById('fmt-h2').addEventListener('click', () => prefixBlogLine('## ', 'Heading'));
+document.getElementById('fmt-h3').addEventListener('click', () => prefixBlogLine('### ', 'Smaller heading'));
 
 document.getElementById('blog-cancel-edit-btn').addEventListener('click', resetBlogForm);
 
@@ -437,6 +492,7 @@ function resetBlogForm() {
   document.getElementById('blog-title').value = '';
   document.getElementById('blog-excerpt').value = '';
   document.getElementById('blog-content').value = '';
+  document.getElementById('blog-show-home').checked = true;
   document.getElementById('blog-form-heading').textContent = 'Add new blog post';
   document.getElementById('blog-cancel-edit-btn').classList.add('hidden');
 }
@@ -453,6 +509,7 @@ document.getElementById('blog-save-btn').addEventListener('click', async () => {
     title: document.getElementById('blog-title').value.trim(),
     excerpt: document.getElementById('blog-excerpt').value.trim(),
     content: document.getElementById('blog-content').value.trim(),
+    show_on_home: document.getElementById('blog-show-home').checked,
   };
   if (!body.title || !body.content) {
     showMsg(msg, 'Title and content are required.', 'error');

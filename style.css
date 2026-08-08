@@ -2007,6 +2007,16 @@ body::before {
 }
 .blog-post-body p { margin: 0 0 1.1rem; }
 .blog-post-body p:last-child { margin-bottom: 0; }
+.blog-post-body strong { font-weight: 700; color: var(--text); }
+.blog-post-body em { font-style: italic; }
+.blog-post-body h2, .blog-post-body h3 {
+  color: var(--text);
+  line-height: 1.35;
+  margin: 1.6rem 0 0.8rem;
+}
+.blog-post-body h2:first-child, .blog-post-body h3:first-child { margin-top: 0; }
+.blog-post-body h2 { font-size: 1.4rem; }
+.blog-post-body h3 { font-size: 1.15rem; }
 
 .blog-post-date {
   font-family: var(--font-mono);
