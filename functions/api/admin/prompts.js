@@ -1,4 +1,5 @@
 import { requireAuth } from '../../_auth.js';
+import { resolveTag, computeExpiry, VALID_TAGS } from '../../_tags.js';
 
 function slugify(title) {
   return title.toLowerCase().trim()
@@ -22,6 +23,14 @@ async function uniqueSlug(db, base, excludeId) {
   }
 }
 
+// Adds the tag columns if they don't exist yet. Safe to call on every
+// request — D1 just throws "duplicate column" after the first time, which
+// we ignore. Means no separate manual migration step is needed.
+async function ensureTagColumns(db) {
+  try { await db.prepare("ALTER TABLE prompts ADD COLUMN tag TEXT DEFAULT 'normal'").run(); } catch (e) {}
+  try { await db.prepare('ALTER TABLE prompts ADD COLUMN tag_expires_at TEXT').run(); } catch (e) {}
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -31,6 +40,7 @@ export async function onRequest(context) {
 
   const db = env.DB;
   const url = new URL(request.url);
+  await ensureTagColumns(db);
 
   // ---- GET: list (paginated, optional search/category filter) ----
   if (request.method === 'GET') {
@@ -55,10 +65,12 @@ export async function onRequest(context) {
     const total = countRow ? countRow.c : 0;
 
     const rows = await db.prepare(
-      `SELECT id, slug, title, category, preview, prompt FROM prompts ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`
+      `SELECT id, slug, title, category, preview, prompt, tag, tag_expires_at FROM prompts ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`
     ).bind(...params, pageSize, (page - 1) * pageSize).all();
 
-    return new Response(JSON.stringify({ results: rows.results, total, page, pageSize }), {
+    const results = rows.results.map(r => ({ ...r, tag: resolveTag(r) }));
+
+    return new Response(JSON.stringify({ results, total, page, pageSize }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }
@@ -69,11 +81,25 @@ export async function onRequest(context) {
     if (!body.title || !body.category || !body.prompt) {
       return new Response(JSON.stringify({ error: 'title, category, and prompt are required' }), { status: 400 });
     }
+
+    const dupe = await db.prepare(
+      'SELECT id, slug FROM prompts WHERE LOWER(TRIM(title)) = LOWER(TRIM(?))'
+    ).bind(body.title).first();
+    if (dupe) {
+      return new Response(
+        JSON.stringify({ error: 'A prompt with this exact title already exists', existingSlug: dupe.slug }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const tag = VALID_TAGS.includes(body.tag) ? body.tag : 'normal';
+    const tagExpiresAt = computeExpiry(tag);
+
     const baseSlug = slugify(body.slug || body.title);
     const slug = await uniqueSlug(db, baseSlug);
     await db.prepare(
-      'INSERT INTO prompts (slug, title, category, preview, prompt) VALUES (?, ?, ?, ?, ?)'
-    ).bind(slug, body.title, body.category, body.preview || '', body.prompt).run();
+      'INSERT INTO prompts (slug, title, category, preview, prompt, tag, tag_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).bind(slug, body.title, body.category, body.preview || '', body.prompt, tag, tagExpiresAt).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       status: 201,
@@ -89,12 +115,26 @@ export async function onRequest(context) {
     if (!body.title || !body.category || !body.prompt) {
       return new Response(JSON.stringify({ error: 'title, category, and prompt are required' }), { status: 400 });
     }
+
+    const dupe = await db.prepare(
+      'SELECT id, slug FROM prompts WHERE LOWER(TRIM(title)) = LOWER(TRIM(?)) AND id != ?'
+    ).bind(body.title, id).first();
+    if (dupe) {
+      return new Response(
+        JSON.stringify({ error: 'A prompt with this exact title already exists', existingSlug: dupe.slug }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const tag = VALID_TAGS.includes(body.tag) ? body.tag : 'normal';
+    const tagExpiresAt = computeExpiry(tag);
+
     let slug = body.slug ? slugify(body.slug) : slugify(body.title);
     slug = await uniqueSlug(db, slug, id);
 
     await db.prepare(
-      `UPDATE prompts SET slug=?, title=?, category=?, preview=?, prompt=?, updated_at=datetime('now') WHERE id=?`
-    ).bind(slug, body.title, body.category, body.preview || '', body.prompt, id).run();
+      `UPDATE prompts SET slug=?, title=?, category=?, preview=?, prompt=?, tag=?, tag_expires_at=?, updated_at=datetime('now') WHERE id=?`
+    ).bind(slug, body.title, body.category, body.preview || '', body.prompt, tag, tagExpiresAt, id).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       headers: { 'Content-Type': 'application/json' },
