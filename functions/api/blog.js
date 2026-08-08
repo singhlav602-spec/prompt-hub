@@ -9,11 +9,15 @@ export async function onRequestGet(context) {
       excerpt TEXT,
       content TEXT NOT NULL,
       published_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
+      updated_at TEXT DEFAULT (datetime('now')),
+      show_on_home INTEGER NOT NULL DEFAULT 0,
+      pinned INTEGER NOT NULL DEFAULT 0
     )`).run();
+    try { await env.DB.prepare('ALTER TABLE blog_posts ADD COLUMN show_on_home INTEGER NOT NULL DEFAULT 0').run(); } catch (e) { /* already exists */ }
+    try { await env.DB.prepare('ALTER TABLE blog_posts ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0').run(); } catch (e) { /* already exists */ }
 
     const { results } = await env.DB.prepare(
-      'SELECT slug, title, excerpt, content, published_at FROM blog_posts ORDER BY published_at DESC'
+      'SELECT slug, title, excerpt, content, published_at, show_on_home, pinned FROM blog_posts ORDER BY published_at DESC'
     ).all();
 
     return new Response(JSON.stringify(results), {
