@@ -242,6 +242,152 @@ body::before {
 
 .btn-signup:hover { transform: translateY(-1px); opacity: 0.92; }
 
+/* ---- Mobile hamburger menu (desktop nav is unchanged; this only ever
+   shows under the 768px breakpoint below, so it never touches how the
+   header looks on desktop) ---- */
+.mobile-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.mobile-menu-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+.mobile-nav-panel {
+  display: none;
+  flex-direction: column;
+  gap: 0.9rem;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 1.25rem 1.1rem;
+  border-top: 1px solid var(--border);
+  background: var(--header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.mobile-nav-panel.open { display: flex; }
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mobile-nav-links .site-nav-link {
+  color: var(--text);
+  background: transparent;
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+.mobile-nav-links .site-nav-link.active { color: var(--accent); }
+.mobile-nav-links .site-nav-link:last-child { border-bottom: none; }
+
+.mobile-nav-actions {
+  display: flex;
+  gap: 0.6rem;
+  padding-top: 0.6rem;
+}
+
+.mobile-nav-actions .btn-login,
+.mobile-nav-actions .btn-signup {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Mobile icon nav bar (Home/Categories/Trending/Blog/More) ---- */
+.icon-nav-bar {
+  display: none;
+  position: sticky;
+  top: 77px;
+  z-index: 99;
+  border-bottom: 1px solid var(--border);
+  background: var(--header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.icon-nav-bar::-webkit-scrollbar { display: none; }
+
+.icon-nav-item {
+  flex: 1 0 auto;
+  min-width: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.6rem 0.4rem 0.55rem;
+  color: var(--muted);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.icon-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  transition: background var(--transition), color var(--transition);
+}
+
+.icon-nav-item.active { color: var(--accent); }
+.icon-nav-item.active .icon-nav-icon {
+  background: rgba(124,108,240,0.15);
+  color: var(--accent);
+}
+
+.icon-nav-more-popover {
+  display: none;
+  position: absolute;
+  right: 0.75rem;
+  top: 100%;
+  margin-top: 0.4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem;
+  flex-direction: column;
+  min-width: 160px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  z-index: 101;
+}
+
+.icon-nav-more-popover.open { display: flex; }
+
+.icon-nav-more-popover a {
+  color: var(--text);
+  text-decoration: none;
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  border-bottom: none !important;
+}
+
+.icon-nav-more-popover a:hover { background: var(--bg-hover); }
+
 /* ============================================
    HERO SECTION
    ============================================ */
@@ -748,6 +894,87 @@ body::before {
   justify-content: center;
   font-size: 1.2rem;
   flex-shrink: 0;
+}
+
+/* ---- Hero feature-highlights row ---- */
+.hero-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.3rem;
+  margin: 1.4rem 0;
+}
+
+.hero-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.hero-feature-item .stat-icon { width: 38px; height: 38px; font-size: 1rem; }
+
+.hero-feature-title {
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.hero-feature-sub {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--muted);
+}
+
+/* ---- Featured Prompts list ---- */
+.top-prompts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.top-prompt-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.top-prompt-item:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.top-prompt-info { flex: 1; min-width: 0; }
+
+.top-prompt-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+
+.top-prompt-desc {
+  font-size: 0.82rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-prompt-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  color: var(--muted);
 }
 
 /* ---- Hero badge, gradient title, promo banner ---- */
@@ -1699,6 +1926,8 @@ body::before {
   .site-nav { display: none; }
   .site-logo-text small { display: none; }
   .btn-login { display: none; }
+  .mobile-menu-toggle { display: flex; }
+  .icon-nav-bar { display: flex; }
 
   .hero { padding: 3rem 1.25rem 2rem; }
   .hero h1 { font-size: 2.2rem; }
@@ -1732,6 +1961,10 @@ body::before {
   .copy-btn span { display: none; }
 
   .related-grid { grid-template-columns: 1fr; }
+
+  .hero-features { gap: 1rem; margin: 1.1rem 0; }
+  .top-prompt-item { padding: 0.85rem 1rem; gap: 0.75rem; }
+  .top-prompt-right .card-category { display: none; }
 }
 
 @media (max-width: 480px) {

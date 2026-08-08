@@ -46,6 +46,16 @@ const AI_TOOLS = [
   { key: 'deepseek', name: 'DeepSeek', prefill: false, url: () => 'https://chat.deepseek.com/' },
 ];
 
+/* Shared category → icon/color mapping, used by both the category cards
+   and the featured-prompts list so they stay visually consistent. */
+const CATEGORY_ICONS = {
+  'Business': '💼', 'Marketing': '📣', 'Writing': '✍️', 'Coding': '</>',
+  'Education': '🎓', 'Design': '🎨', 'Productivity': '⚡', 'Social Media': '📱',
+  'Story': '📚', 'NotebookLM': '🗒️', 'YouTube': '▶️', 'Web Development': '🌐',
+  'AI Image': '🖼️', 'Finance': '💰', 'Career': '💡', 'SEO': '🔍',
+};
+const CARD_COLORS = ['purple', 'blue', 'green', 'orange', 'pink', 'teal'];
+
 window.openInAI = function(toolKey) {
   const tool = AI_TOOLS.find(t => t.key === toolKey);
   const text = window.__currentPromptText || '';
@@ -311,6 +321,8 @@ async function initIndexPage() {
   const topCats = sortedCats.slice(0, TOP_N);
   const tailCats = sortedCats.slice(TOP_N);
 
+  const topPromptsSection = document.getElementById('top-prompts-section');
+
   function showCategoryBrowse() {
     activeCategory = 'All';
     searchTerm = '';
@@ -318,6 +330,7 @@ async function initIndexPage() {
     if (searchHero) searchHero.value = '';
     categoryBrowse.style.display = '';
     if (statsBar) statsBar.style.display = '';
+    if (topPromptsSection) topPromptsSection.style.display = '';
     if (promoBanner) promoBanner.style.display = '';
     if (newsletterBar) newsletterBar.style.display = '';
     listHeader.style.display = 'none';
@@ -333,6 +346,7 @@ async function initIndexPage() {
     // right under the search box instead of way down the page.
     if (statsBar) statsBar.style.display = 'none';
     if (trendingSection) trendingSection.style.display = 'none';
+    if (topPromptsSection) topPromptsSection.style.display = 'none';
     if (promoBanner) promoBanner.style.display = 'none';
     if (newsletterBar) newsletterBar.style.display = 'none';
     listHeader.style.display = 'flex';
@@ -345,14 +359,6 @@ async function initIndexPage() {
       countEl.innerHTML = label;
     }
   }
-
-  const CATEGORY_ICONS = {
-    'Business': '💼', 'Marketing': '📣', 'Writing': '✍️', 'Coding': '</>',
-    'Education': '🎓', 'Design': '🎨', 'Productivity': '⚡', 'Social Media': '📱',
-    'Story': '📚', 'NotebookLM': '🗒️', 'YouTube': '▶️', 'Web Development': '🌐',
-    'AI Image': '🖼️', 'Finance': '💰', 'Career': '💡', 'SEO': '🔍',
-  };
-  const CARD_COLORS = ['purple', 'blue', 'green', 'orange', 'pink', 'teal'];
 
   categoryGridEl.innerHTML = topCats.map(([cat, count], i) => {
     const icon = CATEGORY_ICONS[cat] || '✨';
@@ -383,6 +389,39 @@ async function initIndexPage() {
   categoryTailEl.querySelectorAll('.filter-btn').forEach(el => {
     el.addEventListener('click', () => showList(el.dataset.category));
   });
+
+  /* --- Featured Prompts: one pick per top category, no invented view
+     counts — just an honest, varied sample of the library --- */
+  const topPromptsList = document.getElementById('top-prompts-list');
+  if (topPromptsSection && topPromptsList) {
+    const usedCats = new Set();
+    const picks = [];
+    for (const [cat] of topCats) {
+      const p = prompts.find(x => x.category === cat);
+      if (p && !usedCats.has(cat)) { picks.push(p); usedCats.add(cat); }
+      if (picks.length >= 5) break;
+    }
+    if (picks.length) {
+      topPromptsList.innerHTML = picks.map((p, i) => {
+        const icon = CATEGORY_ICONS[p.category] || '✨';
+        const color = CARD_COLORS[i % CARD_COLORS.length];
+        return `
+          <a class="top-prompt-item" href="prompt.html?slug=${encodeURIComponent(p.slug)}">
+            <div class="stat-icon stat-icon-${color}">${icon}</div>
+            <div class="top-prompt-info">
+              <div class="top-prompt-title">${escapeHtml(p.title)}</div>
+              <div class="top-prompt-desc">${escapeHtml(p.preview || p.prompt.slice(0, 90) + '…')}</div>
+            </div>
+            <div class="top-prompt-right">
+              ${categoryTag(p.category)}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </a>
+        `;
+      }).join('');
+      topPromptsSection.style.display = '';
+    }
+  }
 
   if (backLink) {
     backLink.addEventListener('click', (e) => {
@@ -927,9 +966,147 @@ function initThemeToggle() {
   });
 }
 
+/* ---- Mobile hamburger menu (built from the SAME nav links already in
+   the page — desktop header stays exactly as-is; this just adds a way to
+   reach Blog/About/etc. on small screens without widening the header) ---- */
+function initMobileNav() {
+  const header = document.querySelector('.site-header');
+  const nav = document.querySelector('.site-header .site-nav');
+  const actions = document.querySelector('.site-header .header-actions');
+  if (!header || !nav || document.querySelector('.mobile-menu-toggle')) return;
+
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'mobile-menu-toggle';
+  toggle.setAttribute('aria-label', 'Open menu');
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.innerHTML = `
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
+    </svg>
+  `;
+  if (actions) actions.insertBefore(toggle, actions.firstChild);
+
+  const panel = document.createElement('div');
+  panel.className = 'mobile-nav-panel';
+  const loginLink = document.querySelector('.site-header .btn-login');
+  const signupLink = document.querySelector('.site-header .btn-signup');
+  panel.innerHTML = `
+    <nav class="mobile-nav-links">${nav.innerHTML}</nav>
+    <div class="mobile-nav-actions">
+      ${loginLink ? loginLink.outerHTML : ''}
+      ${signupLink ? signupLink.outerHTML : ''}
+    </div>
+  `;
+  header.appendChild(panel);
+
+  function closeMenu() {
+    panel.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  function openMenu() {
+    panel.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  toggle.addEventListener('click', () => {
+    panel.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  panel.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') closeMenu();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!panel.classList.contains('open')) return;
+    if (!panel.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)) {
+      closeMenu();
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeMenu();
+  });
+}
+
+/* ---- Mobile icon nav bar (Home/Categories/Trending/Blog/More) — sits
+   right below the header on small screens only; desktop is untouched ---- */
+function initIconNavBar() {
+  const header = document.querySelector('.site-header');
+  if (!header || document.querySelector('.icon-nav-bar')) return;
+
+  const path = window.location.pathname;
+  const hash = window.location.hash;
+  const isHome = path === '/' || path.endsWith('/') || path.endsWith('index.html');
+  const isCategories = isHome && hash === '#category-browse';
+  const isTrending = isHome && hash === '#trending-section';
+  const isBlog = path.includes('blog');
+  const isMore = path.includes('submit') || path.includes('about');
+
+  const items = [
+    {
+      label: 'Home', href: 'index.html',
+      active: isHome && !isCategories && !isTrending,
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>',
+    },
+    {
+      label: 'Categories', href: 'index.html#category-browse',
+      active: isCategories,
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+    },
+    {
+      label: 'Trending', href: 'index.html#trending-section',
+      active: isTrending,
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1-.5-2-1-3 2 1 3 3 3 6a6 6 0 0 1-12 0c0-4 2-5 4-10z"/></svg>',
+    },
+    {
+      label: 'Blog', href: 'blog.html',
+      active: isBlog,
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
+    },
+  ];
+
+  const bar = document.createElement('div');
+  bar.className = 'icon-nav-bar';
+  bar.innerHTML = `
+    ${items.map(it => `
+      <a href="${it.href}" class="icon-nav-item${it.active ? ' active' : ''}">
+        <span class="icon-nav-icon">${it.icon}</span>
+        <span class="icon-nav-label">${it.label}</span>
+      </a>
+    `).join('')}
+    <button type="button" class="icon-nav-item icon-nav-more${isMore ? ' active' : ''}" id="icon-nav-more-btn">
+      <span class="icon-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>
+      </span>
+      <span class="icon-nav-label">More</span>
+    </button>
+    <div class="icon-nav-more-popover" id="icon-nav-more-popover">
+      <a href="submit.html" class="site-nav-link">Submit Prompt</a>
+      <a href="about.html" class="site-nav-link">About</a>
+    </div>
+  `;
+
+  header.insertAdjacentElement('afterend', bar);
+
+  const moreBtn = document.getElementById('icon-nav-more-btn');
+  const morePopover = document.getElementById('icon-nav-more-popover');
+  moreBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    morePopover.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!morePopover.contains(e.target) && e.target !== moreBtn) {
+      morePopover.classList.remove('open');
+    }
+  });
+}
+
 /* ---- Init ---- */
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
+  initMobileNav();
+  initIconNavBar();
   initIndexPage();
   initPromptPage();
   initBlogListPage();
