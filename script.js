@@ -65,12 +65,18 @@ function highlightPlaceholders(escapedText) {
 /* ---- Build a Prompt Card element ---- */
 function buildCard(prompt, delay = 0) {
   const a = document.createElement('a');
-  a.className = 'prompt-card animate-fade-up';
+  a.className = 'prompt-card animate-fade-up' + (prompt.tag === 'trending' ? ' prompt-card-trending' : '');
   a.href = `prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
   a.style.animationDelay = `${delay}ms`;
 
+  const tagBadge = prompt.tag === 'hot'
+    ? '<span class="hot-badge">🔥 Hot</span>'
+    : prompt.tag === 'trending'
+      ? '<span class="hot-badge hot-badge-trending">✨ Trending</span>'
+      : '';
+
   a.innerHTML = `
-    ${categoryTag(prompt.category)}
+    <div class="card-top-row">${categoryTag(prompt.category)}${tagBadge}</div>
     <div class="card-title">${escapeHtml(prompt.title)}</div>
     <div class="card-preview">${escapeHtml(prompt.preview || prompt.prompt.slice(0, 110) + '…')}</div>
     <div class="card-footer">
@@ -104,6 +110,12 @@ function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All')
       (p.preview && p.preview.toLowerCase().includes(q))
     );
   }
+
+  // Trending prompts float to the top of any listing; hot ones come next.
+  const tagRank = { trending: 0, hot: 1, normal: 2 };
+  filtered = [...filtered].sort((a, b) =>
+    (tagRank[a.tag] ?? 2) - (tagRank[b.tag] ?? 2)
+  );
 
   const totalMatches = filtered.length;
 
@@ -274,8 +286,9 @@ async function initIndexPage() {
   let activeCategory = 'All';
   let searchTerm = '';
 
-  /* --- Trending strip (manually curated via "trending": true in prompts.json) --- */
-  const trending = prompts.filter(p => p.trending);
+  /* --- Trending strip (set via admin panel's "Trending" tag; auto-expires
+     after 1 week, checked server-side in /api/prompts) --- */
+  const trending = prompts.filter(p => p.tag === 'trending');
   if (trending.length && trendingSection && trendingGrid) {
     trendingGrid.innerHTML = trending.map(p => `
       <a class="trending-card" href="prompt.html?slug=${encodeURIComponent(p.slug)}">
