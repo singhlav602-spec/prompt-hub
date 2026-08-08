@@ -30,8 +30,15 @@ async function ensureTable(db) {
     excerpt TEXT,
     content TEXT NOT NULL,
     published_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
+    updated_at TEXT DEFAULT (datetime('now')),
+    show_on_home INTEGER NOT NULL DEFAULT 0,
+    pinned INTEGER NOT NULL DEFAULT 0
   )`).run();
+  // Migrate tables created before these columns existed. SQLite has no
+  // "ADD COLUMN IF NOT EXISTS", so just try and ignore the error if it's
+  // already there.
+  try { await db.prepare('ALTER TABLE blog_posts ADD COLUMN show_on_home INTEGER NOT NULL DEFAULT 0').run(); } catch (e) { /* already exists */ }
+  try { await db.prepare('ALTER TABLE blog_posts ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0').run(); } catch (e) { /* already exists */ }
 }
 
 export async function onRequest(context) {
@@ -62,7 +69,7 @@ export async function onRequest(context) {
     const total = countRow ? countRow.c : 0;
 
     const rows = await db.prepare(
-      `SELECT id, slug, title, excerpt, published_at FROM blog_posts ${where} ORDER BY published_at DESC LIMIT ? OFFSET ?`
+      `SELECT id, slug, title, excerpt, published_at, show_on_home, pinned FROM blog_posts ${where} ORDER BY published_at DESC LIMIT ? OFFSET ?`
     ).bind(...params, pageSize, (page - 1) * pageSize).all();
 
     return new Response(JSON.stringify({ results: rows.results, total, page, pageSize }), {
@@ -78,8 +85,8 @@ export async function onRequest(context) {
     }
     const slug = await uniqueSlug(db, slugify(body.title));
     await db.prepare(
-      'INSERT INTO blog_posts (slug, title, excerpt, content) VALUES (?, ?, ?, ?)'
-    ).bind(slug, body.title, body.excerpt || '', body.content).run();
+      'INSERT INTO blog_posts (slug, title, excerpt, content, show_on_home) VALUES (?, ?, ?, ?, ?)'
+    ).bind(slug, body.title, body.excerpt || '', body.content, body.show_on_home ? 1 : 0).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       status: 201,
@@ -98,10 +105,24 @@ export async function onRequest(context) {
     const slug = await uniqueSlug(db, slugify(body.title), id);
 
     await db.prepare(
-      `UPDATE blog_posts SET slug=?, title=?, excerpt=?, content=?, updated_at=datetime('now') WHERE id=?`
-    ).bind(slug, body.title, body.excerpt || '', body.content, id).run();
+      `UPDATE blog_posts SET slug=?, title=?, excerpt=?, content=?, show_on_home=?, updated_at=datetime('now') WHERE id=?`
+    ).bind(slug, body.title, body.excerpt || '', body.content, body.show_on_home ? 1 : 0, id).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // ---- PATCH: pin / unpin only (used by the list view, doesn't touch other fields) ----
+  if (request.method === 'PATCH') {
+    const id = url.searchParams.get('id');
+    if (!id) return new Response(JSON.stringify({ error: 'id required' }), { status: 400 });
+    const body = await request.json();
+    if (typeof body.pinned === 'undefined') {
+      return new Response(JSON.stringify({ error: 'pinned is required' }), { status: 400 });
+    }
+    await db.prepare('UPDATE blog_posts SET pinned=? WHERE id=?').bind(body.pinned ? 1 : 0, id).run();
+    return new Response(JSON.stringify({ ok: true }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }
