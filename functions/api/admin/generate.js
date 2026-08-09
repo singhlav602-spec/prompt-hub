@@ -44,7 +44,7 @@ Respond with ONLY this JSON object, no markdown fences, no extra text:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: instruction }] }],
-          generationConfig: { temperature: 0.8, maxOutputTokens: 500 },
+          generationConfig: { maxOutputTokens: 500 },
         }),
       }
     );
