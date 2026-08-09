@@ -1,13 +1,8 @@
 import { requireAuth } from '../../_auth.js';
 
-// POST /api/admin/generate  { topic: "...", category: "..." }
-// Uses Gemini to draft a prompt entry (title/preview/prompt) for the admin
-// to review and edit before saving — nothing is written to the DB here.
-//
-// Everything in this file is wrapped in one try/catch so that whatever goes
-// wrong — bad auth, missing key, a slow/broken Gemini call, a malformed
-// response — always comes back as JSON with a real message, instead of a
-// blank platform error page that hides what actually happened.
+// POST /api/admin/generate-blog  { topic: "..." }
+// Uses Gemini to draft a blog post (title/excerpt/content) for the admin
+// to review and edit before publishing — nothing is written to the DB here.
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
@@ -22,30 +17,26 @@ export async function onRequestPost(context) {
 
     const body = await request.json();
     const topic = (body.topic || '').trim();
-    const category = (body.category || '').trim();
     if (!topic) {
       return json({ error: 'topic is required' }, 400);
     }
 
-    const instruction = `You write entries for a free AI prompt library. Given a topic, produce ONE new prompt-library entry.
+    const instruction = `You write blog posts for SmartPrompts, a free AI prompt library website. Given a topic, produce ONE blog post about it.
 
 Topic: ${topic}
-${category ? `Category: ${category}` : 'Pick a suitable short category name (e.g. Business, Coding, Marketing, Education, Writing).'}
 
 Rules:
-- The "prompt" field must be a ready-to-use instruction someone pastes into ChatGPT/Claude/Gemini, written as "Act as a ..." where natural.
-- Include at least one [PLACEHOLDER] the user fills in, written in square brackets, UPPERCASE.
-- "title" is a short 3-6 word name for the prompt.
-- "preview" is one plain sentence describing what it does.
+- "title" is a compelling, specific blog title (not generic).
+- "excerpt" is one or two plain sentences summarizing the post, shown in the blog list.
+- "content" is the full post, 400-700 words, written in plain paragraphs separated by blank lines (a blank line becomes a new paragraph on the site — do not use markdown headers or asterisks).
+- Written for people who use ChatGPT/Claude/Gemini day to day — practical, not fluffy.
 - Do not include any commentary outside the JSON.
 
 Respond with ONLY this JSON object, no markdown fences, no extra text:
-{"title": "...", "category": "...", "preview": "...", "prompt": "..."}`;
+{"title": "...", "excerpt": "...", "content": "..."}`;
 
-    // Give up on our own terms after 20s, before Cloudflare's own platform
-    // timeout can kick in and produce an opaque error page instead of JSON.
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20000);
+    const timer = setTimeout(() => controller.abort(), 25000);
 
     let geminiRes;
     try {
@@ -56,14 +47,14 @@ Respond with ONLY this JSON object, no markdown fences, no extra text:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: instruction }] }],
-            generationConfig: { maxOutputTokens: 500 },
+            generationConfig: { maxOutputTokens: 1800 },
           }),
           signal: controller.signal,
         }
       );
     } catch (fetchErr) {
       if (fetchErr.name === 'AbortError') {
-        return json({ error: 'Gemini API took too long to respond (timed out after 20s)' }, 504);
+        return json({ error: 'Gemini API took too long to respond (timed out after 25s)' }, 504);
       }
       return json({ error: 'Could not reach Gemini API', detail: String(fetchErr) }, 502);
     } finally {
