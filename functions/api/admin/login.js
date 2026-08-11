@@ -1,8 +1,37 @@
 import { createSessionToken, sessionCookieHeader, clearCookieHeader } from '../../_auth.js';
 
+const MAX_ATTEMPTS = 5;
+const WINDOW_MINUTES = 15;
+
+async function ensureAttemptsTable(db) {
+  await db.prepare(`CREATE TABLE IF NOT EXISTS login_attempts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  )`).run();
+}
+
 // POST /api/admin/login  { password: "..." }
 export async function onRequestPost(context) {
   const { request, env } = context;
+  const db = env.DB;
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+  await ensureAttemptsTable(db);
+  // Sweep old attempts on the way in — keeps the table small, no separate cron needed.
+  await db.prepare(`DELETE FROM login_attempts WHERE created_at < datetime('now', ?)`)
+    .bind(`-${WINDOW_MINUTES} minutes`).run();
+
+  const { count: recentFailures } = await db.prepare(
+    `SELECT COUNT(*) as count FROM login_attempts WHERE ip = ? AND created_at > datetime('now', ?)`
+  ).bind(ip, `-${WINDOW_MINUTES} minutes`).first();
+
+  if (recentFailures >= MAX_ATTEMPTS) {
+    return new Response(JSON.stringify({
+      error: `Too many failed attempts. Try again in a few minutes.`,
+    }), { status: 429 });
+  }
+
   let body;
   try {
     body = await request.json();
@@ -15,10 +44,17 @@ export async function onRequestPost(context) {
   }
 
   if (body.password !== env.ADMIN_PASSWORD) {
-    // Small delay to make brute-forcing slightly less trivial.
+    await db.prepare('INSERT INTO login_attempts (ip) VALUES (?)').bind(ip).run();
+    // Small delay too, on top of the lockout, so even the first few tries aren't instant.
     await new Promise(r => setTimeout(r, 400));
-    return new Response(JSON.stringify({ error: 'Wrong password' }), { status: 401 });
+    const remaining = Math.max(0, MAX_ATTEMPTS - (recentFailures + 1));
+    return new Response(JSON.stringify({
+      error: remaining > 0 ? `Wrong password. ${remaining} attempt(s) left before a temporary lockout.` : 'Wrong password. Locked out for a few minutes now.',
+    }), { status: 401 });
   }
+
+  // Correct password — clear this IP's failure history.
+  await db.prepare('DELETE FROM login_attempts WHERE ip = ?').bind(ip).run();
 
   const token = await createSessionToken(env.ADMIN_PASSWORD);
   return new Response(JSON.stringify({ ok: true }), {
@@ -35,3 +71,4 @@ export async function onRequestDelete() {
     headers: { 'Content-Type': 'application/json', 'Set-Cookie': clearCookieHeader() },
   });
 }
+
