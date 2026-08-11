@@ -948,10 +948,20 @@ async function initBlogPostPage() {
 
   document.title = `${post.title} — SmartPrompts Blog`;
   markBannerSlugSeen(post.slug);
+  const pageUrl = `https://smart-prompt.in/blog-post.html?slug=${encodeURIComponent(post.slug)}`;
+  const pageDescription = post.excerpt || post.title;
+
   const metaDesc = document.getElementById('meta-description');
-  if (metaDesc) metaDesc.setAttribute('content', post.excerpt || post.title);
+  if (metaDesc) metaDesc.setAttribute('content', pageDescription);
   const canonical = document.getElementById('canonical-link');
-  if (canonical) canonical.href = `https://smart-prompt.in/blog-post.html?slug=${encodeURIComponent(post.slug)}`;
+  if (canonical) canonical.href = pageUrl;
+
+  const ogTitle = document.getElementById('meta-og-title');
+  if (ogTitle) ogTitle.setAttribute('content', `${post.title} — SmartPrompts Blog`);
+  const ogDesc = document.getElementById('meta-og-description');
+  if (ogDesc) ogDesc.setAttribute('content', pageDescription);
+  const ogUrl = document.getElementById('meta-og-url');
+  if (ogUrl) ogUrl.setAttribute('content', pageUrl);
 
   detail.innerHTML = `
     <a href="blog.html" class="back-link animate-fade-up">
