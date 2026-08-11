@@ -963,6 +963,34 @@ async function initBlogPostPage() {
   const ogUrl = document.getElementById('meta-og-url');
   if (ogUrl) ogUrl.setAttribute('content', pageUrl);
 
+  /* --- Related posts: other recent posts, an honest "more from the blog"
+     pick since blog posts don't have a category to match on --- */
+  const relatedPosts = posts.filter(p => p.slug !== post.slug).slice(0, 3);
+  const relatedPostsHTML = relatedPosts.length > 0
+    ? `
+      <div class="related-section animate-fade-up" style="animation-delay:250ms">
+        <div class="related-title">More from the Blog</div>
+        <div class="related-grid">
+          ${relatedPosts.map(r => `
+            <a class="prompt-card" href="blog-post.html?slug=${encodeURIComponent(r.slug)}">
+              <span class="card-date">${escapeHtml(formatBlogDate(r.published_at))}</span>
+              <div class="card-title">${escapeHtml(r.title)}</div>
+              <div class="card-preview blog-excerpt">${escapeHtml(r.excerpt || r.content.slice(0, 90) + '…')}</div>
+              <div class="card-footer">
+                <span class="card-open-btn">
+                  Read post
+                  <svg class="card-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </span>
+              </div>
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `
+    : '';
+
   detail.innerHTML = `
     <a href="blog.html" class="back-link animate-fade-up">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -974,6 +1002,7 @@ async function initBlogPostPage() {
     <div class="blog-post-date animate-fade-up">${escapeHtml(formatBlogDate(post.published_at))}</div>
     <div class="prompt-page-divider"></div>
     <div class="blog-post-body animate-fade-up">${textToParagraphs(escapeHtml(post.content))}</div>
+    ${relatedPostsHTML}
   `;
 }
 
