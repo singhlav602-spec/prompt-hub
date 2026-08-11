@@ -3,31 +3,25 @@ import { requireAuth } from '../../_auth.js';
 // POST /api/admin/generate  { topic: "...", category: "..." }
 // Uses Gemini to draft a prompt entry (title/preview/prompt) for the admin
 // to review and edit before saving — nothing is written to the DB here.
-//
-// Everything in this file is wrapped in one try/catch so that whatever goes
-// wrong — bad auth, missing key, a slow/broken Gemini call, a malformed
-// response — always comes back as JSON with a real message, instead of a
-// blank platform error page that hides what actually happened.
 export async function onRequestPost(context) {
-  try {
-    const { request, env } = context;
+  const { request, env } = context;
 
-    if (!(await requireAuth(request, env))) {
-      return json({ error: 'Not authorized' }, 401);
-    }
+  if (!(await requireAuth(request, env))) {
+    return new Response(JSON.stringify({ error: 'Not authorized' }), { status: 401 });
+  }
 
-    if (!env.GEMINI_API_KEY) {
-      return json({ error: 'Server not configured — GEMINI_API_KEY secret missing' }, 500);
-    }
+  if (!env.GEMINI_API_KEY) {
+    return new Response(JSON.stringify({ error: 'Server not configured — GEMINI_API_KEY secret missing' }), { status: 500 });
+  }
 
-    const body = await request.json();
-    const topic = (body.topic || '').trim();
-    const category = (body.category || '').trim();
-    if (!topic) {
-      return json({ error: 'topic is required' }, 400);
-    }
+  const body = await request.json();
+  const topic = (body.topic || '').trim();
+  const category = (body.category || '').trim();
+  if (!topic) {
+    return new Response(JSON.stringify({ error: 'topic is required' }), { status: 400 });
+  }
 
-    const instruction = `You write entries for a free AI prompt library. Given a topic, produce ONE new prompt-library entry.
+  const instruction = `You write entries for a free AI prompt library. Given a topic, produce ONE new prompt-library entry.
 
 Topic: ${topic}
 ${category ? `Category: ${category}` : 'Pick a suitable short category name (e.g. Business, Coding, Marketing, Education, Writing).'}
@@ -36,65 +30,71 @@ Rules:
 - The "prompt" field must be a ready-to-use instruction someone pastes into ChatGPT/Claude/Gemini, written as "Act as a ..." where natural.
 - Include at least one [PLACEHOLDER] the user fills in, written in square brackets, UPPERCASE.
 - "title" is a short 3-6 word name for the prompt.
-- "preview" is one plain sentence describing what it does.
-- Do not include any commentary outside the JSON.
+- "preview" is one plain sentence describing what it does.`;
 
-Respond with ONLY this JSON object, no markdown fences, no extra text:
-{"title": "...", "category": "...", "preview": "...", "prompt": "..."}`;
-
-    // Give up on our own terms after 20s, before Cloudflare's own platform
-    // timeout can kick in and produce an opaque error page instead of JSON.
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20000);
-
-    let geminiRes;
-    try {
-      geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: instruction }] }],
-            generationConfig: { maxOutputTokens: 500 },
-          }),
-          signal: controller.signal,
-        }
-      );
-    } catch (fetchErr) {
-      if (fetchErr.name === 'AbortError') {
-        return json({ error: 'Gemini API took too long to respond (timed out after 20s)' }, 504);
+  try {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: instruction }] }],
+          generationConfig: {
+            // Gemini 3.x models think by default, and those thinking tokens
+            // are deducted from maxOutputTokens — a low limit here (the old
+            // value was 500) starves the actual answer, so the response
+            // comes back truncated/empty. "low" keeps thinking light for
+            // this simple task, and 2048 leaves real headroom either way.
+            thinkingConfig: { thinkingLevel: 'low' },
+            maxOutputTokens: 2048,
+            // Structured output: Gemini returns JSON matching this shape
+            // directly, no markdown fences or prompt-engineering needed to
+            // coax valid JSON out of it.
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
+              properties: {
+                title: { type: 'STRING' },
+                category: { type: 'STRING' },
+                preview: { type: 'STRING' },
+                prompt: { type: 'STRING' },
+              },
+              required: ['title', 'category', 'preview', 'prompt'],
+            },
+          },
+        }),
       }
-      return json({ error: 'Could not reach Gemini API', detail: String(fetchErr) }, 502);
-    } finally {
-      clearTimeout(timer);
-    }
+    );
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
-      return json({ error: `Gemini API error (HTTP ${geminiRes.status})`, detail: errText }, 502);
+      return new Response(JSON.stringify({ error: 'Gemini API error', detail: errText }), { status: 502 });
     }
 
     const data = await geminiRes.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const candidate = data?.candidates?.[0];
+    const rawText = candidate?.content?.parts?.[0]?.text || '';
+
+    if (candidate?.finishReason === 'MAX_TOKENS' && !rawText) {
+      return new Response(JSON.stringify({
+        error: 'Gemini ran out of its token budget before producing an answer (finishReason: MAX_TOKENS). Try again — this should be rare with the current settings.',
+      }), { status: 502 });
+    }
+
     const cleaned = rawText.replace(/```json|```/g, '').trim();
 
     let parsed;
     try {
       parsed = JSON.parse(cleaned);
     } catch {
-      return json({ error: 'Could not parse AI response', raw: rawText }, 502);
+      return new Response(JSON.stringify({ error: 'Could not parse AI response', raw: rawText }), { status: 502 });
     }
 
-    return json({ ok: true, draft: parsed });
+    return new Response(JSON.stringify({ ok: true, draft: parsed }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (err) {
-    return json({ error: 'Unexpected server error', detail: String(err && err.stack ? err.stack : err) }, 500);
+    return new Response(JSON.stringify({ error: 'Request failed', detail: String(err) }), { status: 500 });
   }
-}
-
-function json(obj, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
 }
