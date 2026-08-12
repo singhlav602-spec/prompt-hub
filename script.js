@@ -888,7 +888,149 @@ async function initFeaturedBlogBanner() {
   banner.classList.add('show');
 }
 
-/* --- Blog list page (blog.html) --- */
+/* --- Gallery: fetch + list page (gallery.html) + detail page (gallery-item.html) --- */
+let _galleryCache = null;
+async function fetchGalleryItems() {
+  if (_galleryCache) return _galleryCache;
+  try {
+    const res = await fetch('/api/gallery');
+    if (!res.ok) throw new Error('Failed to load gallery items');
+    _galleryCache = await res.json();
+    return _galleryCache;
+  } catch (err) {
+    console.error('Error loading gallery items:', err);
+    return [];
+  }
+}
+
+async function initGalleryListPage() {
+  const grid = document.getElementById('gallery-grid');
+  if (!grid) return;
+
+  const items = await fetchGalleryItems();
+  const emptyState = document.getElementById('gallery-empty-state');
+
+  if (!items.length) {
+    grid.style.display = 'none';
+    if (emptyState) emptyState.style.display = '';
+    return;
+  }
+
+  grid.innerHTML = items.map(g => `
+    <a class="gallery-card animate-fade-up" href="gallery-item.html?slug=${encodeURIComponent(g.slug)}">
+      <div class="gallery-card-image-wrap">
+        <img src="${escapeHtml(g.image_url)}" alt="${escapeHtml(g.title)}" loading="lazy" class="gallery-card-image" />
+      </div>
+      <div class="gallery-card-title">${escapeHtml(g.title)}</div>
+    </a>
+  `).join('');
+}
+
+async function initGalleryItemPage() {
+  const detail = document.getElementById('gallery-item-detail');
+  if (!detail) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
+  const items = await fetchGalleryItems();
+  const item = slug ? items.find(g => g.slug === slug) : null;
+
+  if (!item) {
+    detail.innerHTML = `
+      <div class="error-page animate-fade-up">
+        <div class="error-code">404</div>
+        <h2>Image Not Found</h2>
+        <p>This gallery image doesn't exist or may have been removed.</p>
+        <a href="gallery.html" class="btn-home">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Back to Gallery
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  document.title = `${item.title} — SmartPrompts Gallery`;
+  const pageUrl = `https://smart-prompt.in/gallery-item.html?slug=${encodeURIComponent(item.slug)}`;
+  const pageDescription = `AI-generated image: ${item.title}. Includes the image prompt and video prompt used to create it.`;
+
+  const metaDesc = document.getElementById('meta-description');
+  if (metaDesc) metaDesc.setAttribute('content', pageDescription);
+  const canonical = document.getElementById('canonical-link');
+  if (canonical) canonical.href = pageUrl;
+  const ogTitle = document.getElementById('meta-og-title');
+  if (ogTitle) ogTitle.setAttribute('content', `${item.title} — SmartPrompts Gallery`);
+  const ogDesc = document.getElementById('meta-og-description');
+  if (ogDesc) ogDesc.setAttribute('content', pageDescription);
+  const ogUrl = document.getElementById('meta-og-url');
+  if (ogUrl) ogUrl.setAttribute('content', pageUrl);
+  // The actual generated image makes a much better share preview than the
+  // generic branded card, so swap it in here.
+  const ogImage = document.getElementById('meta-og-image');
+  if (ogImage) ogImage.setAttribute('content', item.image_url);
+  const twitterImage = document.getElementById('meta-twitter-image');
+  if (twitterImage) twitterImage.setAttribute('content', item.image_url);
+
+  detail.innerHTML = `
+    <a href="gallery.html" class="back-link animate-fade-up">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      All Gallery
+    </a>
+    <h1 class="prompt-page-title animate-fade-up">${escapeHtml(item.title)}</h1>
+    <div class="prompt-page-divider"></div>
+
+    <div class="gallery-detail-image-wrap animate-fade-up" style="animation-delay:50ms">
+      <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}" class="gallery-detail-image" />
+    </div>
+
+    <div class="animate-fade-up" style="animation-delay:120ms">
+      <div class="prompt-box">
+        <div class="prompt-box-header">
+          <div class="prompt-box-label">Image Prompt</div>
+          <button class="copy-btn" id="copy-image-prompt-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="prompt-text">${escapeHtml(item.image_prompt)}</div>
+      </div>
+    </div>
+
+    <div class="animate-fade-up" style="animation-delay:180ms">
+      <div class="prompt-box">
+        <div class="prompt-box-header">
+          <div class="prompt-box-label">Video Prompt</div>
+          <button class="copy-btn" id="copy-video-prompt-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="prompt-text">${escapeHtml(item.video_prompt)}</div>
+      </div>
+    </div>
+
+    <p class="info-text animate-fade-up" style="margin-top:1.2rem;">Download the image above and use the video prompt directly, or use the image prompt to generate your own version first — up to you.</p>
+  `;
+
+  document.getElementById('copy-image-prompt-btn').addEventListener('click', (e) => {
+    copyToClipboard(item.image_prompt, e.currentTarget);
+  });
+  document.getElementById('copy-video-prompt-btn').addEventListener('click', (e) => {
+    copyToClipboard(item.video_prompt, e.currentTarget);
+  });
+}
+
+
 async function initBlogListPage() {
   const grid = document.getElementById('blog-grid');
   if (!grid) return;
@@ -1155,6 +1297,7 @@ function initIconNavBar() {
   const isCategories = isHome && hash === '#category-browse';
   const isTrending = isHome && hash === '#trending-section';
   const isBlog = path.includes('blog');
+  const isGallery = path.includes('gallery');
   const isMore = path.includes('submit') || path.includes('about');
 
   const items = [
@@ -1175,8 +1318,13 @@ function initIconNavBar() {
     },
     {
       label: 'Blog', href: 'blog.html',
-      active: isBlog,
+      active: isBlog && !isGallery,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
+    },
+    {
+      label: 'Gallery', href: 'gallery.html',
+      active: isGallery,
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5-9 9"/></svg>',
     },
   ];
 
@@ -1225,5 +1373,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initPromptPage();
   initBlogListPage();
   initBlogPostPage();
+  initGalleryListPage();
+  initGalleryItemPage();
   initSubmitPage();
 });

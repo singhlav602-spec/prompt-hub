@@ -3,10 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>About — SmartPrompts</title>
-  <meta name="description" content="SmartPrompts is a free, growing library of hand-crafted AI prompts for ChatGPT, Claude, Gemini and more." />
+  <title>Gallery — SmartPrompts</title>
+  <meta id="meta-description" name="description" content="An AI-generated image from the SmartPrompts gallery, with its image and video prompts." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://smart-prompt.in/about.html" />
+  <meta property="og:type" content="article" />
+  <meta id="meta-og-title" property="og:title" content="Gallery — SmartPrompts" />
+  <meta id="meta-og-description" property="og:description" content="An AI-generated image from the SmartPrompts gallery, with its image and video prompts." />
+  <meta id="meta-og-url" property="og:url" content="https://smart-prompt.in/gallery-item.html" />
+  <meta id="meta-og-image" property="og:image" content="https://smart-prompt.in/images/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta id="meta-twitter-image" name="twitter:image" content="https://smart-prompt.in/images/og-image.jpg" />
+  <link id="canonical-link" rel="canonical" href="https://smart-prompt.in/gallery-item.html" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,11 +35,11 @@
     <div class="header-inner">
       <a href="index.html" class="site-logo">
         <svg class="site-logo-mark" width="30" height="30" viewBox="0 0 32 32" fill="none">
-          <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#logoGradAbout)"/>
+          <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#logoGradGalleryItem)"/>
           <path d="M11 21.5L16 10.5L21 21.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13 17.5H19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
           <defs>
-            <linearGradient id="logoGradAbout" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+            <linearGradient id="logoGradGalleryItem" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stop-color="#4f7df5"/>
               <stop offset="100%" stop-color="#c15ce8"/>
             </linearGradient>
@@ -46,9 +55,9 @@
         <a href="index.html" class="site-nav-link">Home</a>
         <a href="index.html#category-browse" class="site-nav-link">Categories</a>
         <a href="blog.html" class="site-nav-link">Blog</a>
-        <a href="gallery.html" class="site-nav-link">Gallery</a>
+        <a href="gallery.html" class="site-nav-link active">Gallery</a>
         <a href="submit.html" class="site-nav-link">Submit Prompt</a>
-        <a href="about.html" class="site-nav-link active">About</a>
+        <a href="about.html" class="site-nav-link">About</a>
       </nav>
 
       <div class="header-actions">
@@ -67,36 +76,17 @@
     </div>
   </header>
 
-  <main class="prompt-page-wrap simple-page">
-    <a href="index.html" class="back-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-      </svg>
-      Back to Library
-    </a>
-
-    <h1 class="prompt-page-title">About SmartPrompts</h1>
-    <div class="prompt-page-divider"></div>
-
-    <div class="prompt-info-section">
-      <h2 class="info-heading">What this is</h2>
-      <p class="info-text">SmartPrompts is a free, growing library of hand-crafted AI prompts for ChatGPT, Claude, Gemini, Grok and DeepSeek. Every prompt is ready to copy and paste — fill in the bracketed placeholders and go.</p>
-
-      <h2 class="info-heading">Why it's free</h2>
-      <p class="info-text">Good prompts shouldn't be locked behind a paywall. The whole library is browsable and copyable with no account required.</p>
-
-      <h2 class="info-heading">Community-driven</h2>
-      <p class="info-text">Anyone can suggest a new prompt from the Submit Prompt page. Every submission is reviewed by hand before it goes live, to keep the library useful and spam-free.</p>
-
-      <h2 class="info-heading">Stay updated</h2>
-      <p class="info-text">New prompts and articles are added regularly — check the <a href="blog.html" style="color:var(--accent);">Blog</a> for the latest, or subscribe from the homepage.</p>
-    </div>
+  <main class="prompt-page-wrap" id="gallery-item-detail">
+    <!-- Skeleton while loading -->
+    <div class="skeleton" style="height:16px;width:120px;margin-bottom:2rem;"></div>
+    <div class="skeleton" style="height:38px;width:70%;margin-bottom:1rem;"></div>
+    <div class="skeleton" style="height:320px;"></div>
   </main>
 
   <!-- ======= FOOTER ======= -->
   <footer class="site-footer">
     <p>SmartPrompts &mdash; A free, open AI prompt library &mdash; Built with ♥ and vanilla JS</p>
-    <p><a href="about.html">About</a> · <a href="blog.html">Blog</a> · <a href="submit.html">Submit a Prompt</a></p>
+    <p><a href="about.html">About</a> · <a href="blog.html">Blog</a> · <a href="gallery.html">Gallery</a> · <a href="submit.html">Submit a Prompt</a></p>
   </footer>
 
   <script src="script.js"></script>
