@@ -18,6 +18,7 @@ export async function onRequestGet(context) {
   // Static pages
   urls.push(urlEntry(`${DOMAIN}/`, today, 'daily', '1.0'));
   urls.push(urlEntry(`${DOMAIN}/blog.html`, today, 'daily', '0.8'));
+  urls.push(urlEntry(`${DOMAIN}/gallery.html`, today, 'daily', '0.8'));
   urls.push(urlEntry(`${DOMAIN}/about.html`, today, 'monthly', '0.4'));
   urls.push(urlEntry(`${DOMAIN}/submit.html`, today, 'monthly', '0.4'));
 
@@ -39,6 +40,17 @@ export async function onRequestGet(context) {
     for (const b of posts) {
       const lastmod = String(b.updated_at || b.published_at || today).slice(0, 10);
       urls.push(urlEntry(`${DOMAIN}/blog-post.html?slug=${encodeURIComponent(b.slug)}`, lastmod, 'monthly', '0.7'));
+    }
+  } catch (e) { /* table not reachable — still serve everything else */ }
+
+  // Every gallery item currently in the live database
+  try {
+    const { results: items } = await env.DB.prepare(
+      'SELECT slug, published_at, updated_at FROM gallery_items'
+    ).all();
+    for (const g of items) {
+      const lastmod = String(g.updated_at || g.published_at || today).slice(0, 10);
+      urls.push(urlEntry(`${DOMAIN}/gallery-item.html?slug=${encodeURIComponent(g.slug)}`, lastmod, 'monthly', '0.7'));
     }
   } catch (e) { /* table not reachable — still serve everything else */ }
 
