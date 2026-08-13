@@ -198,6 +198,8 @@
         <input type="text" id="gallery-title" placeholder="e.g. Neon Cyberpunk City" />
         <label>Image URL</label>
         <input type="text" id="gallery-image-url" placeholder="https://... (paste a link to the .webp/.jpg you've hosted)" />
+        <label>Category (e.g. Cinematic, Anime, Product, Nature)</label>
+        <input type="text" id="gallery-category" placeholder="e.g. Cinematic" />
         <label>Image Prompt</label>
         <textarea id="gallery-image-prompt" placeholder="The exact prompt used to generate this image"></textarea>
         <label>Video Prompt</label>
@@ -608,7 +610,7 @@ async function loadGalleryList() {
         <img src="${escapeHtml(g.image_url)}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--border);flex-shrink:0;" />
         <div>
           <div class="title">${escapeHtml(g.title)}</div>
-          <div class="meta">${escapeHtml(g.slug)} · published ${new Date(g.published_at + 'Z').toLocaleString()}</div>
+          <div class="meta">${escapeHtml(g.category || 'Other')} · ${escapeHtml(g.slug)} · published ${new Date(g.published_at + 'Z').toLocaleString()}</div>
         </div>
       </div>
       <div class="row">
@@ -628,6 +630,7 @@ window.editGalleryItem = function(id) {
   document.getElementById('gallery-edit-id').value = id;
   document.getElementById('gallery-title').value = g.title;
   document.getElementById('gallery-image-url').value = g.image_url;
+  document.getElementById('gallery-category').value = g.category || '';
   document.getElementById('gallery-image-prompt').value = g.image_prompt || '';
   document.getElementById('gallery-video-prompt').value = g.video_prompt || '';
   document.getElementById('gallery-form-heading').textContent = 'Edit gallery image';
@@ -642,6 +645,7 @@ function resetGalleryForm() {
   document.getElementById('gallery-edit-id').value = '';
   document.getElementById('gallery-title').value = '';
   document.getElementById('gallery-image-url').value = '';
+  document.getElementById('gallery-category').value = '';
   document.getElementById('gallery-image-prompt').value = '';
   document.getElementById('gallery-video-prompt').value = '';
   document.getElementById('gallery-form-heading').textContent = 'Add new gallery image';
@@ -659,6 +663,7 @@ document.getElementById('gallery-save-btn').addEventListener('click', async () =
   const body = {
     title: document.getElementById('gallery-title').value.trim(),
     image_url: document.getElementById('gallery-image-url').value.trim(),
+    category: document.getElementById('gallery-category').value.trim() || 'Other',
     image_prompt: document.getElementById('gallery-image-prompt').value.trim(),
     video_prompt: document.getElementById('gallery-video-prompt').value.trim(),
   };

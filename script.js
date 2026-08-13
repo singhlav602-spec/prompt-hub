@@ -909,21 +909,59 @@ async function initGalleryListPage() {
 
   const items = await fetchGalleryItems();
   const emptyState = document.getElementById('gallery-empty-state');
+  const filterBar = document.getElementById('gallery-filter-bar');
 
   if (!items.length) {
     grid.style.display = 'none';
+    if (filterBar) filterBar.style.display = 'none';
     if (emptyState) emptyState.style.display = '';
     return;
   }
 
-  grid.innerHTML = items.map(g => `
-    <a class="gallery-card animate-fade-up" href="gallery-item.html?slug=${encodeURIComponent(g.slug)}">
-      <div class="gallery-card-image-wrap">
-        <img src="${escapeHtml(g.image_url)}" alt="${escapeHtml(g.title)}" loading="lazy" class="gallery-card-image" />
-      </div>
-      <div class="gallery-card-title">${escapeHtml(g.title)}</div>
-    </a>
-  `).join('');
+  // Build the category pill list from whatever categories are actually in
+  // use, most-populated first, with "All" pinned at the front.
+  const counts = {};
+  items.forEach(g => { counts[g.category || 'Other'] = (counts[g.category || 'Other'] || 0) + 1; });
+  const categories = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+
+  let activeCategory = 'All';
+
+  function renderPills() {
+    const allPill = `<button type="button" class="gallery-filter-pill${activeCategory === 'All' ? ' active' : ''}" data-cat="All">All <span class="gallery-filter-count">${items.length}</span></button>`;
+    const catPills = categories.map(c => `
+      <button type="button" class="gallery-filter-pill${activeCategory === c ? ' active' : ''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)} <span class="gallery-filter-count">${counts[c]}</span></button>
+    `).join('');
+    filterBar.innerHTML = allPill + catPills;
+    filterBar.querySelectorAll('.gallery-filter-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCategory = btn.dataset.cat;
+        renderPills();
+        renderCards();
+      });
+    });
+  }
+
+  function renderCards() {
+    const filtered = activeCategory === 'All' ? items : items.filter(g => (g.category || 'Other') === activeCategory);
+    grid.innerHTML = filtered.map(g => `
+      <a class="gallery-card animate-fade-up" href="gallery-item.html?slug=${encodeURIComponent(g.slug)}">
+        <div class="gallery-card-image-wrap">
+          <img src="${escapeHtml(g.image_url)}" alt="${escapeHtml(g.title)}" loading="lazy" class="gallery-card-image" />
+        </div>
+        <div class="gallery-card-title">${escapeHtml(g.title)}</div>
+      </a>
+    `).join('');
+  }
+
+  // Only show the filter bar at all if there's more than one category —
+  // no point filtering when everything's in "Other".
+  if (filterBar && categories.length > 1) {
+    filterBar.style.display = '';
+    renderPills();
+  } else if (filterBar) {
+    filterBar.style.display = 'none';
+  }
+  renderCards();
 }
 
 async function initGalleryItemPage() {
@@ -981,6 +1019,7 @@ async function initGalleryItemPage() {
       All Gallery
     </a>
     <h1 class="prompt-page-title animate-fade-up">${escapeHtml(item.title)}</h1>
+    <div class="gallery-detail-category animate-fade-up">${escapeHtml(item.category || 'Other')}</div>
     <div class="prompt-page-divider"></div>
 
     <div class="gallery-detail-image-wrap animate-fade-up" style="animation-delay:50ms">
