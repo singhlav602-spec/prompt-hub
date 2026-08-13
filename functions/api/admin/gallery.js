@@ -30,9 +30,12 @@ async function ensureTable(db) {
     image_url TEXT NOT NULL,
     image_prompt TEXT NOT NULL,
     video_prompt TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'Other',
     published_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   )`).run();
+  // Migrate tables created before the category column existed.
+  try { await db.prepare("ALTER TABLE gallery_items ADD COLUMN category TEXT NOT NULL DEFAULT 'Other'").run(); } catch (e) { /* already exists */ }
 }
 
 export async function onRequest(context) {
@@ -63,7 +66,7 @@ export async function onRequest(context) {
     const total = countRow ? countRow.c : 0;
 
     const rows = await db.prepare(
-      `SELECT id, slug, title, image_url, image_prompt, video_prompt, published_at FROM gallery_items ${where} ORDER BY published_at DESC LIMIT ? OFFSET ?`
+      `SELECT id, slug, title, image_url, image_prompt, video_prompt, category, published_at FROM gallery_items ${where} ORDER BY published_at DESC LIMIT ? OFFSET ?`
     ).bind(...params, pageSize, (page - 1) * pageSize).all();
 
     return new Response(JSON.stringify({ results: rows.results, total, page, pageSize }), {
@@ -79,8 +82,8 @@ export async function onRequest(context) {
     }
     const slug = await uniqueSlug(db, slugify(body.title));
     await db.prepare(
-      'INSERT INTO gallery_items (slug, title, image_url, image_prompt, video_prompt) VALUES (?, ?, ?, ?, ?)'
-    ).bind(slug, body.title, body.image_url, body.image_prompt, body.video_prompt).run();
+      'INSERT INTO gallery_items (slug, title, image_url, image_prompt, video_prompt, category) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(slug, body.title, body.image_url, body.image_prompt, body.video_prompt, body.category?.trim() || 'Other').run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       status: 201,
@@ -99,8 +102,8 @@ export async function onRequest(context) {
     const slug = await uniqueSlug(db, slugify(body.title), id);
 
     await db.prepare(
-      `UPDATE gallery_items SET slug=?, title=?, image_url=?, image_prompt=?, video_prompt=?, updated_at=datetime('now') WHERE id=?`
-    ).bind(slug, body.title, body.image_url, body.image_prompt, body.video_prompt, id).run();
+      `UPDATE gallery_items SET slug=?, title=?, image_url=?, image_prompt=?, video_prompt=?, category=?, updated_at=datetime('now') WHERE id=?`
+    ).bind(slug, body.title, body.image_url, body.image_prompt, body.video_prompt, body.category?.trim() || 'Other', id).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       headers: { 'Content-Type': 'application/json' },
