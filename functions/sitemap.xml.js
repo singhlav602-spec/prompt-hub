@@ -19,6 +19,7 @@ export async function onRequestGet(context) {
   urls.push(urlEntry(`${DOMAIN}/`, today, 'daily', '1.0'));
   urls.push(urlEntry(`${DOMAIN}/blog.html`, today, 'daily', '0.8'));
   urls.push(urlEntry(`${DOMAIN}/gallery.html`, today, 'daily', '0.8'));
+  urls.push(urlEntry(`${DOMAIN}/trending-prompts.html`, today, 'daily', '0.8'));
   urls.push(urlEntry(`${DOMAIN}/about.html`, today, 'monthly', '0.4'));
   urls.push(urlEntry(`${DOMAIN}/submit.html`, today, 'monthly', '0.4'));
 
