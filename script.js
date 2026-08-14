@@ -101,6 +101,146 @@ function buildCard(prompt, delay = 0) {
   return a;
 }
 
+/* ============================================================
+   DISCOVERY SECTION — "🔥 Trending & Popular Prompts"
+   Used by both the homepage strip (below the hero) and the
+   standalone /trending-prompts.html page.
+
+   EDITABLE DATA: just add/remove/reorder slugs below. Title,
+   preview and category are pulled live from the real prompt
+   data at render time (matched by slug) — nothing here is
+   duplicated content, and a slug that no longer exists is
+   skipped automatically instead of showing a broken card.
+   ============================================================ */
+const DISCOVERY_PROMPTS = [
+  // 🔥 Trending — currently getting attention
+  { slug: 'ai-banner-generator', badge: 'trending' },
+  { slug: 'instagram-reel-script-generator', badge: 'trending' },
+  { slug: 'youtube-thumbnail-idea-generator', badge: 'trending' },
+  { slug: 'swot-analysis-generator', badge: 'trending' },
+  { slug: 'code-reviewer', badge: 'trending' },
+
+  // 🚀 High Demand — consistently searched / high-impression
+  { slug: 'logo-idea-generator', badge: 'high-demand' },
+  { slug: 'lesson-plan-generator', badge: 'high-demand' },
+  { slug: 'blog-post-outline-generator', badge: 'high-demand' },
+  { slug: 'high-converting-headline-generator', badge: 'high-demand' },
+  { slug: 'career-roadmap-builder', badge: 'high-demand' },
+
+  // ⭐ Popular — already getting good impressions
+  { slug: 'twitter-thread-generator', badge: 'popular' },
+  { slug: 'brand-name-generator', badge: 'popular' },
+  { slug: 'seo-meta-description-writer', badge: 'popular' },
+  { slug: 'startup-pitch-deck-outline', badge: 'popular' },
+  { slug: 'poetry-generator', badge: 'popular' },
+
+  // ↑ Rising — lower impressions but showing growth
+  { slug: 'article-outline-generator', badge: 'rising' },
+  { slug: 'ai-background-generator', badge: 'rising' },
+  { slug: 'financial-goal-planner', badge: 'rising' },
+  { slug: 'character-development-profile-generator', badge: 'rising' },
+];
+
+const DISCOVERY_BADGES = {
+  'trending':    { label: '🔥 Trending',    className: 'discovery-badge-trending' },
+  'rising':      { label: '↑ Rising',       className: 'discovery-badge-rising' },
+  'popular':     { label: '⭐ Popular',      className: 'discovery-badge-popular' },
+  'high-demand': { label: '🚀 High Demand', className: 'discovery-badge-high-demand' },
+};
+
+function buildDiscoveryCard(prompt, badgeKey) {
+  const badge = DISCOVERY_BADGES[badgeKey];
+  const a = document.createElement('a');
+  a.className = 'prompt-card discovery-card';
+  a.href = `prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  a.innerHTML = `
+    <div class="card-top-row">
+      ${categoryTag(prompt.category)}
+      ${badge ? `<span class="discovery-badge ${badge.className}">${badge.label}</span>` : ''}
+    </div>
+    <div class="card-title">${escapeHtml(prompt.title)}</div>
+    <div class="card-preview">${escapeHtml(prompt.preview || prompt.prompt.slice(0, 90) + '…')}</div>
+    <div class="card-footer">
+      <span class="card-open-btn">
+        View Prompt
+        <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </span>
+    </div>
+  `;
+  return a;
+}
+
+/* Cross-references DISCOVERY_PROMPTS against the real, live prompt list
+   (already fetched for the homepage grid) and renders into `container`.
+   `layoutClass` picks the horizontal strip vs the full grid layout. */
+function renderDiscoverySection(prompts, container, layoutClass) {
+  if (!container) return;
+  container.classList.add(layoutClass);
+  const bySlug = new Map(prompts.map(p => [p.slug, p]));
+  const items = DISCOVERY_PROMPTS
+    .map(d => ({ badge: d.badge, prompt: bySlug.get(d.slug) }))
+    .filter(d => d.prompt);
+  container.innerHTML = '';
+  if (!items.length) {
+    // No configured slugs matched real data (e.g. all were renamed/removed) —
+    // hide the whole section rather than showing an empty strip.
+    const section = container.closest('.discovery-section');
+    if (section) section.style.display = 'none';
+    return;
+  }
+  items.forEach(d => container.appendChild(buildDiscoveryCard(d.prompt, d.badge)));
+}
+
+/* ============================================================
+   TRENDING-PROMPTS PAGE (/trending-prompts.html)
+   Same DISCOVERY_PROMPTS data, shown as a filterable grid.
+   ============================================================ */
+async function initTrendingPromptsPage() {
+  const grid = document.getElementById('discovery-page-grid');
+  if (!grid) return;
+
+  const prompts = await fetchPrompts();
+  const bySlug = new Map(prompts.map(p => [p.slug, p]));
+  const items = DISCOVERY_PROMPTS
+    .map(d => ({ badge: d.badge, prompt: bySlug.get(d.slug) }))
+    .filter(d => d.prompt);
+
+  const filterBar = document.getElementById('discovery-filter-bar');
+  let activeBadge = 'All';
+
+  function renderPills() {
+    if (!filterBar) return;
+    const counts = {};
+    items.forEach(d => { counts[d.badge] = (counts[d.badge] || 0) + 1; });
+    const allPill = `<button type="button" class="gallery-filter-pill${activeBadge === 'All' ? ' active' : ''}" data-badge="All">All <span class="gallery-filter-count">${items.length}</span></button>`;
+    const badgePills = Object.keys(DISCOVERY_BADGES)
+      .filter(key => counts[key])
+      .map(key => `<button type="button" class="gallery-filter-pill${activeBadge === key ? ' active' : ''}" data-badge="${key}">${DISCOVERY_BADGES[key].label} <span class="gallery-filter-count">${counts[key]}</span></button>`)
+      .join('');
+    filterBar.innerHTML = allPill + badgePills;
+    filterBar.querySelectorAll('.gallery-filter-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeBadge = btn.dataset.badge;
+        renderPills();
+        renderCards();
+      });
+    });
+  }
+
+  function renderCards() {
+    const filtered = activeBadge === 'All' ? items : items.filter(d => d.badge === activeBadge);
+    grid.innerHTML = '';
+    filtered.forEach(d => grid.appendChild(buildDiscoveryCard(d.prompt, d.badge)));
+    const emptyState = document.getElementById('discovery-empty-state');
+    if (emptyState) emptyState.style.display = filtered.length ? 'none' : '';
+  }
+
+  renderPills();
+  renderCards();
+}
+
 /* ---- Render the Card Grid ---- */
 function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All') {
   container.innerHTML = '';
@@ -206,6 +346,18 @@ async function initIndexPage() {
 
   const prompts = await fetchPrompts();
 
+  /* --- Hero + featured blog banner: hidden only for the Trending isolated
+     view (see showTrendingOnly below); every other view keeps them visible. --- */
+  const heroSection = document.querySelector('.hero');
+  const featuredBanner = document.getElementById('featured-blog-banner');
+  const discoverySection = document.getElementById('discovery-section');
+
+  /* --- Trending & Popular discovery strip: render once, right after the
+     hero. Hidden along with the hero for category/search/trending views
+     (see showList/showTrendingOnly/showCategoryBrowse) since it belongs
+     to the default homepage view, not the results views. --- */
+  renderDiscoverySection(prompts, document.getElementById('discovery-list'), 'discovery-scroller');
+
   /* --- Hero badge: real prompt count, rounded down for a clean honest figure --- */
   const heroBadge = document.getElementById('hero-badge');
   if (heroBadge) {
@@ -309,6 +461,9 @@ async function initIndexPage() {
     searchTerm = '';
     if (searchInput) searchInput.value = '';
     if (searchHero) searchHero.value = '';
+    if (heroSection) heroSection.style.display = '';
+    if (featuredBanner) featuredBanner.style.display = '';
+    if (discoverySection) discoverySection.style.display = '';
     categoryBrowse.style.display = '';
     if (statsBar) statsBar.style.display = '';
     if (topPromptsSection) topPromptsSection.style.display = '';
@@ -332,6 +487,9 @@ async function initIndexPage() {
     searchTerm = '';
     if (searchInput) searchInput.value = '';
     if (searchHero) searchHero.value = '';
+    if (heroSection) heroSection.style.display = 'none';
+    if (featuredBanner) featuredBanner.style.display = 'none';
+    if (discoverySection) discoverySection.style.display = 'none';
     categoryBrowse.style.display = 'none';
     if (statsBar) statsBar.style.display = 'none';
     if (topPromptsSection) topPromptsSection.style.display = 'none';
@@ -353,6 +511,13 @@ async function initIndexPage() {
   function showList(category, term) {
     activeCategory = category;
     searchTerm = term || '';
+    // Restore the hero in case we're arriving here from the Trending
+    // isolated view, where it's hidden — but the discovery strip and
+    // banner stay hidden here too, same as the rest of "everything
+    // between the hero and the results" below.
+    if (heroSection) heroSection.style.display = '';
+    if (featuredBanner) featuredBanner.style.display = 'none';
+    if (discoverySection) discoverySection.style.display = 'none';
     categoryBrowse.style.display = 'none';
     // Hide everything between the hero and the results so results land
     // right under the search box instead of way down the page.
@@ -1487,4 +1652,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initGalleryListPage();
   initGalleryItemPage();
   initSubmitPage();
+  initTrendingPromptsPage();
 });
