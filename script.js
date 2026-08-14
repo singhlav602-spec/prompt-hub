@@ -283,8 +283,6 @@ async function initIndexPage() {
   const searchInput     = document.getElementById('search-input');
   const searchHero      = document.getElementById('search-hero');
   const countEl         = document.getElementById('prompt-count');
-  const trendingSection = document.getElementById('trending-section');
-  const trendingGrid    = document.getElementById('trending-grid');
   const categoryBrowse  = document.getElementById('category-browse');
   const categoryGridEl  = document.getElementById('category-grid');
   const categoryTailEl  = document.getElementById('category-tail');
@@ -295,23 +293,6 @@ async function initIndexPage() {
 
   let activeCategory = 'All';
   let searchTerm = '';
-
-  /* --- Trending strip (set via admin panel's "Trending" tag; auto-expires
-     after 1 week, checked server-side in /api/prompts) --- */
-  const trending = prompts.filter(p => p.tag === 'trending');
-  if (trending.length && trendingSection && trendingGrid) {
-    trendingGrid.innerHTML = trending.map(p => `
-      <a class="trending-card" href="prompt.html?slug=${encodeURIComponent(p.slug)}">
-        <div class="trending-top-row">
-          <span class="trending-badge">🔥 Trending</span>
-          ${categoryTag(p.category)}
-        </div>
-        <div class="card-title">${escapeHtml(p.title)}</div>
-        <div class="card-preview">${escapeHtml(p.preview || p.prompt.slice(0, 130) + '…')}</div>
-      </a>
-    `).join('');
-    trendingSection.style.display = '';
-  }
 
   /* --- Build category cards (top categories) + long-tail chips --- */
   const catCounts = {};
@@ -337,6 +318,37 @@ async function initIndexPage() {
     grid.style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  // Exposed so the global hashchange handler (bottom of file) can switch
+  // back to this view when the "Categories" nav link is clicked while
+  // already looking at a filtered list — a plain #anchor link alone can't
+  // do that, since this section may currently be display:none.
+  window.showCategoryBrowse = showCategoryBrowse;
+
+  /* --- Trending: an isolated view (same idea as a category filter) —
+     everything else on the homepage hides, only trending-tagged prompts
+     show, reusing the exact same grid/list-header used for category
+     results. Trending never appears mixed into the normal homepage. --- */
+  function showTrendingOnly() {
+    searchTerm = '';
+    if (searchInput) searchInput.value = '';
+    if (searchHero) searchHero.value = '';
+    categoryBrowse.style.display = 'none';
+    if (statsBar) statsBar.style.display = 'none';
+    if (topPromptsSection) topPromptsSection.style.display = 'none';
+    if (promoBanner) promoBanner.style.display = 'none';
+    if (newsletterBar) newsletterBar.style.display = 'none';
+    listHeader.style.display = 'flex';
+    grid.style.display = '';
+    const trendingPrompts = prompts.filter(p => p.tag === 'trending');
+    const count = renderGrid(trendingPrompts, grid, '', 'All');
+    if (countEl) {
+      countEl.innerHTML = count > 0
+        ? `Showing <strong>${count}</strong> trending prompt${count === 1 ? '' : 's'}`
+        : `Nothing is tagged <strong>Trending</strong> right now — check back soon`;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  window.showTrendingOnly = showTrendingOnly;
 
   function showList(category, term) {
     activeCategory = category;
@@ -440,8 +452,22 @@ async function initIndexPage() {
     if (searchInput) searchInput.value = urlQuery;
     if (searchHero)  searchHero.value  = urlQuery;
     showList('All', urlQuery);
+  } else if (window.location.hash === '#trending-section') {
+    showTrendingOnly();
   } else {
     showCategoryBrowse();
+  }
+
+  /* --- Scroll to whatever #section the URL points to (e.g. clicking
+     "Categories" in the nav — Trending is handled above since it swaps the
+     whole view rather than just scrolling to a spot on the normal page). */
+  if (window.location.hash && window.location.hash !== '#trending-section') {
+    const target = document.querySelector(window.location.hash);
+    if (target) {
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
   }
 
   /* --- Search handlers: typing always searches across all categories.
@@ -1382,19 +1408,34 @@ function initIconNavBar() {
       </span>
       <span class="icon-nav-label">More</span>
     </button>
-    <div class="icon-nav-more-popover" id="icon-nav-more-popover">
-      <a href="submit.html" class="site-nav-link">Submit Prompt</a>
-      <a href="about.html" class="site-nav-link">About</a>
-    </div>
   `;
 
   header.insertAdjacentElement('afterend', bar);
 
+  // The popover lives at the very end of <body> (not inside .icon-nav-bar)
+  // and uses position:fixed with JS-computed coordinates — .icon-nav-bar
+  // scrolls horizontally (overflow-x:auto), and CSS forces overflow-y to
+  // clip too whenever overflow-x isn't "visible", so anything absolutely
+  // positioned *inside* it that pokes out the bottom gets silently cut off.
+  const morePopover = document.createElement('div');
+  morePopover.className = 'icon-nav-more-popover';
+  morePopover.id = 'icon-nav-more-popover';
+  morePopover.innerHTML = `
+    <a href="submit.html" class="site-nav-link">Submit Prompt</a>
+    <a href="about.html" class="site-nav-link">About</a>
+  `;
+  document.body.appendChild(morePopover);
+
   const moreBtn = document.getElementById('icon-nav-more-btn');
-  const morePopover = document.getElementById('icon-nav-more-popover');
   moreBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    morePopover.classList.toggle('open');
+    const isOpening = !morePopover.classList.contains('open');
+    if (isOpening) {
+      const rect = moreBtn.getBoundingClientRect();
+      morePopover.style.top = `${rect.bottom + 6}px`;
+      morePopover.style.right = `${window.innerWidth - rect.right}px`;
+    }
+    morePopover.classList.toggle('open', isOpening);
   });
   document.addEventListener('click', (e) => {
     if (!morePopover.contains(e.target) && e.target !== moreBtn) {
@@ -1402,6 +1443,37 @@ function initIconNavBar() {
     }
   });
 }
+
+/* Same-page nav clicks (already on index.html, clicking Categories/Trending)
+   don't reload the page, so the load-time logic above never re-runs for
+   them — handle those here too. */
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash;
+
+  if (!hash) {
+    // "Home" was clicked from a filtered/scrolled state — reset to the
+    // default category-browse view instead of leaving whatever was showing.
+    if (typeof window.showCategoryBrowse === 'function') window.showCategoryBrowse();
+    return;
+  }
+
+  if (hash === '#category-browse' && typeof window.showCategoryBrowse === 'function') {
+    window.showCategoryBrowse();
+    return;
+  }
+
+  if (hash === '#trending-section' && typeof window.showTrendingOnly === 'function') {
+    window.showTrendingOnly();
+    return;
+  }
+
+  const target = document.querySelector(hash);
+  if (target) {
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+});
 
 /* ---- Init ---- */
 document.addEventListener('DOMContentLoaded', () => {
