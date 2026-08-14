@@ -101,146 +101,6 @@ function buildCard(prompt, delay = 0) {
   return a;
 }
 
-/* ============================================================
-   DISCOVERY SECTION — "🔥 Trending & Popular Prompts"
-   Used by both the homepage strip (below the hero) and the
-   standalone /trending-prompts.html page.
-
-   EDITABLE DATA: just add/remove/reorder slugs below. Title,
-   preview and category are pulled live from the real prompt
-   data at render time (matched by slug) — nothing here is
-   duplicated content, and a slug that no longer exists is
-   skipped automatically instead of showing a broken card.
-   ============================================================ */
-const DISCOVERY_PROMPTS = [
-  // 🔥 Trending — currently getting attention
-  { slug: 'ai-banner-generator', badge: 'trending' },
-  { slug: 'instagram-reel-script-generator', badge: 'trending' },
-  { slug: 'youtube-thumbnail-idea-generator', badge: 'trending' },
-  { slug: 'swot-analysis-generator', badge: 'trending' },
-  { slug: 'code-reviewer', badge: 'trending' },
-
-  // 🚀 High Demand — consistently searched / high-impression
-  { slug: 'logo-idea-generator', badge: 'high-demand' },
-  { slug: 'lesson-plan-generator', badge: 'high-demand' },
-  { slug: 'blog-post-outline-generator', badge: 'high-demand' },
-  { slug: 'high-converting-headline-generator', badge: 'high-demand' },
-  { slug: 'career-roadmap-builder', badge: 'high-demand' },
-
-  // ⭐ Popular — already getting good impressions
-  { slug: 'twitter-thread-generator', badge: 'popular' },
-  { slug: 'brand-name-generator', badge: 'popular' },
-  { slug: 'seo-meta-description-writer', badge: 'popular' },
-  { slug: 'startup-pitch-deck-outline', badge: 'popular' },
-  { slug: 'poetry-generator', badge: 'popular' },
-
-  // ↑ Rising — lower impressions but showing growth
-  { slug: 'article-outline-generator', badge: 'rising' },
-  { slug: 'ai-background-generator', badge: 'rising' },
-  { slug: 'financial-goal-planner', badge: 'rising' },
-  { slug: 'character-development-profile-generator', badge: 'rising' },
-];
-
-const DISCOVERY_BADGES = {
-  'trending':    { label: '🔥 Trending',    className: 'discovery-badge-trending' },
-  'rising':      { label: '↑ Rising',       className: 'discovery-badge-rising' },
-  'popular':     { label: '⭐ Popular',      className: 'discovery-badge-popular' },
-  'high-demand': { label: '🚀 High Demand', className: 'discovery-badge-high-demand' },
-};
-
-function buildDiscoveryCard(prompt, badgeKey) {
-  const badge = DISCOVERY_BADGES[badgeKey];
-  const a = document.createElement('a');
-  a.className = 'prompt-card discovery-card';
-  a.href = `prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
-  a.innerHTML = `
-    <div class="card-top-row">
-      ${categoryTag(prompt.category)}
-      ${badge ? `<span class="discovery-badge ${badge.className}">${badge.label}</span>` : ''}
-    </div>
-    <div class="card-title">${escapeHtml(prompt.title)}</div>
-    <div class="card-preview">${escapeHtml(prompt.preview || prompt.prompt.slice(0, 90) + '…')}</div>
-    <div class="card-footer">
-      <span class="card-open-btn">
-        View Prompt
-        <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-        </svg>
-      </span>
-    </div>
-  `;
-  return a;
-}
-
-/* Cross-references DISCOVERY_PROMPTS against the real, live prompt list
-   (already fetched for the homepage grid) and renders into `container`.
-   `layoutClass` picks the horizontal strip vs the full grid layout. */
-function renderDiscoverySection(prompts, container, layoutClass) {
-  if (!container) return;
-  container.classList.add(layoutClass);
-  const bySlug = new Map(prompts.map(p => [p.slug, p]));
-  const items = DISCOVERY_PROMPTS
-    .map(d => ({ badge: d.badge, prompt: bySlug.get(d.slug) }))
-    .filter(d => d.prompt);
-  container.innerHTML = '';
-  if (!items.length) {
-    // No configured slugs matched real data (e.g. all were renamed/removed) —
-    // hide the whole section rather than showing an empty strip.
-    const section = container.closest('.discovery-section');
-    if (section) section.style.display = 'none';
-    return;
-  }
-  items.forEach(d => container.appendChild(buildDiscoveryCard(d.prompt, d.badge)));
-}
-
-/* ============================================================
-   TRENDING-PROMPTS PAGE (/trending-prompts.html)
-   Same DISCOVERY_PROMPTS data, shown as a filterable grid.
-   ============================================================ */
-async function initTrendingPromptsPage() {
-  const grid = document.getElementById('discovery-page-grid');
-  if (!grid) return;
-
-  const prompts = await fetchPrompts();
-  const bySlug = new Map(prompts.map(p => [p.slug, p]));
-  const items = DISCOVERY_PROMPTS
-    .map(d => ({ badge: d.badge, prompt: bySlug.get(d.slug) }))
-    .filter(d => d.prompt);
-
-  const filterBar = document.getElementById('discovery-filter-bar');
-  let activeBadge = 'All';
-
-  function renderPills() {
-    if (!filterBar) return;
-    const counts = {};
-    items.forEach(d => { counts[d.badge] = (counts[d.badge] || 0) + 1; });
-    const allPill = `<button type="button" class="gallery-filter-pill${activeBadge === 'All' ? ' active' : ''}" data-badge="All">All <span class="gallery-filter-count">${items.length}</span></button>`;
-    const badgePills = Object.keys(DISCOVERY_BADGES)
-      .filter(key => counts[key])
-      .map(key => `<button type="button" class="gallery-filter-pill${activeBadge === key ? ' active' : ''}" data-badge="${key}">${DISCOVERY_BADGES[key].label} <span class="gallery-filter-count">${counts[key]}</span></button>`)
-      .join('');
-    filterBar.innerHTML = allPill + badgePills;
-    filterBar.querySelectorAll('.gallery-filter-pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        activeBadge = btn.dataset.badge;
-        renderPills();
-        renderCards();
-      });
-    });
-  }
-
-  function renderCards() {
-    const filtered = activeBadge === 'All' ? items : items.filter(d => d.badge === activeBadge);
-    grid.innerHTML = '';
-    filtered.forEach(d => grid.appendChild(buildDiscoveryCard(d.prompt, d.badge)));
-    const emptyState = document.getElementById('discovery-empty-state');
-    if (emptyState) emptyState.style.display = filtered.length ? 'none' : '';
-  }
-
-  renderPills();
-  renderCards();
-}
-
 /* ---- Render the Card Grid ---- */
 function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All') {
   container.innerHTML = '';
@@ -346,18 +206,6 @@ async function initIndexPage() {
 
   const prompts = await fetchPrompts();
 
-  /* --- Hero + featured blog banner: hidden only for the Trending isolated
-     view (see showTrendingOnly below); every other view keeps them visible. --- */
-  const heroSection = document.querySelector('.hero');
-  const featuredBanner = document.getElementById('featured-blog-banner');
-  const discoverySection = document.getElementById('discovery-section');
-
-  /* --- Trending & Popular discovery strip: render once, right after the
-     hero. Hidden along with the hero for category/search/trending views
-     (see showList/showTrendingOnly/showCategoryBrowse) since it belongs
-     to the default homepage view, not the results views. --- */
-  renderDiscoverySection(prompts, document.getElementById('discovery-list'), 'discovery-scroller');
-
   /* --- Hero badge: real prompt count, rounded down for a clean honest figure --- */
   const heroBadge = document.getElementById('hero-badge');
   if (heroBadge) {
@@ -435,6 +283,8 @@ async function initIndexPage() {
   const searchInput     = document.getElementById('search-input');
   const searchHero      = document.getElementById('search-hero');
   const countEl         = document.getElementById('prompt-count');
+  const trendingSection = document.getElementById('trending-section');
+  const trendingGrid    = document.getElementById('trending-grid');
   const categoryBrowse  = document.getElementById('category-browse');
   const categoryGridEl  = document.getElementById('category-grid');
   const categoryTailEl  = document.getElementById('category-tail');
@@ -445,6 +295,23 @@ async function initIndexPage() {
 
   let activeCategory = 'All';
   let searchTerm = '';
+
+  /* --- Trending strip (set via admin panel's "Trending" tag; auto-expires
+     after 1 week, checked server-side in /api/prompts) --- */
+  const trending = prompts.filter(p => p.tag === 'trending');
+  if (trending.length && trendingSection && trendingGrid) {
+    trendingGrid.innerHTML = trending.map(p => `
+      <a class="trending-card" href="prompt.html?slug=${encodeURIComponent(p.slug)}">
+        <div class="trending-top-row">
+          <span class="trending-badge">🔥 Trending</span>
+          ${categoryTag(p.category)}
+        </div>
+        <div class="card-title">${escapeHtml(p.title)}</div>
+        <div class="card-preview">${escapeHtml(p.preview || p.prompt.slice(0, 130) + '…')}</div>
+      </a>
+    `).join('');
+    trendingSection.style.display = '';
+  }
 
   /* --- Build category cards (top categories) + long-tail chips --- */
   const catCounts = {};
@@ -461,9 +328,6 @@ async function initIndexPage() {
     searchTerm = '';
     if (searchInput) searchInput.value = '';
     if (searchHero) searchHero.value = '';
-    if (heroSection) heroSection.style.display = '';
-    if (featuredBanner) featuredBanner.style.display = '';
-    if (discoverySection) discoverySection.style.display = '';
     categoryBrowse.style.display = '';
     if (statsBar) statsBar.style.display = '';
     if (topPromptsSection) topPromptsSection.style.display = '';
@@ -473,51 +337,10 @@ async function initIndexPage() {
     grid.style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-  // Exposed so the global hashchange handler (bottom of file) can switch
-  // back to this view when the "Categories" nav link is clicked while
-  // already looking at a filtered list — a plain #anchor link alone can't
-  // do that, since this section may currently be display:none.
-  window.showCategoryBrowse = showCategoryBrowse;
-
-  /* --- Trending: an isolated view (same idea as a category filter) —
-     everything else on the homepage hides, only trending-tagged prompts
-     show, reusing the exact same grid/list-header used for category
-     results. Trending never appears mixed into the normal homepage. --- */
-  function showTrendingOnly() {
-    searchTerm = '';
-    if (searchInput) searchInput.value = '';
-    if (searchHero) searchHero.value = '';
-    if (heroSection) heroSection.style.display = 'none';
-    if (featuredBanner) featuredBanner.style.display = 'none';
-    if (discoverySection) discoverySection.style.display = 'none';
-    categoryBrowse.style.display = 'none';
-    if (statsBar) statsBar.style.display = 'none';
-    if (topPromptsSection) topPromptsSection.style.display = 'none';
-    if (promoBanner) promoBanner.style.display = 'none';
-    if (newsletterBar) newsletterBar.style.display = 'none';
-    listHeader.style.display = 'flex';
-    grid.style.display = '';
-    const trendingPrompts = prompts.filter(p => p.tag === 'trending');
-    const count = renderGrid(trendingPrompts, grid, '', 'All');
-    if (countEl) {
-      countEl.innerHTML = count > 0
-        ? `Showing <strong>${count}</strong> trending prompt${count === 1 ? '' : 's'}`
-        : `Nothing is tagged <strong>Trending</strong> right now — check back soon`;
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  window.showTrendingOnly = showTrendingOnly;
 
   function showList(category, term) {
     activeCategory = category;
     searchTerm = term || '';
-    // Restore the hero in case we're arriving here from the Trending
-    // isolated view, where it's hidden — but the discovery strip and
-    // banner stay hidden here too, same as the rest of "everything
-    // between the hero and the results" below.
-    if (heroSection) heroSection.style.display = '';
-    if (featuredBanner) featuredBanner.style.display = 'none';
-    if (discoverySection) discoverySection.style.display = 'none';
     categoryBrowse.style.display = 'none';
     // Hide everything between the hero and the results so results land
     // right under the search box instead of way down the page.
@@ -617,22 +440,8 @@ async function initIndexPage() {
     if (searchInput) searchInput.value = urlQuery;
     if (searchHero)  searchHero.value  = urlQuery;
     showList('All', urlQuery);
-  } else if (window.location.hash === '#trending-section') {
-    showTrendingOnly();
   } else {
     showCategoryBrowse();
-  }
-
-  /* --- Scroll to whatever #section the URL points to (e.g. clicking
-     "Categories" in the nav — Trending is handled above since it swaps the
-     whole view rather than just scrolling to a spot on the normal page). */
-  if (window.location.hash && window.location.hash !== '#trending-section') {
-    const target = document.querySelector(window.location.hash);
-    if (target) {
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    }
   }
 
   /* --- Search handlers: typing always searches across all categories.
@@ -1573,34 +1382,19 @@ function initIconNavBar() {
       </span>
       <span class="icon-nav-label">More</span>
     </button>
+    <div class="icon-nav-more-popover" id="icon-nav-more-popover">
+      <a href="submit.html" class="site-nav-link">Submit Prompt</a>
+      <a href="about.html" class="site-nav-link">About</a>
+    </div>
   `;
 
   header.insertAdjacentElement('afterend', bar);
 
-  // The popover lives at the very end of <body> (not inside .icon-nav-bar)
-  // and uses position:fixed with JS-computed coordinates — .icon-nav-bar
-  // scrolls horizontally (overflow-x:auto), and CSS forces overflow-y to
-  // clip too whenever overflow-x isn't "visible", so anything absolutely
-  // positioned *inside* it that pokes out the bottom gets silently cut off.
-  const morePopover = document.createElement('div');
-  morePopover.className = 'icon-nav-more-popover';
-  morePopover.id = 'icon-nav-more-popover';
-  morePopover.innerHTML = `
-    <a href="submit.html" class="site-nav-link">Submit Prompt</a>
-    <a href="about.html" class="site-nav-link">About</a>
-  `;
-  document.body.appendChild(morePopover);
-
   const moreBtn = document.getElementById('icon-nav-more-btn');
+  const morePopover = document.getElementById('icon-nav-more-popover');
   moreBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const isOpening = !morePopover.classList.contains('open');
-    if (isOpening) {
-      const rect = moreBtn.getBoundingClientRect();
-      morePopover.style.top = `${rect.bottom + 6}px`;
-      morePopover.style.right = `${window.innerWidth - rect.right}px`;
-    }
-    morePopover.classList.toggle('open', isOpening);
+    morePopover.classList.toggle('open');
   });
   document.addEventListener('click', (e) => {
     if (!morePopover.contains(e.target) && e.target !== moreBtn) {
@@ -1608,37 +1402,6 @@ function initIconNavBar() {
     }
   });
 }
-
-/* Same-page nav clicks (already on index.html, clicking Categories/Trending)
-   don't reload the page, so the load-time logic above never re-runs for
-   them — handle those here too. */
-window.addEventListener('hashchange', () => {
-  const hash = window.location.hash;
-
-  if (!hash) {
-    // "Home" was clicked from a filtered/scrolled state — reset to the
-    // default category-browse view instead of leaving whatever was showing.
-    if (typeof window.showCategoryBrowse === 'function') window.showCategoryBrowse();
-    return;
-  }
-
-  if (hash === '#category-browse' && typeof window.showCategoryBrowse === 'function') {
-    window.showCategoryBrowse();
-    return;
-  }
-
-  if (hash === '#trending-section' && typeof window.showTrendingOnly === 'function') {
-    window.showTrendingOnly();
-    return;
-  }
-
-  const target = document.querySelector(hash);
-  if (target) {
-    requestAnimationFrame(() => {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }
-});
 
 /* ---- Init ---- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1652,5 +1415,4 @@ document.addEventListener('DOMContentLoaded', () => {
   initGalleryListPage();
   initGalleryItemPage();
   initSubmitPage();
-  initTrendingPromptsPage();
 });
