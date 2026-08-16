@@ -19,6 +19,11 @@ export async function onRequestGet(context) {
   urls.push(urlEntry(`${DOMAIN}/`, today, 'daily', '1.0'));
   urls.push(urlEntry(`${DOMAIN}/blog.html`, today, 'daily', '0.8'));
   urls.push(urlEntry(`${DOMAIN}/gallery.html`, today, 'daily', '0.8'));
+  urls.push(urlEntry(`${DOMAIN}/trending-prompts.html`, today, 'daily', '0.8'));
+  urls.push(urlEntry(`${DOMAIN}/videos.html`, today, 'daily', '0.8'));
+  urls.push(urlEntry(`${DOMAIN}/seo-tool.html`, today, 'monthly', '0.6'));
+  urls.push(urlEntry(`${DOMAIN}/prompt-improver.html`, today, 'monthly', '0.6'));
+  urls.push(urlEntry(`${DOMAIN}/image-prompt-generator.html`, today, 'monthly', '0.6'));
   urls.push(urlEntry(`${DOMAIN}/about.html`, today, 'monthly', '0.4'));
   urls.push(urlEntry(`${DOMAIN}/submit.html`, today, 'monthly', '0.4'));
 
@@ -51,6 +56,17 @@ export async function onRequestGet(context) {
     for (const g of items) {
       const lastmod = String(g.updated_at || g.published_at || today).slice(0, 10);
       urls.push(urlEntry(`${DOMAIN}/gallery-item.html?slug=${encodeURIComponent(g.slug)}`, lastmod, 'monthly', '0.7'));
+    }
+  } catch (e) { /* table not reachable — still serve everything else */ }
+
+  // Every video item currently in the live database
+  try {
+    const { results: videos } = await env.DB.prepare(
+      'SELECT slug, published_at, updated_at FROM video_items'
+    ).all();
+    for (const v of videos) {
+      const lastmod = String(v.updated_at || v.published_at || today).slice(0, 10);
+      urls.push(urlEntry(`${DOMAIN}/video-item.html?slug=${encodeURIComponent(v.slug)}`, lastmod, 'monthly', '0.7'));
     }
   } catch (e) { /* table not reachable — still serve everything else */ }
 
