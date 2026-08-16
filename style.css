@@ -2322,19 +2322,20 @@ body::before {
   margin-bottom: 0.6rem;
 }
 
-/* Featured "new post" banner on the homepage — only shown for 24h.
-   visibility:hidden (not display:none) so the space is reserved from the
-   very first paint — the banner's content only arrives after an async
-   fetch, and popping in a display:none→block element after that fetch
-   resolves is exactly what causes layout shift (CLS) in everything below
-   it, including the footer. Reserving the space up front avoids that. */
+/* Featured "new post" banner on the homepage — only shown when there's an
+   unpinned post published in the last 24h (see initFeaturedBlogBanner), or
+   a pinned post, and only if this visitor hasn't dismissed it already.
+   That means most visits never have anything to show at all — reserving
+   space up front (the old visibility:hidden approach) left a permanent
+   blank gap on every one of those visits. display:none by default avoids
+   that; JS switches it to display:block only when there's real content. */
 .featured-blog-banner {
-  visibility: hidden;
+  display: none;
   max-width: var(--max-w);
   margin: 0 auto 1.75rem;
   padding: 0 2rem;
 }
-.featured-blog-banner.show { visibility: visible; }
+.featured-blog-banner.show { display: block; }
 .featured-blog-banner-inner {
   background: linear-gradient(120deg, var(--accent-dim), var(--accent));
   border-radius: var(--radius);
