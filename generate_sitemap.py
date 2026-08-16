@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """
+NOTE: superseded by functions/sitemap.xml.js, which Cloudflare Pages serves
+in place of this static file (a Function always wins over a same-named
+static asset) and which builds the sitemap live from D1 instead of the
+prompts.json snapshot. Kept for local/offline reference only.
+
 Regenerates sitemap.xml from prompts.json.
 Run this any time prompts.json changes, so the sitemap always matches
 what's actually in the data file (no stale or missing URLs).
@@ -60,7 +65,7 @@ urls.append({
 # One entry per unique prompt
 for p in unique_prompts:
     urls.append({
-        "loc": f"{DOMAIN}/prompt.html?slug={p['slug']}",
+        "loc": f"{DOMAIN}/prompt?slug={p['slug']}",
         "lastmod": TODAY,
         "changefreq": "monthly",
         "priority": "0.7",

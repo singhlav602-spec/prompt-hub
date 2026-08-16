@@ -177,7 +177,7 @@ async function toggleLikedSlug(slug, countEl) {
 function buildCard(prompt, delay = 0) {
   const a = document.createElement('a');
   a.className = 'prompt-card animate-fade-up' + (prompt.tag === 'trending' ? ' prompt-card-trending' : '');
-  a.href = `prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  a.href = `prompt?slug=${encodeURIComponent(prompt.slug)}`;
   a.style.animationDelay = `${delay}ms`;
 
   const tagBadge = prompt.tag === 'hot'
@@ -281,7 +281,7 @@ function buildDiscoveryCard(prompt, badgeKey) {
   const badge = DISCOVERY_BADGES[badgeKey];
   const a = document.createElement('a');
   a.className = 'prompt-card discovery-card';
-  a.href = `prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  a.href = `prompt?slug=${encodeURIComponent(prompt.slug)}`;
   a.innerHTML = `
     <div class="card-top-row">
       ${categoryTag(prompt.category)}
@@ -397,7 +397,7 @@ function injectDiscoveryStructuredData(items, includeBreadcrumb) {
     itemListElement: items.slice(0, 20).map((p, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://smart-prompt.in/prompt.html?slug=${encodeURIComponent(p.slug)}`,
+      url: `https://smart-prompt.in/prompt?slug=${encodeURIComponent(p.slug)}`,
       name: p.title,
     })),
   };
@@ -765,7 +765,7 @@ async function initIndexPage() {
         const icon = CATEGORY_ICONS[p.category] || '✨';
         const color = CARD_COLORS[i % CARD_COLORS.length];
         return `
-          <a class="top-prompt-item" href="prompt.html?slug=${encodeURIComponent(p.slug)}">
+          <a class="top-prompt-item" href="prompt?slug=${encodeURIComponent(p.slug)}">
             <div class="stat-icon stat-icon-${color}">${icon}</div>
             <div class="top-prompt-info">
               <div class="top-prompt-title">${escapeHtml(p.title)}</div>
@@ -904,7 +904,7 @@ async function initPromptPage() {
   /* --- Set unique meta description, OG tags & canonical (critical for search CTR) --- */
   const pageDescription = (prompt.preview || prompt.prompt.slice(0, 140))
     + ` Free ${prompt.category} prompt — copy & use instantly.`;
-  const pageUrl = `https://smart-prompt.in/prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  const pageUrl = `https://smart-prompt.in/prompt?slug=${encodeURIComponent(prompt.slug)}`;
 
   const metaDesc = document.getElementById('meta-description');
   if (metaDesc) metaDesc.setAttribute('content', pageDescription);
@@ -1005,7 +1005,7 @@ async function initPromptPage() {
         <div class="related-title">More in ${escapeHtml(prompt.category)}</div>
         <div class="related-grid">
           ${related.map(r => `
-            <a class="prompt-card" href="prompt.html?slug=${encodeURIComponent(r.slug)}">
+            <a class="prompt-card" href="prompt?slug=${encodeURIComponent(r.slug)}">
               ${categoryTag(r.category)}
               <div class="card-title">${escapeHtml(r.title)}</div>
               <div class="card-preview">${escapeHtml(r.preview || r.prompt.slice(0, 90) + '…')}</div>
@@ -1289,7 +1289,7 @@ async function initFeaturedBlogBanner() {
   if (getSeenBannerSlugs().includes(featured.slug)) return; // this visitor already opened it
 
   document.getElementById('featured-blog-banner-title').textContent = featured.title;
-  document.getElementById('featured-blog-banner-link').href = `blog-post.html?slug=${encodeURIComponent(featured.slug)}`;
+  document.getElementById('featured-blog-banner-link').href = `blog-post?slug=${encodeURIComponent(featured.slug)}`;
   banner.classList.add('show');
 }
 
@@ -1383,7 +1383,7 @@ async function initGalleryListPage() {
   function renderCards() {
     const filtered = activeCategory === 'All' ? items : items.filter(g => (g.category || 'Other') === activeCategory);
     renderGridInBatches(grid, sentinel, filtered, 24, (g) => `
-      <a class="gallery-card animate-fade-up" href="gallery-item.html?slug=${encodeURIComponent(g.slug)}">
+      <a class="gallery-card animate-fade-up" href="gallery-item?slug=${encodeURIComponent(g.slug)}">
         <div class="gallery-card-image-wrap">
           <img src="${escapeHtml(g.image_url)}" alt="${escapeHtml(g.title)}" loading="lazy" class="gallery-card-image" />
         </div>
@@ -1409,7 +1409,7 @@ async function initGalleryListPage() {
     itemListElement: items.slice(0, 30).map((g, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://smart-prompt.in/gallery-item.html?slug=${encodeURIComponent(g.slug)}`,
+      url: `https://smart-prompt.in/gallery-item?slug=${encodeURIComponent(g.slug)}`,
       name: g.title,
     })),
   });
@@ -1442,7 +1442,7 @@ async function initGalleryItemPage() {
   }
 
   document.title = `${item.title} — SmartPrompts Gallery`;
-  const pageUrl = `https://smart-prompt.in/gallery-item.html?slug=${encodeURIComponent(item.slug)}`;
+  const pageUrl = `https://smart-prompt.in/gallery-item?slug=${encodeURIComponent(item.slug)}`;
   const pageDescription = `AI-generated image: ${item.title}. Includes the image prompt and video prompt used to create it.`;
 
   const metaDesc = document.getElementById('meta-description');
@@ -1601,7 +1601,7 @@ async function initVideoListPage() {
   function renderCards() {
     const filtered = activeCategory === 'All' ? items : items.filter(v => (v.category || 'Other') === activeCategory);
     renderGridInBatches(grid, sentinel, filtered, 24, (v) => `
-      <a class="gallery-card animate-fade-up" href="video-item.html?slug=${encodeURIComponent(v.slug)}">
+      <a class="gallery-card animate-fade-up" href="video-item?slug=${encodeURIComponent(v.slug)}">
         <div class="gallery-card-image-wrap">
           <img src="${youtubeThumb(v.youtube_id)}" alt="${escapeHtml(v.title)}" loading="lazy" class="gallery-card-image" />
           <span class="gallery-card-video-badge">▶ Video</span>
@@ -1626,7 +1626,7 @@ async function initVideoListPage() {
     itemListElement: items.slice(0, 30).map((v, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://smart-prompt.in/video-item.html?slug=${encodeURIComponent(v.slug)}`,
+      url: `https://smart-prompt.in/video-item?slug=${encodeURIComponent(v.slug)}`,
       name: v.title,
     })),
   });
@@ -1659,7 +1659,7 @@ async function initVideoItemPage() {
   }
 
   document.title = `${item.title} — SmartPrompts Videos`;
-  const pageUrl = `https://smart-prompt.in/video-item.html?slug=${encodeURIComponent(item.slug)}`;
+  const pageUrl = `https://smart-prompt.in/video-item?slug=${encodeURIComponent(item.slug)}`;
   const pageDescription = `AI-generated video: ${item.title}. Includes the exact prompt used to create it.`;
   const thumb = youtubeThumb(item.youtube_id);
 
@@ -1920,7 +1920,7 @@ async function initBlogListPage() {
   }
 
   grid.innerHTML = posts.map(p => `
-    <a class="prompt-card animate-fade-up" href="blog-post.html?slug=${encodeURIComponent(p.slug)}">
+    <a class="prompt-card animate-fade-up" href="blog-post?slug=${encodeURIComponent(p.slug)}">
       <span class="card-date">${escapeHtml(formatBlogDate(p.published_at))}</span>
       <div class="card-title">${escapeHtml(p.title)}</div>
       <div class="card-preview blog-excerpt">${escapeHtml(p.excerpt || p.content.slice(0, 140) + '…')}</div>
@@ -1965,7 +1965,7 @@ async function initBlogPostPage() {
 
   document.title = `${post.title} — SmartPrompts Blog`;
   markBannerSlugSeen(post.slug);
-  const pageUrl = `https://smart-prompt.in/blog-post.html?slug=${encodeURIComponent(post.slug)}`;
+  const pageUrl = `https://smart-prompt.in/blog-post?slug=${encodeURIComponent(post.slug)}`;
   const pageDescription = post.excerpt || post.title;
 
   const metaDesc = document.getElementById('meta-description');
@@ -2017,7 +2017,7 @@ async function initBlogPostPage() {
         <div class="related-title">More from the Blog</div>
         <div class="related-grid">
           ${relatedPosts.map(r => `
-            <a class="prompt-card" href="blog-post.html?slug=${encodeURIComponent(r.slug)}">
+            <a class="prompt-card" href="blog-post?slug=${encodeURIComponent(r.slug)}">
               <span class="card-date">${escapeHtml(formatBlogDate(r.published_at))}</span>
               <div class="card-title">${escapeHtml(r.title)}</div>
               <div class="card-preview blog-excerpt">${escapeHtml(r.excerpt || r.content.slice(0, 90) + '…')}</div>
