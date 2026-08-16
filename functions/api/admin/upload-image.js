@@ -2,8 +2,8 @@ import { requireAuth } from '../../_auth.js';
 
 // POST /api/admin/upload-image — takes a base64 image from the admin panel
 // and commits it straight into the GitHub repo's /images folder via GitHub's
-// Contents API, then hands back the raw.githubusercontent.com URL. No
-// Cloudflare billing/card needed — this only needs a GitHub token.
+// Contents API, then hands back the raw.githubusercontent.com URL. No card
+// or Cloudflare billing needed — just a GitHub token.
 //
 // Requires three Cloudflare Pages secrets (Settings → Environment variables):
 //   GITHUB_TOKEN  — a GitHub Personal Access Token with repo write access
@@ -48,8 +48,6 @@ export async function onRequestPost(context) {
   if (!filename || !dataBase64) {
     return new Response(JSON.stringify({ error: 'filename and dataBase64 are required' }), { status: 400 });
   }
-  // Rough size guard — base64 is ~33% bigger than the raw bytes. 6MB of
-  // base64 is roughly a 4.5MB image, plenty for a web gallery image.
   if (dataBase64.length > 6 * 1024 * 1024) {
     return new Response(JSON.stringify({ error: 'Image too large — please use an image under 4MB.' }), { status: 413 });
   }
