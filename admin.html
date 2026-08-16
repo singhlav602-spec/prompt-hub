@@ -13,7 +13,7 @@
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--text); font-family: -apple-system, 'DM Sans', sans-serif; }
   h1 { font-size: 1.3rem; margin: 0 0 1.1rem; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; transition: border-color 0.2s; }
   input, textarea, select {
     width: 100%; background: #1c1c22; border: 1px solid var(--border); color: var(--text);
     border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.92rem; font-family: inherit; margin-top: 0.3rem;
@@ -27,8 +27,12 @@
   button {
     background: linear-gradient(120deg, var(--accent-2), var(--accent)); color: #fff; border: none;
     border-radius: 8px; padding: 0.6rem 1.1rem; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
   }
-  button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(124,108,240,0.35); }
+  button:active:not(:disabled) { transform: translateY(0); }
+  button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); box-shadow:none; }
+  button.secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); box-shadow:none; }
   .editor-toolbar { display:flex; gap:0.4rem; margin-top:0.4rem; }
   .editor-toolbar button { padding: 0.35rem 0.65rem; font-size: 0.8rem; }
   .checkbox-row { display:flex; align-items:center; gap:0.5rem; margin-top:0.9rem; }
@@ -77,17 +81,43 @@
   .nav-item {
     display:flex; align-items:center; justify-content:space-between; text-align:left;
     background:transparent; border:none; color:var(--muted); font-weight:600; font-size:0.87rem;
-    padding:0.6rem 0.65rem; border-radius:8px; cursor:pointer;
+    padding:0.6rem 0.65rem; border-radius:8px; cursor:pointer; transition: background 0.15s ease, color 0.15s ease;
   }
-  .nav-item.active { background: rgba(124,108,240,0.16); color:var(--text); }
-  .nav-item:hover:not(.active) { background: rgba(255,255,255,0.045); }
+  .nav-item.active { background: linear-gradient(120deg, rgba(79,125,245,0.18), rgba(124,108,240,0.18)); color:var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+  .nav-item:hover:not(.active) { background: rgba(255,255,255,0.045); color: var(--text); }
   .nav-item .badge { margin:0; }
   .sidebar-logout { width:100%; }
   .admin-main { flex:1; min-width:0; padding: 1.5rem 1.5rem 4rem; max-width: 900px; }
 
   /* ---- Dashboard ---- */
   .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:0.75rem; margin-bottom:1.2rem; }
-  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display:flex; flex-direction:column; gap:0.15rem; }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.1rem;
+    display:flex;
+    flex-direction:column;
+    gap:0.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    opacity: 0.85;
+  }
+  .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .stat-num {
+    background: linear-gradient(120deg, var(--accent-2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
   .stat-num { font-size:1.55rem; font-weight:700; }
   .stat-label { font-size:0.74rem; color:var(--muted); }
 
@@ -144,6 +174,7 @@
         <button class="nav-item" data-tab="blog">📝 Blog</button>
         <button class="nav-item" data-tab="gallery">🖼️ Gallery</button>
         <button class="nav-item" data-tab="videos">🎬 Videos</button>
+        <button class="nav-item" data-tab="categories">🏷️ Categories</button>
         <button class="nav-item" data-tab="submissions">📥 Submissions<span class="badge hidden" id="pending-badge">0</span></button>
         <button class="nav-item" data-tab="search-gaps">🔎 Search Gaps</button>
       </nav>
@@ -178,6 +209,13 @@
             <button class="secondary" id="import-btn">Import existing prompts (one-time)</button>
           </div>
           <div id="import-msg"></div>
+        </div>
+
+        <div class="card">
+          <strong>Recently Added</strong>
+          <div id="recent-activity-container" style="margin-top:0.7rem;">
+            <p class="stat">Loading…</p>
+          </div>
         </div>
       </div>
 
@@ -382,6 +420,18 @@
         </div>
       </div>
 
+      <!-- ===== CATEGORIES TAB ===== -->
+      <div id="tab-categories" class="tab-panel hidden">
+        <h1>Categories</h1>
+        <div class="card">
+          <strong>Feature a category as a homepage card</strong>
+          <p class="stat" style="margin-top:0.3rem;">By default, only the top 12 categories (by number of prompts) show as big cards on the homepage — the rest show as small text chips. Turn this on for any category you want to always show as a full card, no matter how many prompts it has.</p>
+          <div id="categories-container" style="margin-top:0.8rem;">
+            <p class="stat">Loading…</p>
+          </div>
+        </div>
+      </div>
+
       <!-- ===== SUBMISSIONS TAB ===== -->
       <div id="tab-submissions" class="tab-panel hidden">
         <h1>Submissions</h1>
@@ -444,6 +494,7 @@ function goToTab(tab) {
   if (tab === 'blog') loadBlogList();
   if (tab === 'gallery') loadGalleryList();
   if (tab === 'videos') loadVideosList();
+  if (tab === 'categories') loadCategorySettings();
   if (tab === 'submissions') loadSubmissions();
   if (tab === 'search-gaps') loadSearchGaps();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -464,6 +515,36 @@ async function loadDashboardStats() {
   document.getElementById('stat-gallery').textContent = g.data.total ?? '—';
   document.getElementById('stat-videos').textContent = v.data.total ?? '—';
   document.getElementById('stat-pending').textContent = s.data.pendingCount ?? 0;
+
+  const container = document.getElementById('recent-activity-container');
+  const rows = [];
+  (p.data.results || []).slice(0, 3).forEach(item => rows.push({ type: 'Prompt', icon: '💡', title: item.title, tab: 'prompts' }));
+  (b.data.results || []).slice(0, 3).forEach(item => rows.push({ type: 'Blog', icon: '📝', title: item.title, date: item.published_at, tab: 'blog' }));
+  (g.data.results || []).slice(0, 3).forEach(item => rows.push({ type: 'Gallery', icon: '🖼️', title: item.title, date: item.published_at, tab: 'gallery' }));
+  (v.data.results || []).slice(0, 3).forEach(item => rows.push({ type: 'Video', icon: '🎬', title: item.title, date: item.published_at, tab: 'videos' }));
+
+  if (!rows.length) {
+    container.innerHTML = '<p class="stat">Nothing added yet.</p>';
+    return;
+  }
+
+  // Items with a real date sort by recency; prompts (no date exposed here)
+  // stay grouped at the top by insertion order, most-recent-id first.
+  const dated = rows.filter(r => r.date).sort((a, b) => new Date(b.date) - new Date(a.date));
+  const undated = rows.filter(r => !r.date);
+  const ordered = [...undated, ...dated].slice(0, 8);
+
+  container.innerHTML = ordered.map(r => `
+    <div class="prompt-item" style="padding:0.55rem 0;">
+      <div class="item-body">
+        <div style="flex:1;">
+          <span class="badge" style="background:rgba(124,108,240,0.18);color:var(--accent);">${r.icon} ${r.type}</span>
+          ${escapeHtml(r.title)}
+        </div>
+        <button class="secondary" onclick="goToTab('${r.tab}')" style="padding:0.3rem 0.65rem;font-size:0.76rem;">View</button>
+      </div>
+    </div>
+  `).join('');
 }
 
 /* ---- Bulk select/delete (shared across the three list tabs) ---- */
@@ -1116,6 +1197,43 @@ document.getElementById('video-next-page').addEventListener('click', () => {
 });
 
 const refreshVideoBulkBar = setupBulkActions('video-list-container', 'video-select-all', 'video-delete-selected', 'video-selected-count', '/api/admin/videos', loadVideosList);
+
+/* ==================== CATEGORIES ==================== */
+async function loadCategorySettings() {
+  const { data } = await api('/api/admin/category-settings');
+  const container = document.getElementById('categories-container');
+
+  if (!data.results || data.results.length === 0) {
+    container.innerHTML = '<p class="stat">No categories yet — add some prompts first.</p>';
+    return;
+  }
+
+  container.innerHTML = data.results.map(c => `
+    <div class="prompt-item">
+      <div class="item-body">
+        <div style="flex:1;">
+          <div class="title">${escapeHtml(c.category)}</div>
+          <div class="meta">${c.count} prompt${c.count === 1 ? '' : 's'}</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;color:var(--text);cursor:pointer;">
+          <input type="checkbox" class="cat-featured-toggle" data-category="${escapeHtml(c.category)}" ${c.featured ? 'checked' : ''} />
+          ⭐ Feature as card
+        </label>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.cat-featured-toggle').forEach(cb => {
+    cb.addEventListener('change', async () => {
+      cb.disabled = true;
+      await api('/api/admin/category-settings', {
+        method: 'POST',
+        body: JSON.stringify({ category: cb.dataset.category, featured: cb.checked }),
+      });
+      cb.disabled = false;
+    });
+  });
+}
 
 /* ============ SUBMISSIONS ============ */
 async function refreshPendingBadge() {

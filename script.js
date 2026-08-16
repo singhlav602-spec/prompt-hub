@@ -108,7 +108,7 @@ const AI_TOOLS = [
 /* Shared category → icon/color mapping, used by both the category cards
    and the featured-prompts list so they stay visually consistent. */
 const CATEGORY_ICONS = {
-  'Business': '💼', 'Marketing': '📣', 'Writing': '✍️', 'Coding': '</>',
+  'Business': '💼', 'Marketing': '📣', 'Writing': '✍️', 'Coding': '💻',
   'Education': '🎓', 'Design': '🎨', 'Productivity': '⚡', 'Social Media': '📱',
   'Story': '📚', 'NotebookLM': '🗒️', 'YouTube': '▶️', 'Web Development': '🌐',
   'AI Image': '🖼️', 'Finance': '💰', 'Career': '💡', 'SEO': '🔍',
@@ -573,7 +573,7 @@ async function initIndexPage() {
     heroTags.querySelectorAll('.hero-tag').forEach(tag => {
       tag.addEventListener('click', (e) => {
         e.preventDefault();
-        showList(tag.dataset.category);
+        location.hash = '#category=' + encodeURIComponent(tag.dataset.category);
         document.getElementById('list-header')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
@@ -621,13 +621,26 @@ async function initIndexPage() {
   let activeCategory = 'All';
   let searchTerm = '';
 
-  /* --- Build category cards (top categories) + long-tail chips --- */
+  /* --- Build category cards (top categories) + long-tail chips.
+     Anything an admin has manually pinned as "featured" (via the admin
+     panel) always gets a full card, even if it wouldn't otherwise be in
+     the top N by prompt count — the rest still fall back to count order. --- */
   const catCounts = {};
   prompts.forEach(p => { catCounts[p.category] = (catCounts[p.category] || 0) + 1; });
   const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
   const TOP_N = 12;
-  const topCats = sortedCats.slice(0, TOP_N);
-  const tailCats = sortedCats.slice(TOP_N);
+
+  let featuredCats = [];
+  try {
+    const featRes = await fetch('/api/category-settings');
+    if (featRes.ok) featuredCats = (await featRes.json()).featured || [];
+  } catch (e) { /* if this fails, just fall back to plain count-based order */ }
+
+  const pinned = sortedCats.filter(([cat]) => featuredCats.includes(cat));
+  const unpinned = sortedCats.filter(([cat]) => !featuredCats.includes(cat));
+  const orderedCats = [...pinned, ...unpinned];
+  const topCats = orderedCats.slice(0, TOP_N);
+  const tailCats = orderedCats.slice(TOP_N);
 
   const topPromptsSection = document.getElementById('top-prompts-section');
 
@@ -690,7 +703,10 @@ async function initIndexPage() {
     if (trimmedTerm.length >= 3 && count === 0) {
       searchMissTimer = setTimeout(() => trackSearchMiss(trimmedTerm), 1200);
     }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  window.showList = showList;
 
   categoryGridEl.innerHTML = topCats.map(([cat, count], i) => {
     const icon = CATEGORY_ICONS[cat] || '✨';
@@ -716,10 +732,18 @@ async function initIndexPage() {
   `).join('');
 
   categoryGridEl.querySelectorAll('.category-card').forEach(el => {
-    el.addEventListener('click', () => showList(el.dataset.category));
+    el.addEventListener('click', () => {
+      // A real hash change (not a direct showList() call) so this becomes
+      // its own back-button stop — previously this was a silent JS-only
+      // filter with no URL change, which is why "back" from a prompt page
+      // opened from here had nowhere sensible to land.
+      location.hash = '#category=' + encodeURIComponent(el.dataset.category);
+    });
   });
   categoryTailEl.querySelectorAll('.filter-btn').forEach(el => {
-    el.addEventListener('click', () => showList(el.dataset.category));
+    el.addEventListener('click', () => {
+      location.hash = '#category=' + encodeURIComponent(el.dataset.category);
+    });
   });
 
   /* --- Featured Prompts: one pick per top category, no invented view
@@ -768,10 +792,13 @@ async function initIndexPage() {
   /* --- Handle ?q= from URL (e.g. redirected from prompt.html search) --- */
   const urlParams = new URLSearchParams(window.location.search);
   const urlQuery = urlParams.get('q');
+  const initialHash = window.location.hash;
   if (urlQuery) {
     if (searchInput) searchInput.value = urlQuery;
     if (searchHero)  searchHero.value  = urlQuery;
     showList('All', urlQuery);
+  } else if (initialHash.startsWith('#category=')) {
+    showList(decodeURIComponent(initialHash.slice('#category='.length)));
   } else {
     showCategoryBrowse();
   }
@@ -2168,24 +2195,18 @@ function initIconNavBar() {
   if (!header || document.querySelector('.icon-nav-bar')) return;
 
   const path = window.location.pathname;
-  const hash = window.location.hash;
   const isHome = path === '/' || path.endsWith('/') || path.endsWith('index.html');
-  const isCategories = isHome && hash === '#category-browse';
   const isTrending = path.includes('trending-prompts');
   const isBlog = path.includes('blog');
-  const isGallery = path.includes('gallery');
-  const isMore = path.includes('submit') || path.includes('about') || path.includes('videos') || path.includes('video-item') || path.includes('seo-tool') || path.includes('prompt-improver') || path.includes('image-prompt-generator');
+  const isGallery = path.includes('gallery') && !path.includes('gallery-item');
+  const isVideos = path.includes('video');
+  const isMore = path.includes('submit') || path.includes('about') || path.includes('seo-tool') || path.includes('prompt-improver') || path.includes('image-prompt-generator');
 
   const items = [
     {
       label: 'Home', href: 'index.html',
-      active: isHome && !isCategories && !isTrending,
+      active: isHome && !isTrending,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>',
-    },
-    {
-      label: 'Categories', href: 'index.html#category-browse',
-      active: isCategories,
-      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
     },
     {
       label: 'Trending', href: 'trending-prompts.html',
@@ -2201,6 +2222,11 @@ function initIconNavBar() {
       label: 'Gallery', href: 'gallery.html',
       active: isGallery,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5-9 9"/></svg>',
+    },
+    {
+      label: 'Videos', href: 'videos.html',
+      active: isVideos,
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="14" height="14" rx="2"/><path d="M21 8.5l-4.5 3.5 4.5 3.5v-7z"/></svg>',
     },
   ];
 
@@ -2232,7 +2258,6 @@ function initIconNavBar() {
   morePopover.className = 'icon-nav-more-popover';
   morePopover.id = 'icon-nav-more-popover';
   morePopover.innerHTML = `
-    <a href="videos.html" class="site-nav-link">Videos</a>
     <a href="seo-tool.html" class="site-nav-link">SEO Tool</a>
     <a href="prompt-improver.html" class="site-nav-link">Prompt Improver</a>
     <a href="image-prompt-generator.html" class="site-nav-link">Image Prompt Generator</a>
@@ -2274,6 +2299,18 @@ window.addEventListener('hashchange', () => {
 
   if (hash === '#category-browse' && typeof window.showCategoryBrowse === 'function') {
     window.showCategoryBrowse();
+    return;
+  }
+
+  if (hash.startsWith('#category=')) {
+    const cat = decodeURIComponent(hash.slice('#category='.length));
+    if (typeof window.showList === 'function') {
+      window.showList(cat);
+    } else {
+      // showList isn't on window yet on some pages — fall back to a full
+      // reload so the category still applies correctly.
+      location.reload();
+    }
     return;
   }
 
