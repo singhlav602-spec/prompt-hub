@@ -13,8 +13,8 @@ async function uniqueSlug(db, base, excludeId) {
   while (true) {
     const existing = await db.prepare(
       excludeId
-        ? 'SELECT id FROM gallery_items WHERE slug = ? AND id != ?'
-        : 'SELECT id FROM gallery_items WHERE slug = ?'
+        ? 'SELECT id FROM video_items WHERE slug = ? AND id != ?'
+        : 'SELECT id FROM video_items WHERE slug = ?'
     ).bind(...(excludeId ? [slug, excludeId] : [slug])).first();
     if (!existing) return slug;
     slug = `${base}-${i}`;
@@ -22,20 +22,32 @@ async function uniqueSlug(db, base, excludeId) {
   }
 }
 
+// Pulls the 11-char YouTube video ID out of any of the common URL shapes
+// (watch?v=, youtu.be/, /embed/, /shorts/) or accepts a bare ID as-is.
+function extractYoutubeId(input) {
+  const s = (input || '').trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtube\.com\/shorts\/|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const re of patterns) {
+    const m = s.match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
 async function ensureTable(db) {
-  await db.prepare(`CREATE TABLE IF NOT EXISTS gallery_items (
+  await db.prepare(`CREATE TABLE IF NOT EXISTS video_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
-    image_url TEXT NOT NULL,
-    image_prompt TEXT NOT NULL,
-    video_prompt TEXT NOT NULL,
+    youtube_id TEXT NOT NULL,
     category TEXT NOT NULL DEFAULT 'Other',
+    prompt TEXT NOT NULL,
     published_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   )`).run();
-  // Migrate tables created before the category column existed.
-  try { await db.prepare("ALTER TABLE gallery_items ADD COLUMN category TEXT NOT NULL DEFAULT 'Other'").run(); } catch (e) { /* already exists */ }
 }
 
 export async function onRequest(context) {
@@ -62,11 +74,11 @@ export async function onRequest(context) {
       params = [`%${search}%`];
     }
 
-    const countRow = await db.prepare(`SELECT COUNT(*) as c FROM gallery_items ${where}`).bind(...params).first();
+    const countRow = await db.prepare(`SELECT COUNT(*) as c FROM video_items ${where}`).bind(...params).first();
     const total = countRow ? countRow.c : 0;
 
     const rows = await db.prepare(
-      `SELECT id, slug, title, image_url, image_prompt, video_prompt, category, published_at FROM gallery_items ${where} ORDER BY published_at DESC LIMIT ? OFFSET ?`
+      `SELECT id, slug, title, youtube_id, category, prompt, published_at FROM video_items ${where} ORDER BY published_at DESC LIMIT ? OFFSET ?`
     ).bind(...params, pageSize, (page - 1) * pageSize).all();
 
     return new Response(JSON.stringify({ results: rows.results, total, page, pageSize }), {
@@ -77,13 +89,18 @@ export async function onRequest(context) {
   // ---- POST: create ----
   if (request.method === 'POST') {
     const body = await request.json();
-    if (!body.title || !body.image_url || !body.image_prompt || !body.video_prompt) {
-      return new Response(JSON.stringify({ error: 'title, image_url, image_prompt and video_prompt are required' }), { status: 400 });
+    const youtubeId = extractYoutubeId(body.youtube_url);
+    if (!body.title || !youtubeId || !body.prompt) {
+      return new Response(JSON.stringify({
+        error: !youtubeId
+          ? 'Could not find a valid YouTube video ID in that URL'
+          : 'title, youtube_url and prompt are required',
+      }), { status: 400 });
     }
     const slug = await uniqueSlug(db, slugify(body.title));
     await db.prepare(
-      'INSERT INTO gallery_items (slug, title, image_url, image_prompt, video_prompt, category) VALUES (?, ?, ?, ?, ?, ?)'
-    ).bind(slug, body.title, body.image_url, body.image_prompt, body.video_prompt, body.category?.trim() || 'Other').run();
+      'INSERT INTO video_items (slug, title, youtube_id, category, prompt) VALUES (?, ?, ?, ?, ?)'
+    ).bind(slug, body.title, youtubeId, body.category?.trim() || 'Other', body.prompt).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       status: 201,
@@ -96,14 +113,19 @@ export async function onRequest(context) {
     const id = url.searchParams.get('id');
     if (!id) return new Response(JSON.stringify({ error: 'id required' }), { status: 400 });
     const body = await request.json();
-    if (!body.title || !body.image_url || !body.image_prompt || !body.video_prompt) {
-      return new Response(JSON.stringify({ error: 'title, image_url, image_prompt and video_prompt are required' }), { status: 400 });
+    const youtubeId = extractYoutubeId(body.youtube_url);
+    if (!body.title || !youtubeId || !body.prompt) {
+      return new Response(JSON.stringify({
+        error: !youtubeId
+          ? 'Could not find a valid YouTube video ID in that URL'
+          : 'title, youtube_url and prompt are required',
+      }), { status: 400 });
     }
     const slug = await uniqueSlug(db, slugify(body.title), id);
 
     await db.prepare(
-      `UPDATE gallery_items SET slug=?, title=?, image_url=?, image_prompt=?, video_prompt=?, category=?, updated_at=datetime('now') WHERE id=?`
-    ).bind(slug, body.title, body.image_url, body.image_prompt, body.video_prompt, body.category?.trim() || 'Other', id).run();
+      `UPDATE video_items SET slug=?, title=?, youtube_id=?, category=?, prompt=?, updated_at=datetime('now') WHERE id=?`
+    ).bind(slug, body.title, youtubeId, body.category?.trim() || 'Other', body.prompt, id).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       headers: { 'Content-Type': 'application/json' },
@@ -118,18 +140,17 @@ export async function onRequest(context) {
       const ids = idsParam.split(',').map(s => s.trim()).filter(Boolean);
       if (!ids.length) return new Response(JSON.stringify({ error: 'ids required' }), { status: 400 });
       const placeholders = ids.map(() => '?').join(',');
-      await db.prepare(`DELETE FROM gallery_items WHERE id IN (${placeholders})`).bind(...ids).run();
+      await db.prepare(`DELETE FROM video_items WHERE id IN (${placeholders})`).bind(...ids).run();
       return new Response(JSON.stringify({ ok: true, deleted: ids.length }), {
         headers: { 'Content-Type': 'application/json' },
       });
     }
     if (!id) return new Response(JSON.stringify({ error: 'id required' }), { status: 400 });
-    await db.prepare('DELETE FROM gallery_items WHERE id = ?').bind(id).run();
+    await db.prepare('DELETE FROM video_items WHERE id = ?').bind(id).run();
     return new Response(JSON.stringify({ ok: true }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  // ---- GET single (for edit form) ----
   return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
 }

@@ -29,6 +29,7 @@ async function uniqueSlug(db, base, excludeId) {
 async function ensureTagColumns(db) {
   try { await db.prepare("ALTER TABLE prompts ADD COLUMN tag TEXT DEFAULT 'normal'").run(); } catch (e) {}
   try { await db.prepare('ALTER TABLE prompts ADD COLUMN tag_expires_at TEXT').run(); } catch (e) {}
+  try { await db.prepare('ALTER TABLE prompts ADD COLUMN featured_trending INTEGER NOT NULL DEFAULT 0').run(); } catch (e) {}
 }
 
 export async function onRequest(context) {
@@ -65,7 +66,7 @@ export async function onRequest(context) {
     const total = countRow ? countRow.c : 0;
 
     const rows = await db.prepare(
-      `SELECT id, slug, title, category, preview, prompt, tag, tag_expires_at FROM prompts ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`
+      `SELECT id, slug, title, category, preview, prompt, tag, tag_expires_at, featured_trending FROM prompts ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`
     ).bind(...params, pageSize, (page - 1) * pageSize).all();
 
     const results = rows.results.map(r => ({ ...r, tag: resolveTag(r) }));
@@ -94,12 +95,13 @@ export async function onRequest(context) {
 
     const tag = VALID_TAGS.includes(body.tag) ? body.tag : 'normal';
     const tagExpiresAt = computeExpiry(tag);
+    const featuredTrending = body.featured_trending ? 1 : 0;
 
     const baseSlug = slugify(body.slug || body.title);
     const slug = await uniqueSlug(db, baseSlug);
     await db.prepare(
-      'INSERT INTO prompts (slug, title, category, preview, prompt, tag, tag_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    ).bind(slug, body.title, body.category, body.preview || '', body.prompt, tag, tagExpiresAt).run();
+      'INSERT INTO prompts (slug, title, category, preview, prompt, tag, tag_expires_at, featured_trending) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(slug, body.title, body.category, body.preview || '', body.prompt, tag, tagExpiresAt, featuredTrending).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       status: 201,
@@ -128,22 +130,33 @@ export async function onRequest(context) {
 
     const tag = VALID_TAGS.includes(body.tag) ? body.tag : 'normal';
     const tagExpiresAt = computeExpiry(tag);
+    const featuredTrending = body.featured_trending ? 1 : 0;
 
     let slug = body.slug ? slugify(body.slug) : slugify(body.title);
     slug = await uniqueSlug(db, slug, id);
 
     await db.prepare(
-      `UPDATE prompts SET slug=?, title=?, category=?, preview=?, prompt=?, tag=?, tag_expires_at=?, updated_at=datetime('now') WHERE id=?`
-    ).bind(slug, body.title, body.category, body.preview || '', body.prompt, tag, tagExpiresAt, id).run();
+      `UPDATE prompts SET slug=?, title=?, category=?, preview=?, prompt=?, tag=?, tag_expires_at=?, featured_trending=?, updated_at=datetime('now') WHERE id=?`
+    ).bind(slug, body.title, body.category, body.preview || '', body.prompt, tag, tagExpiresAt, featuredTrending, id).run();
 
     return new Response(JSON.stringify({ ok: true, slug }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  // ---- DELETE ----
+  // ---- DELETE (single ?id= or bulk ?ids=1,2,3) ----
   if (request.method === 'DELETE') {
+    const idsParam = url.searchParams.get('ids');
     const id = url.searchParams.get('id');
+    if (idsParam) {
+      const ids = idsParam.split(',').map(s => s.trim()).filter(Boolean);
+      if (!ids.length) return new Response(JSON.stringify({ error: 'ids required' }), { status: 400 });
+      const placeholders = ids.map(() => '?').join(',');
+      await db.prepare(`DELETE FROM prompts WHERE id IN (${placeholders})`).bind(...ids).run();
+      return new Response(JSON.stringify({ ok: true, deleted: ids.length }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     if (!id) return new Response(JSON.stringify({ error: 'id required' }), { status: 400 });
     await db.prepare('DELETE FROM prompts WHERE id=?').bind(id).run();
     return new Response(JSON.stringify({ ok: true }), {

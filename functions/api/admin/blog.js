@@ -127,9 +127,19 @@ export async function onRequest(context) {
     });
   }
 
-  // ---- DELETE ----
+  // ---- DELETE (single ?id= or bulk ?ids=1,2,3) ----
   if (request.method === 'DELETE') {
+    const idsParam = url.searchParams.get('ids');
     const id = url.searchParams.get('id');
+    if (idsParam) {
+      const ids = idsParam.split(',').map(s => s.trim()).filter(Boolean);
+      if (!ids.length) return new Response(JSON.stringify({ error: 'ids required' }), { status: 400 });
+      const placeholders = ids.map(() => '?').join(',');
+      await db.prepare(`DELETE FROM blog_posts WHERE id IN (${placeholders})`).bind(...ids).run();
+      return new Response(JSON.stringify({ ok: true, deleted: ids.length }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     if (!id) return new Response(JSON.stringify({ error: 'id required' }), { status: 400 });
     await db.prepare('DELETE FROM blog_posts WHERE id=?').bind(id).run();
     return new Response(JSON.stringify({ ok: true }), {
