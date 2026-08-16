@@ -5,8 +5,10 @@ import { resolveTag } from '../_tags.js';
 export async function onRequestGet(context) {
   const { env } = context;
   try {
+    try { await env.DB.prepare('ALTER TABLE prompts ADD COLUMN likes INTEGER NOT NULL DEFAULT 0').run(); } catch (e) {}
+
     const { results } = await env.DB.prepare(
-      'SELECT slug, title, category, preview, prompt, tag, tag_expires_at FROM prompts ORDER BY id ASC'
+      'SELECT slug, title, category, preview, prompt, tag, tag_expires_at, likes FROM prompts ORDER BY id ASC'
     ).all();
 
     const withResolvedTags = results.map(r => ({
@@ -16,6 +18,7 @@ export async function onRequestGet(context) {
       preview: r.preview,
       prompt: r.prompt,
       tag: resolveTag(r),
+      likes: r.likes || 0,
     }));
 
     return new Response(JSON.stringify(withResolvedTags), {
