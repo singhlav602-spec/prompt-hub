@@ -7,7 +7,7 @@
   <meta name="description" content="Share your own AI prompt with the SmartPrompts community. Every submission is reviewed before it goes live." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://smart-prompt.in/submit.html" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="style.css" />
@@ -25,17 +25,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="site-logo">
-        <svg class="site-logo-mark" width="30" height="30" viewBox="0 0 32 32" fill="none">
-          <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#logoGradSubmit)"/>
-          <path d="M11 21.5L16 10.5L21 21.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M13 17.5H19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-          <defs>
-            <linearGradient id="logoGradSubmit" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#4f7df5"/>
-              <stop offset="100%" stop-color="#c15ce8"/>
-            </linearGradient>
-          </defs>
-        </svg>
+        <img class="site-logo-mark" src="favicon.png" width="30" height="30" alt="SmartPrompts logo">
         <span class="site-logo-text">
           SmartPrompts
           <small>The Ultimate ChatGPT Prompt Library</small>
@@ -45,8 +35,13 @@
       <nav class="site-nav">
         <a href="index.html" class="site-nav-link">Home</a>
         <a href="index.html#category-browse" class="site-nav-link">Categories</a>
+        <a href="trending-prompts.html" class="site-nav-link">Trending</a>
         <a href="blog.html" class="site-nav-link">Blog</a>
         <a href="gallery.html" class="site-nav-link">Gallery</a>
+        <a href="videos.html" class="site-nav-link">Videos</a>
+        <a href="seo-tool.html" class="site-nav-link">SEO Tool</a>
+        <a href="prompt-improver.html" class="site-nav-link">Prompt Improver</a>
+        <a href="image-prompt-generator.html" class="site-nav-link">Image Prompt Generator</a>
         <a href="submit.html" class="site-nav-link active">Submit Prompt</a>
         <a href="about.html" class="site-nav-link">About</a>
       </nav>
@@ -55,6 +50,11 @@
         <a href="index.html" class="icon-btn" aria-label="Search prompts" title="Search prompts">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </a>
+        <a href="saved.html" class="icon-btn" aria-label="Saved prompts" title="Saved prompts">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </a>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">

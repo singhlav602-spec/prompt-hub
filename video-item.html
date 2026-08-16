@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prompt — SmartPrompts</title>
-  <meta id="meta-description" name="description" content="View and copy this AI prompt from SmartPrompts." />
+  <title>Video — SmartPrompts</title>
+  <meta id="meta-description" name="description" content="An AI-generated video from the SmartPrompts library, with the prompt used to create it." />
   <meta name="robots" content="index, follow" />
   <meta property="og:type" content="article" />
-  <meta id="meta-og-title" property="og:title" content="Prompt — SmartPrompts" />
-  <meta id="meta-og-description" property="og:description" content="View and copy this AI prompt from SmartPrompts." />
-  <meta id="meta-og-url" property="og:url" content="https://smart-prompt.in/prompt.html" />
-  <meta property="og:image" content="https://smart-prompt.in/images/og-image.jpg" />
+  <meta id="meta-og-title" property="og:title" content="Video — SmartPrompts" />
+  <meta id="meta-og-description" property="og:description" content="An AI-generated video from the SmartPrompts library, with the prompt used to create it." />
+  <meta id="meta-og-url" property="og:url" content="https://smart-prompt.in/video-item.html" />
+  <meta id="meta-og-image" property="og:image" content="https://smart-prompt.in/images/og-image.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://smart-prompt.in/images/og-image.jpg" />
-  <link id="canonical-link" rel="canonical" href="https://smart-prompt.in/prompt.html" />
+  <meta id="meta-twitter-image" name="twitter:image" content="https://smart-prompt.in/images/og-image.jpg" />
+  <link id="canonical-link" rel="canonical" href="https://smart-prompt.in/video-item.html" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -47,7 +47,7 @@
         <a href="trending-prompts.html" class="site-nav-link">Trending</a>
         <a href="blog.html" class="site-nav-link">Blog</a>
         <a href="gallery.html" class="site-nav-link">Gallery</a>
-        <a href="videos.html" class="site-nav-link">Videos</a>
+        <a href="videos.html" class="site-nav-link active">Videos</a>
         <a href="seo-tool.html" class="site-nav-link">SEO Tool</a>
         <a href="prompt-improver.html" class="site-nav-link">Prompt Improver</a>
         <a href="image-prompt-generator.html" class="site-nav-link">Image Prompt Generator</a>
@@ -76,26 +76,17 @@
     </div>
   </header>
 
-  <!-- ======= PROMPT DETAIL (populated by JS) ======= -->
-  <main id="prompt-detail">
-    <!-- Loading state -->
-    <div class="prompt-page-wrap">
-      <div class="skeleton" style="height:14px;width:100px;margin-bottom:2.5rem;border-radius:4px;"></div>
-      <div class="skeleton" style="height:22px;width:80px;margin-bottom:1.2rem;border-radius:4px;"></div>
-      <div class="skeleton" style="height:48px;width:80%;margin-bottom:0.5rem;border-radius:6px;"></div>
-      <div class="skeleton" style="height:2px;width:48px;margin:1.75rem 0;"></div>
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.75rem;">
-        <div class="skeleton" style="height:12px;width:60px;margin-bottom:1rem;border-radius:3px;"></div>
-        <div class="skeleton" style="height:140px;border-radius:6px;"></div>
-      </div>
-      <div class="skeleton" style="height:42px;width:140px;margin-top:1.25rem;border-radius:6px;"></div>
-    </div>
+  <main class="prompt-page-wrap" id="video-item-detail">
+    <!-- Skeleton while loading -->
+    <div class="skeleton" style="height:16px;width:120px;margin-bottom:2rem;"></div>
+    <div class="skeleton" style="height:38px;width:70%;margin-bottom:1rem;"></div>
+    <div class="skeleton" style="height:320px;"></div>
   </main>
 
   <!-- ======= FOOTER ======= -->
   <footer class="site-footer">
     <p>SmartPrompts &mdash; A free, open AI prompt library &mdash; Built with ♥ and vanilla JS</p>
-    <p><a href="about.html">About</a> · <a href="blog.html">Blog</a> · <a href="submit.html">Submit a Prompt</a></p>
+    <p><a href="about.html">About</a> · <a href="blog.html">Blog</a> · <a href="gallery.html">Gallery</a> · <a href="videos.html">Videos</a> · <a href="submit.html">Submit a Prompt</a></p>
   </footer>
 
   <script src="script.js"></script>

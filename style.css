@@ -141,7 +141,7 @@ body::before {
   flex-shrink: 0;
 }
 
-.site-logo-mark { flex-shrink: 0; }
+.site-logo-mark { flex-shrink: 0; display: block; border-radius: 9px; }
 
 .site-logo-text {
   font-family: var(--font-display);
@@ -536,6 +536,21 @@ body::before {
 
 .btn-search:hover { transform: translateY(-1px); opacity: 0.92; }
 
+.btn-primary {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(120deg, var(--accent-dim, var(--accent)), var(--accent));
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.6rem;
+  cursor: pointer;
+  transition: transform var(--transition), opacity var(--transition);
+}
+.btn-primary:hover { transform: translateY(-1px); opacity: 0.92; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform:none; }
+
 .hero-tags {
   display: flex;
   align-items: center;
@@ -784,6 +799,102 @@ body::before {
   padding: 0.3rem 0.7rem;
   width: fit-content;
   font-weight: 500;
+}
+
+/* ============================================
+   DISCOVERY SECTION — "Trending & Popular Prompts"
+   Homepage strip (below hero) + the standalone
+   /trending-prompts.html page reuse these classes.
+   Cards extend .prompt-card so they inherit the
+   site's card look; only the badge colors and the
+   horizontal-scroll layout are new here.
+   ============================================ */
+.discovery-section {
+  padding: 0 2rem 2.5rem;
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+
+.discovery-scroller {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.discovery-scroller .discovery-card {
+  flex: 0 0 260px;
+  scroll-snap-align: start;
+}
+
+/* The standalone page shows the same cards as a normal responsive grid
+   instead of a horizontal strip — there's no "below the hero" space
+   constraint there, and people land on that page specifically to browse. */
+.discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.1rem;
+}
+
+.discovery-grid .discovery-card { flex: none; }
+
+.discovery-card .card-title { font-size: 1.02rem; }
+.discovery-card .card-preview {
+  font-size: 0.82rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.discovery-badge {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 0.22rem 0.6rem;
+  white-space: nowrap;
+}
+
+.discovery-badge-trending {
+  color: #fff;
+  background: var(--gradient-brand);
+}
+.discovery-badge-rising {
+  color: var(--accent-2);
+  background: rgba(79,125,245,0.12);
+  border: 1px solid rgba(79,125,245,0.28);
+}
+.discovery-badge-popular {
+  color: var(--accent);
+  background: rgba(124,108,240,0.12);
+  border: 1px solid rgba(124,108,240,0.28);
+}
+.discovery-badge-high-demand {
+  color: #c15ce8;
+  background: rgba(193,92,232,0.12);
+  border: 1px solid rgba(193,92,232,0.28);
+}
+
+/* Filter pills on the standalone page — reuses .gallery-filter-pill look */
+.discovery-filter-bar {
+  padding: 0 2rem 1.5rem;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .discovery-section { padding: 0 1.25rem 2rem; }
+  .discovery-filter-bar { padding: 0 1.25rem 1.25rem; }
+  .discovery-scroller .discovery-card { flex-basis: 240px; }
+  .discovery-grid { grid-template-columns: 1fr; }
 }
 
 /* ============================================
@@ -1322,6 +1433,7 @@ body::before {
   aspect-ratio: 1 / 1;
   overflow: hidden;
   background: var(--bg-hover);
+  position: relative;
 }
 .gallery-card-image {
   width: 100%;
@@ -1351,6 +1463,32 @@ body::before {
   display: block;
   margin: 0 auto;
 }
+
+.video-embed-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin: 1.2rem 0 1.6rem;
+  background: #000;
+}
+.video-embed-wrap iframe {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%; border: none;
+}
+.gallery-card-video-badge {
+  position: absolute;
+  top: 0.5rem; right: 0.5rem;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+}
+
 
 /* ============================================
    PROMPT CARD
@@ -1461,6 +1599,54 @@ body::before {
   padding-top: 0.85rem;
   border-top: 1px solid var(--border);
 }
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.card-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  transition: color var(--transition, 0.15s);
+}
+.card-action-btn:hover { color: var(--accent); background: var(--bg-hover); }
+.card-action-btn.active { color: #e0555f; }
+.card-action-btn.card-save-btn.active { color: var(--accent); }
+.card-like-count { font-family: var(--font-mono, monospace); }
+
+.icon-btn.active { color: var(--accent); border-color: var(--accent); }
+
+.prompt-page-actions-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+.detail-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all var(--transition, 0.15s);
+}
+.detail-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+.detail-action-btn.active.detail-like-btn { color: #e0555f; border-color: #e0555f; }
+.detail-action-btn.active.detail-save-btn { color: var(--accent); border-color: var(--accent); }
 
 .card-open-btn {
   display: flex;
@@ -2167,6 +2353,48 @@ body::before {
   font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.trending-banner {
+  max-width: var(--max-w);
+  margin: 0 auto 1.75rem;
+  padding: 0 2rem;
+}
+.trending-banner-inner {
+  background: linear-gradient(120deg, var(--accent-dim), var(--accent));
+  border-radius: var(--radius);
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  color: #fff;
+  text-decoration: none;
+}
+.trending-banner-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(255,255,255,0.18);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.trending-banner-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  flex: 1;
+  min-width: 200px;
+}
+.trending-banner-cta {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .trending-banner { padding: 0 1.25rem; }
 }
 
 /* Public forms (Submit Prompt) */

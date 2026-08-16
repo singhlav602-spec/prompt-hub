@@ -3,19 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prompt — SmartPrompts</title>
-  <meta id="meta-description" name="description" content="View and copy this AI prompt from SmartPrompts." />
-  <meta name="robots" content="index, follow" />
-  <meta property="og:type" content="article" />
-  <meta id="meta-og-title" property="og:title" content="Prompt — SmartPrompts" />
-  <meta id="meta-og-description" property="og:description" content="View and copy this AI prompt from SmartPrompts." />
-  <meta id="meta-og-url" property="og:url" content="https://smart-prompt.in/prompt.html" />
-  <meta property="og:image" content="https://smart-prompt.in/images/og-image.jpg" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://smart-prompt.in/images/og-image.jpg" />
-  <link id="canonical-link" rel="canonical" href="https://smart-prompt.in/prompt.html" />
+  <title>Saved Prompts — SmartPrompts</title>
+  <meta name="robots" content="noindex, follow" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -61,8 +50,8 @@
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
         </a>
-        <a href="saved.html" class="icon-btn" aria-label="Saved prompts" title="Saved prompts">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <a href="saved.html" class="icon-btn active" aria-label="Saved prompts" title="Saved prompts">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </a>
@@ -76,28 +65,44 @@
     </div>
   </header>
 
-  <!-- ======= PROMPT DETAIL (populated by JS) ======= -->
-  <main id="prompt-detail">
-    <!-- Loading state -->
-    <div class="prompt-page-wrap">
-      <div class="skeleton" style="height:14px;width:100px;margin-bottom:2.5rem;border-radius:4px;"></div>
-      <div class="skeleton" style="height:22px;width:80px;margin-bottom:1.2rem;border-radius:4px;"></div>
-      <div class="skeleton" style="height:48px;width:80%;margin-bottom:0.5rem;border-radius:6px;"></div>
-      <div class="skeleton" style="height:2px;width:48px;margin:1.75rem 0;"></div>
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.75rem;">
-        <div class="skeleton" style="height:12px;width:60px;margin-bottom:1rem;border-radius:3px;"></div>
-        <div class="skeleton" style="height:140px;border-radius:6px;"></div>
+  <div class="category-browse" style="padding-top:2.5rem;">
+    <div class="filters">
+      <div class="section-heading-row">
+        <div class="filter-label section-heading-bar">🔖 Saved Prompts</div>
       </div>
-      <div class="skeleton" style="height:42px;width:140px;margin-top:1.25rem;border-radius:6px;"></div>
+      <p style="color:var(--muted);font-size:0.92rem;max-width:560px;margin-top:0.3rem;">Prompts you've bookmarked — saved right in this browser, so they won't follow you to another device.</p>
     </div>
+  </div>
+
+  <main>
+    <div id="saved-grid" class="prompt-grid"></div>
   </main>
 
   <!-- ======= FOOTER ======= -->
   <footer class="site-footer">
     <p>SmartPrompts &mdash; A free, open AI prompt library &mdash; Built with ♥ and vanilla JS</p>
-    <p><a href="about.html">About</a> · <a href="blog.html">Blog</a> · <a href="submit.html">Submit a Prompt</a></p>
+    <p><a href="about.html">About</a> · <a href="blog.html">Blog</a> · <a href="gallery.html">Gallery</a> · <a href="videos.html">Videos</a> · <a href="submit.html">Submit a Prompt</a></p>
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const grid = document.getElementById('saved-grid');
+      if (!grid) return;
+      const all = await fetchPrompts();
+      const savedSlugs = getSavedSlugs();
+      const savedPrompts = all.filter(p => savedSlugs.includes(p.slug));
+      renderGrid(savedPrompts, grid, '', 'All');
+      if (savedPrompts.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔖</div>
+            <h3>No saved prompts yet</h3>
+            <p>Tap the bookmark icon on any prompt to save it here.</p>
+          </div>
+        `;
+      }
+    });
+  </script>
 </body>
 </html>

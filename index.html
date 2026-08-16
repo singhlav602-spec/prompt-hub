@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="SmartPrompts – Free AI Prompt Library" />
   <meta name="twitter:description" content="Browse powerful AI prompts for YouTube, coding, business, and productivity. Copy and use instantly." />
   <meta name="twitter:image" content="https://smart-prompt.in/images/og-image.jpg" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="canonical" href="https://smart-prompt.in/" />
   <link rel="alternate" type="application/rss+xml" title="SmartPrompts Blog" href="https://smart-prompt.in/rss.xml" />
 
@@ -61,17 +61,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="site-logo">
-        <svg class="site-logo-mark" width="30" height="30" viewBox="0 0 32 32" fill="none">
-          <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#logoGrad)"/>
-          <path d="M11 21.5L16 10.5L21 21.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M13 17.5H19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-          <defs>
-            <linearGradient id="logoGrad" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#4f7df5"/>
-              <stop offset="100%" stop-color="#c15ce8"/>
-            </linearGradient>
-          </defs>
-        </svg>
+        <img class="site-logo-mark" src="favicon.png" width="30" height="30" alt="SmartPrompts logo">
         <span class="site-logo-text">
           SmartPrompts
           <small>The Ultimate ChatGPT Prompt Library</small>
@@ -81,9 +71,13 @@
       <nav class="site-nav">
         <a href="index.html" class="site-nav-link active">Home</a>
         <a href="#category-browse" class="site-nav-link">Categories</a>
-        <a href="#trending-section" class="site-nav-link">Trending</a>
+        <a href="trending-prompts.html" class="site-nav-link">Trending</a>
         <a href="blog.html" class="site-nav-link">Blog</a>
         <a href="gallery.html" class="site-nav-link">Gallery</a>
+        <a href="videos.html" class="site-nav-link">Videos</a>
+        <a href="seo-tool.html" class="site-nav-link">SEO Tool</a>
+        <a href="prompt-improver.html" class="site-nav-link">Prompt Improver</a>
+        <a href="image-prompt-generator.html" class="site-nav-link">Image Prompt Generator</a>
         <a href="submit.html" class="site-nav-link">Submit Prompt</a>
         <a href="about.html" class="site-nav-link">About</a>
       </nav>
@@ -94,6 +88,11 @@
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
         </button>
+        <a href="saved.html" class="icon-btn" aria-label="Saved prompts" title="Saved prompts">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </a>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">
           <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -178,17 +177,18 @@
     </div>
   </section>
 
+  <!-- ======= TRENDING BANNER (links out to trending-prompts.html) ======= -->
+  <div class="trending-banner" id="trending-banner">
+    <a class="trending-banner-inner" href="trending-prompts.html">
+      <span class="trending-banner-tag">🔥 Live</span>
+      <span class="trending-banner-title">Trending &amp; Popular Prompts — see what's hot right now</span>
+      <span class="trending-banner-cta">Explore →</span>
+    </a>
+  </div>
+
   <!-- ======= STATS BAR ======= -->
   <section class="site-stats" id="site-stats">
     <!-- Populated by JS with real numbers -->
-  </section>
-
-  <!-- ======= TRENDING NOW ======= -->
-  <section class="trending-section" id="trending-section" style="display:none;">
-    <div class="trending-label">
-      <span class="trending-fire">🔥</span> Trending Right Now
-    </div>
-    <div class="trending-grid" id="trending-grid"></div>
   </section>
 
   <!-- ======= CATEGORY BROWSE ======= -->

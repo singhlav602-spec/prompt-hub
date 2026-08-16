@@ -19,6 +19,50 @@ async function fetchPrompts() {
   }
 }
 
+/* ---- Fetch the auto-computed Trending/Rising/Popular/High-Demand list.
+   Returns [] when there isn't enough real traffic data yet — callers
+   should fall back to the curated DISCOVERY_PROMPTS seed list in that
+   case (see renderHomepageDiscovery / initTrendingPromptsPage below). ---- */
+let _discoveryCache = null;
+
+async function fetchDiscoveryPrompts() {
+  if (_discoveryCache) return _discoveryCache;
+  try {
+    const res = await fetch('/api/discovery');
+    if (!res.ok) throw new Error('Failed to load discovery data');
+    _discoveryCache = await res.json();
+    return _discoveryCache;
+  } catch (err) {
+    console.error('Error loading discovery prompts:', err);
+    return [];
+  }
+}
+
+/* ---- Record a prompt page view for the auto-trending calculation.
+   Fire-and-forget: never awaited by callers, and failures are silent. ---- */
+function trackPromptView(slug) {
+  try {
+    fetch('/api/track-view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug }),
+    }).catch(() => {});
+  } catch (err) { /* tracking must never break the page */ }
+}
+
+/* ---- Record a search that returned zero results — powers the admin
+   "Search Gaps" panel (which prompt topics people want but can't find).
+   Fire-and-forget, same idea as trackPromptView. ---- */
+function trackSearchMiss(query) {
+  try {
+    fetch('/api/track-search-miss', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    }).catch(() => {});
+  } catch (err) { /* tracking must never break the page */ }
+}
+
 /* ---- Build Category Tag HTML ---- */
 function categoryTag(cat) {
   return `<span class="card-category">${escapeHtml(cat)}</span>`;
@@ -31,6 +75,21 @@ function escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/* ---- Inject/replace a page's JSON-LD structured-data block. Only ever
+   called with real fields the page actually has — no invented ratings,
+   dates, or durations, since fabricated schema data is against Google's
+   guidelines and can get a site penalized rather than helped. ---- */
+function injectJsonLd(data) {
+  let el = document.getElementById('json-ld-data');
+  if (!el) {
+    el = document.createElement('script');
+    el.type = 'application/ld+json';
+    el.id = 'json-ld-data';
+    document.head.appendChild(el);
+  }
+  el.textContent = JSON.stringify(data);
 }
 
 /* Wraps [PLACEHOLDER] tokens (in already-escaped text) in a styled span so
@@ -72,6 +131,48 @@ function highlightPlaceholders(escapedText) {
   );
 }
 
+/* ---- Likes & Saves: no accounts on this site, so "what did this browser
+   like/save" lives in localStorage. The like *count* itself is shared
+   (stored in D1, via /api/like-prompt); the saved list is 100% local and
+   never leaves the browser. ---- */
+function getLikedSlugs() {
+  try { return JSON.parse(localStorage.getItem('sp_liked_prompts') || '[]'); } catch (e) { return []; }
+}
+function isLikedSlug(slug) {
+  return getLikedSlugs().includes(slug);
+}
+function getSavedSlugs() {
+  try { return JSON.parse(localStorage.getItem('sp_saved_prompts') || '[]'); } catch (e) { return []; }
+}
+function isSavedSlug(slug) {
+  return getSavedSlugs().includes(slug);
+}
+function toggleSavedSlug(slug) {
+  const saved = getSavedSlugs();
+  const idx = saved.indexOf(slug);
+  if (idx > -1) { saved.splice(idx, 1); } else { saved.push(slug); }
+  localStorage.setItem('sp_saved_prompts', JSON.stringify(saved));
+  return idx === -1; // true if now saved, false if now removed
+}
+async function toggleLikedSlug(slug, countEl) {
+  const liked = getLikedSlugs();
+  const idx = liked.indexOf(slug);
+  const nowLiked = idx === -1;
+  try {
+    const res = await fetch('/api/like-prompt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, action: nowLiked ? 'like' : 'unlike' }),
+    });
+    const data = await res.json();
+    if (res.ok && countEl) countEl.textContent = data.likes;
+  } catch (e) { /* optimistic UI already updated below regardless */ }
+
+  if (nowLiked) { liked.push(slug); } else { liked.splice(idx, 1); }
+  localStorage.setItem('sp_liked_prompts', JSON.stringify(liked));
+  return nowLiked;
+}
+
 /* ---- Build a Prompt Card element ---- */
 function buildCard(prompt, delay = 0) {
   const a = document.createElement('a');
@@ -90,6 +191,15 @@ function buildCard(prompt, delay = 0) {
     <div class="card-title">${escapeHtml(prompt.title)}</div>
     <div class="card-preview">${escapeHtml(prompt.preview || prompt.prompt.slice(0, 110) + '…')}</div>
     <div class="card-footer">
+      <div class="card-actions">
+        <button type="button" class="card-action-btn card-like-btn${isLikedSlug(prompt.slug) ? ' active' : ''}" data-slug="${escapeHtml(prompt.slug)}" aria-label="Like this prompt">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="${isLikedSlug(prompt.slug) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span class="card-like-count">${prompt.likes || 0}</span>
+        </button>
+        <button type="button" class="card-action-btn card-save-btn${isSavedSlug(prompt.slug) ? ' active' : ''}" data-slug="${escapeHtml(prompt.slug)}" aria-label="Save this prompt">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="${isSavedSlug(prompt.slug) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </button>
+      </div>
       <span class="card-open-btn">
         Open prompt
         <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -98,7 +208,218 @@ function buildCard(prompt, delay = 0) {
       </span>
     </div>
   `;
+
+  a.querySelector('.card-like-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    const countEl = btn.querySelector('.card-like-count');
+    const nowLiked = await toggleLikedSlug(prompt.slug, countEl);
+    btn.classList.toggle('active', nowLiked);
+    btn.querySelector('svg').setAttribute('fill', nowLiked ? 'currentColor' : 'none');
+  });
+  a.querySelector('.card-save-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    const nowSaved = toggleSavedSlug(prompt.slug);
+    btn.classList.toggle('active', nowSaved);
+    btn.querySelector('svg').setAttribute('fill', nowSaved ? 'currentColor' : 'none');
+  });
+
   return a;
+}
+
+/* ============================================================
+   DISCOVERY SECTION — "🔥 Trending & Popular Prompts"
+   Used by both the homepage strip (below the hero) and the
+   standalone /trending-prompts.html page.
+
+   EDITABLE DATA: just add/remove/reorder slugs below. Title,
+   preview and category are pulled live from the real prompt
+   data at render time (matched by slug) — nothing here is
+   duplicated content, and a slug that no longer exists is
+   skipped automatically instead of showing a broken card.
+   ============================================================ */
+const DISCOVERY_PROMPTS = [
+  // 🔥 Trending — currently getting attention
+  { slug: 'ai-banner-generator', badge: 'trending' },
+  { slug: 'instagram-reel-script-generator', badge: 'trending' },
+  { slug: 'youtube-thumbnail-idea-generator', badge: 'trending' },
+  { slug: 'swot-analysis-generator', badge: 'trending' },
+  { slug: 'code-reviewer', badge: 'trending' },
+
+  // 🚀 High Demand — consistently searched / high-impression
+  { slug: 'logo-idea-generator', badge: 'high-demand' },
+  { slug: 'lesson-plan-generator', badge: 'high-demand' },
+  { slug: 'blog-post-outline-generator', badge: 'high-demand' },
+  { slug: 'high-converting-headline-generator', badge: 'high-demand' },
+  { slug: 'career-roadmap-builder', badge: 'high-demand' },
+
+  // ⭐ Popular — already getting good impressions
+  { slug: 'twitter-thread-generator', badge: 'popular' },
+  { slug: 'brand-name-generator', badge: 'popular' },
+  { slug: 'seo-meta-description-writer', badge: 'popular' },
+  { slug: 'startup-pitch-deck-outline', badge: 'popular' },
+  { slug: 'poetry-generator', badge: 'popular' },
+
+  // ↑ Rising — lower impressions but showing growth
+  { slug: 'article-outline-generator', badge: 'rising' },
+  { slug: 'ai-background-generator', badge: 'rising' },
+  { slug: 'financial-goal-planner', badge: 'rising' },
+  { slug: 'character-development-profile-generator', badge: 'rising' },
+];
+
+const DISCOVERY_BADGES = {
+  'trending':    { label: '🔥 Trending',    className: 'discovery-badge-trending' },
+  'rising':      { label: '↑ Rising',       className: 'discovery-badge-rising' },
+  'popular':     { label: '⭐ Popular',      className: 'discovery-badge-popular' },
+  'high-demand': { label: '🚀 High Demand', className: 'discovery-badge-high-demand' },
+};
+
+function buildDiscoveryCard(prompt, badgeKey) {
+  const badge = DISCOVERY_BADGES[badgeKey];
+  const a = document.createElement('a');
+  a.className = 'prompt-card discovery-card';
+  a.href = `prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  a.innerHTML = `
+    <div class="card-top-row">
+      ${categoryTag(prompt.category)}
+      ${badge ? `<span class="discovery-badge ${badge.className}">${badge.label}</span>` : ''}
+    </div>
+    <div class="card-title">${escapeHtml(prompt.title)}</div>
+    <div class="card-preview">${escapeHtml(prompt.preview || prompt.prompt.slice(0, 90) + '…')}</div>
+    <div class="card-footer">
+      <span class="card-open-btn">
+        View Prompt
+        <svg class="card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </span>
+    </div>
+  `;
+  return a;
+}
+
+/* Builds the final list of {slug,title,category,preview,prompt,badge}
+   items to show: tries the real, auto-computed /api/discovery data
+   first, and only falls back to the hand-picked DISCOVERY_PROMPTS seed
+   list (cross-referenced against the live prompt list by slug) when
+   there isn't enough traffic data yet for /api/discovery to return
+   anything. This is what makes the list start auto-updating itself
+   the moment there's enough real page-view data — nothing else to
+   change here when that happens. */
+async function getDiscoveryItems(prompts) {
+  const live = await fetchDiscoveryPrompts();
+  if (live.length) return live;
+  const bySlug = new Map(prompts.map(p => [p.slug, p]));
+  return DISCOVERY_PROMPTS
+    .map(d => { const p = bySlug.get(d.slug); return p ? { ...p, badge: d.badge } : null; })
+    .filter(Boolean);
+}
+
+/* Renders the homepage strip (below the hero). */
+async function renderHomepageDiscovery(prompts, container) {
+  if (!container) return;
+  container.classList.add('discovery-scroller');
+  const items = await getDiscoveryItems(prompts);
+  container.innerHTML = '';
+  if (!items.length) {
+    // Nothing to show yet (fresh site, no traffic data, and no seed
+    // matches) — hide the whole section rather than an empty strip.
+    const section = container.closest('.discovery-section');
+    if (section) section.style.display = 'none';
+    return;
+  }
+  items.forEach(item => container.appendChild(buildDiscoveryCard(item, item.badge)));
+  injectDiscoveryStructuredData(items, false);
+}
+
+/* ============================================================
+   TRENDING-PROMPTS PAGE (/trending-prompts.html)
+   Same items as the homepage strip, shown as a filterable grid.
+   ============================================================ */
+async function initTrendingPromptsPage() {
+  const grid = document.getElementById('discovery-page-grid');
+  if (!grid) return;
+
+  const prompts = await fetchPrompts();
+  const items = await getDiscoveryItems(prompts);
+
+  const filterBar = document.getElementById('discovery-filter-bar');
+  let activeBadge = 'All';
+
+  function renderPills() {
+    if (!filterBar) return;
+    const counts = {};
+    items.forEach(d => { counts[d.badge] = (counts[d.badge] || 0) + 1; });
+    const allPill = `<button type="button" class="gallery-filter-pill${activeBadge === 'All' ? ' active' : ''}" data-badge="All">All <span class="gallery-filter-count">${items.length}</span></button>`;
+    const badgePills = Object.keys(DISCOVERY_BADGES)
+      .filter(key => counts[key])
+      .map(key => `<button type="button" class="gallery-filter-pill${activeBadge === key ? ' active' : ''}" data-badge="${key}">${DISCOVERY_BADGES[key].label} <span class="gallery-filter-count">${counts[key]}</span></button>`)
+      .join('');
+    filterBar.innerHTML = allPill + badgePills;
+    filterBar.querySelectorAll('.gallery-filter-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeBadge = btn.dataset.badge;
+        renderPills();
+        renderCards();
+      });
+    });
+  }
+
+  function renderCards() {
+    const filtered = activeBadge === 'All' ? items : items.filter(d => d.badge === activeBadge);
+    grid.innerHTML = '';
+    filtered.forEach(d => grid.appendChild(buildDiscoveryCard(d, d.badge)));
+    const emptyState = document.getElementById('discovery-empty-state');
+    if (emptyState) emptyState.style.display = filtered.length ? 'none' : '';
+  }
+
+  renderPills();
+  renderCards();
+
+  /* --- Structured data for search engines: an ItemList of the (unfiltered)
+     trending prompts, plus breadcrumbs. Injected once with the full list,
+     independent of whatever filter pill is active on screen. --- */
+  injectDiscoveryStructuredData(items, true);
+}
+
+function injectDiscoveryStructuredData(items, includeBreadcrumb) {
+  const existing = document.getElementById('discovery-structured-data');
+  if (existing) existing.remove();
+  if (!items.length) return;
+
+  const itemList = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Trending & Popular AI Prompts',
+    itemListElement: items.slice(0, 20).map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://smart-prompt.in/prompt.html?slug=${encodeURIComponent(p.slug)}`,
+      name: p.title,
+    })),
+  };
+
+  const payload = [itemList];
+
+  if (includeBreadcrumb) {
+    payload.push({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
+        { '@type': 'ListItem', position: 2, name: 'Trending & Popular Prompts', item: 'https://smart-prompt.in/trending-prompts.html' },
+      ],
+    });
+  }
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = 'discovery-structured-data';
+  script.textContent = JSON.stringify(payload);
+  document.head.appendChild(script);
 }
 
 /* ---- Render the Card Grid ---- */
@@ -206,6 +527,12 @@ async function initIndexPage() {
 
   const prompts = await fetchPrompts();
 
+  /* --- Hero + featured blog banner + trending banner: hidden during
+     category/search results views (see showList below); shown by default. --- */
+  const heroSection = document.querySelector('.hero');
+  const featuredBanner = document.getElementById('featured-blog-banner');
+  const trendingBanner = document.getElementById('trending-banner');
+
   /* --- Hero badge: real prompt count, rounded down for a clean honest figure --- */
   const heroBadge = document.getElementById('hero-badge');
   if (heroBadge) {
@@ -283,8 +610,6 @@ async function initIndexPage() {
   const searchInput     = document.getElementById('search-input');
   const searchHero      = document.getElementById('search-hero');
   const countEl         = document.getElementById('prompt-count');
-  const trendingSection = document.getElementById('trending-section');
-  const trendingGrid    = document.getElementById('trending-grid');
   const categoryBrowse  = document.getElementById('category-browse');
   const categoryGridEl  = document.getElementById('category-grid');
   const categoryTailEl  = document.getElementById('category-tail');
@@ -295,23 +620,6 @@ async function initIndexPage() {
 
   let activeCategory = 'All';
   let searchTerm = '';
-
-  /* --- Trending strip (set via admin panel's "Trending" tag; auto-expires
-     after 1 week, checked server-side in /api/prompts) --- */
-  const trending = prompts.filter(p => p.tag === 'trending');
-  if (trending.length && trendingSection && trendingGrid) {
-    trendingGrid.innerHTML = trending.map(p => `
-      <a class="trending-card" href="prompt.html?slug=${encodeURIComponent(p.slug)}">
-        <div class="trending-top-row">
-          <span class="trending-badge">🔥 Trending</span>
-          ${categoryTag(p.category)}
-        </div>
-        <div class="card-title">${escapeHtml(p.title)}</div>
-        <div class="card-preview">${escapeHtml(p.preview || p.prompt.slice(0, 130) + '…')}</div>
-      </a>
-    `).join('');
-    trendingSection.style.display = '';
-  }
 
   /* --- Build category cards (top categories) + long-tail chips --- */
   const catCounts = {};
@@ -328,6 +636,9 @@ async function initIndexPage() {
     searchTerm = '';
     if (searchInput) searchInput.value = '';
     if (searchHero) searchHero.value = '';
+    if (heroSection) heroSection.style.display = '';
+    if (featuredBanner) featuredBanner.style.display = '';
+    if (trendingBanner) trendingBanner.style.display = '';
     categoryBrowse.style.display = '';
     if (statsBar) statsBar.style.display = '';
     if (topPromptsSection) topPromptsSection.style.display = '';
@@ -337,15 +648,28 @@ async function initIndexPage() {
     grid.style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  // Exposed so the global hashchange handler (bottom of file) can switch
+  // back to this view when the "Categories" nav link is clicked while
+  // already looking at a filtered list — a plain #anchor link alone can't
+  // do that, since this section may currently be display:none.
+  window.showCategoryBrowse = showCategoryBrowse;
+
+  /* --- Debounce for zero-result search tracking (see showList above). --- */
+  let searchMissTimer = null;
 
   function showList(category, term) {
     activeCategory = category;
     searchTerm = term || '';
+    // Restore the hero in case we're arriving here from a filtered view —
+    // but the trending banner and blog banner stay hidden here too, same
+    // as the rest of "everything between the hero and the results" below.
+    if (heroSection) heroSection.style.display = '';
+    if (featuredBanner) featuredBanner.style.display = 'none';
+    if (trendingBanner) trendingBanner.style.display = 'none';
     categoryBrowse.style.display = 'none';
     // Hide everything between the hero and the results so results land
     // right under the search box instead of way down the page.
     if (statsBar) statsBar.style.display = 'none';
-    if (trendingSection) trendingSection.style.display = 'none';
     if (topPromptsSection) topPromptsSection.style.display = 'none';
     if (promoBanner) promoBanner.style.display = 'none';
     if (newsletterBar) newsletterBar.style.display = 'none';
@@ -357,6 +681,14 @@ async function initIndexPage() {
         ? `Showing <strong>${count}</strong> results for "<strong>${escapeHtml(searchTerm)}</strong>"`
         : `Showing <strong>${count}</strong> of <strong>${prompts.length}</strong> prompts in <strong>${escapeHtml(category)}</strong>`;
       countEl.innerHTML = label;
+    }
+
+    // Track genuine zero-result searches (not every keystroke — only once
+    // the person has actually stopped typing on a query that found nothing).
+    clearTimeout(searchMissTimer);
+    const trimmedTerm = searchTerm.trim();
+    if (trimmedTerm.length >= 3 && count === 0) {
+      searchMissTimer = setTimeout(() => trackSearchMiss(trimmedTerm), 1200);
     }
   }
 
@@ -444,6 +776,17 @@ async function initIndexPage() {
     showCategoryBrowse();
   }
 
+  /* --- Scroll to whatever #section the URL points to (e.g. clicking
+     "Categories" in the nav). --- */
+  if (window.location.hash) {
+    const target = document.querySelector(window.location.hash);
+    if (target) {
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }
+
   /* --- Search handlers: typing always searches across all categories.
      Debounced so rapid typing on mobile doesn't trigger a full re-render
      (and re-filter of 2000+ prompts) on every single keystroke. --- */
@@ -524,6 +867,12 @@ async function initPromptPage() {
 
   /* --- Set page title --- */
   document.title = `${prompt.title} — Free ChatGPT Prompt | SmartPrompts`;
+
+  /* --- Fire-and-forget view tracking: powers the auto-computed
+     Trending/Rising/Popular/High-Demand list at /api/discovery. Never
+     awaited and errors are swallowed — a tracking failure must never
+     affect what the visitor sees. --- */
+  trackPromptView(prompt.slug);
 
   /* --- Set unique meta description, OG tags & canonical (critical for search CTR) --- */
   const pageDescription = (prompt.preview || prompt.prompt.slice(0, 140))
@@ -671,6 +1020,16 @@ async function initPromptPage() {
           <span class="difficulty-badge difficulty-${difficulty.toLowerCase()}">${difficulty}</span>
         </div>
         <h1 class="prompt-page-title">${escapeHtml(prompt.title)}</h1>
+        <div class="prompt-page-actions-row">
+          <button type="button" class="detail-action-btn detail-like-btn${isLikedSlug(prompt.slug) ? ' active' : ''}" id="detail-like-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="${isLikedSlug(prompt.slug) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span id="detail-like-count">${prompt.likes || 0}</span> Likes
+          </button>
+          <button type="button" class="detail-action-btn detail-save-btn${isSavedSlug(prompt.slug) ? ' active' : ''}" id="detail-save-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="${isSavedSlug(prompt.slug) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span id="detail-save-label">${isSavedSlug(prompt.slug) ? 'Saved' : 'Save'}</span>
+          </button>
+        </div>
         <div class="prompt-page-divider"></div>
       </div>
 
@@ -761,6 +1120,25 @@ async function initPromptPage() {
   if (copyBtn) {
     copyBtn.addEventListener('click', () => {
       copyToClipboard(prompt.prompt, copyBtn);
+    });
+  }
+
+  const detailLikeBtn = document.getElementById('detail-like-btn');
+  if (detailLikeBtn) {
+    detailLikeBtn.addEventListener('click', async () => {
+      const countEl = document.getElementById('detail-like-count');
+      const nowLiked = await toggleLikedSlug(prompt.slug, countEl);
+      detailLikeBtn.classList.toggle('active', nowLiked);
+      detailLikeBtn.querySelector('svg').setAttribute('fill', nowLiked ? 'currentColor' : 'none');
+    });
+  }
+  const detailSaveBtn = document.getElementById('detail-save-btn');
+  if (detailSaveBtn) {
+    detailSaveBtn.addEventListener('click', () => {
+      const nowSaved = toggleSavedSlug(prompt.slug);
+      detailSaveBtn.classList.toggle('active', nowSaved);
+      detailSaveBtn.querySelector('svg').setAttribute('fill', nowSaved ? 'currentColor' : 'none');
+      document.getElementById('detail-save-label').textContent = nowSaved ? 'Saved' : 'Save';
     });
   }
 }
@@ -888,6 +1266,38 @@ async function initFeaturedBlogBanner() {
   banner.classList.add('show');
 }
 
+/* --- Progressive/"lazy" grid rendering: renders `items` into `grid` in
+   batches instead of dumping everything into the DOM at once — matters once
+   a gallery/video library grows into the hundreds or thousands. The next
+   batch renders as `sentinel` scrolls near the viewport. Images inside each
+   card should also carry loading="lazy" so the browser defers the actual
+   image bytes too, not just the DOM insertion. Call fresh (not incrementally)
+   whenever the underlying item list changes, e.g. a filter pill switch. --- */
+function renderGridInBatches(grid, sentinel, items, batchSize, cardHtmlFn) {
+  if (grid._batchObserver) grid._batchObserver.disconnect();
+  grid.innerHTML = '';
+  let rendered = 0;
+
+  function renderNextBatch() {
+    const next = items.slice(rendered, rendered + batchSize);
+    if (!next.length) return;
+    grid.insertAdjacentHTML('beforeend', next.map(cardHtmlFn).join(''));
+    rendered += next.length;
+    if (rendered >= items.length && grid._batchObserver) {
+      grid._batchObserver.disconnect();
+    }
+  }
+
+  renderNextBatch();
+  if (!sentinel || rendered >= items.length) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) renderNextBatch();
+  }, { rootMargin: '400px' });
+  observer.observe(sentinel);
+  grid._batchObserver = observer;
+}
+
 /* --- Gallery: fetch + list page (gallery.html) + detail page (gallery-item.html) --- */
 let _galleryCache = null;
 async function fetchGalleryItems() {
@@ -941,16 +1351,18 @@ async function initGalleryListPage() {
     });
   }
 
+  const sentinel = document.getElementById('gallery-grid-sentinel');
+
   function renderCards() {
     const filtered = activeCategory === 'All' ? items : items.filter(g => (g.category || 'Other') === activeCategory);
-    grid.innerHTML = filtered.map(g => `
+    renderGridInBatches(grid, sentinel, filtered, 24, (g) => `
       <a class="gallery-card animate-fade-up" href="gallery-item.html?slug=${encodeURIComponent(g.slug)}">
         <div class="gallery-card-image-wrap">
           <img src="${escapeHtml(g.image_url)}" alt="${escapeHtml(g.title)}" loading="lazy" class="gallery-card-image" />
         </div>
         <div class="gallery-card-title">${escapeHtml(g.title)}</div>
       </a>
-    `).join('');
+    `);
   }
 
   // Only show the filter bar at all if there's more than one category —
@@ -962,6 +1374,18 @@ async function initGalleryListPage() {
     filterBar.style.display = 'none';
   }
   renderCards();
+
+  injectJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'AI Image Gallery',
+    itemListElement: items.slice(0, 30).map((g, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://smart-prompt.in/gallery-item.html?slug=${encodeURIComponent(g.slug)}`,
+      name: g.title,
+    })),
+  });
 }
 
 async function initGalleryItemPage() {
@@ -1010,6 +1434,27 @@ async function initGalleryItemPage() {
   if (ogImage) ogImage.setAttribute('content', item.image_url);
   const twitterImage = document.getElementById('meta-twitter-image');
   if (twitterImage) twitterImage.setAttribute('content', item.image_url);
+
+  injectJsonLd([
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ImageObject',
+      name: item.title,
+      contentUrl: item.image_url,
+      description: item.image_prompt,
+      datePublished: new Date(item.published_at + 'Z').toISOString(),
+      url: pageUrl,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
+        { '@type': 'ListItem', position: 2, name: 'Gallery', item: 'https://smart-prompt.in/gallery.html' },
+        { '@type': 'ListItem', position: 3, name: item.title, item: pageUrl },
+      ],
+    },
+  ]);
 
   detail.innerHTML = `
     <a href="gallery.html" class="back-link animate-fade-up">
@@ -1066,6 +1511,370 @@ async function initGalleryItemPage() {
   });
   document.getElementById('copy-video-prompt-btn').addEventListener('click', (e) => {
     copyToClipboard(item.video_prompt, e.currentTarget);
+  });
+}
+
+
+/* --- Videos: fetch + list page (videos.html) + detail page (video-item.html) --- */
+let _videoCache = null;
+async function fetchVideoItems() {
+  if (_videoCache) return _videoCache;
+  try {
+    const res = await fetch('/api/videos');
+    if (!res.ok) throw new Error('Failed to load video items');
+    _videoCache = await res.json();
+    return _videoCache;
+  } catch (err) {
+    console.error('Error loading video items:', err);
+    return [];
+  }
+}
+
+function youtubeThumb(id) {
+  return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+}
+
+async function initVideoListPage() {
+  const grid = document.getElementById('video-grid');
+  if (!grid) return;
+
+  const items = await fetchVideoItems();
+  const emptyState = document.getElementById('video-empty-state');
+  const filterBar = document.getElementById('video-filter-bar');
+  const sentinel = document.getElementById('video-grid-sentinel');
+
+  if (!items.length) {
+    grid.style.display = 'none';
+    if (filterBar) filterBar.style.display = 'none';
+    if (emptyState) emptyState.style.display = '';
+    return;
+  }
+
+  const counts = {};
+  items.forEach(v => { counts[v.category || 'Other'] = (counts[v.category || 'Other'] || 0) + 1; });
+  const categories = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+
+  let activeCategory = 'All';
+
+  function renderPills() {
+    const allPill = `<button type="button" class="gallery-filter-pill${activeCategory === 'All' ? ' active' : ''}" data-cat="All">All <span class="gallery-filter-count">${items.length}</span></button>`;
+    const catPills = categories.map(c => `
+      <button type="button" class="gallery-filter-pill${activeCategory === c ? ' active' : ''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)} <span class="gallery-filter-count">${counts[c]}</span></button>
+    `).join('');
+    filterBar.innerHTML = allPill + catPills;
+    filterBar.querySelectorAll('.gallery-filter-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCategory = btn.dataset.cat;
+        renderPills();
+        renderCards();
+      });
+    });
+  }
+
+  function renderCards() {
+    const filtered = activeCategory === 'All' ? items : items.filter(v => (v.category || 'Other') === activeCategory);
+    renderGridInBatches(grid, sentinel, filtered, 24, (v) => `
+      <a class="gallery-card animate-fade-up" href="video-item.html?slug=${encodeURIComponent(v.slug)}">
+        <div class="gallery-card-image-wrap">
+          <img src="${youtubeThumb(v.youtube_id)}" alt="${escapeHtml(v.title)}" loading="lazy" class="gallery-card-image" />
+          <span class="gallery-card-video-badge">▶ Video</span>
+        </div>
+        <div class="gallery-card-title">${escapeHtml(v.title)}</div>
+      </a>
+    `);
+  }
+
+  if (filterBar && categories.length > 1) {
+    filterBar.style.display = '';
+    renderPills();
+  } else if (filterBar) {
+    filterBar.style.display = 'none';
+  }
+  renderCards();
+
+  injectJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'AI Video Prompts',
+    itemListElement: items.slice(0, 30).map((v, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://smart-prompt.in/video-item.html?slug=${encodeURIComponent(v.slug)}`,
+      name: v.title,
+    })),
+  });
+}
+
+async function initVideoItemPage() {
+  const detail = document.getElementById('video-item-detail');
+  if (!detail) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
+  const items = await fetchVideoItems();
+  const item = slug ? items.find(v => v.slug === slug) : null;
+
+  if (!item) {
+    detail.innerHTML = `
+      <div class="error-page animate-fade-up">
+        <div class="error-code">404</div>
+        <h2>Video Not Found</h2>
+        <p>This video doesn't exist or may have been removed.</p>
+        <a href="videos.html" class="btn-home">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Back to Videos
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  document.title = `${item.title} — SmartPrompts Videos`;
+  const pageUrl = `https://smart-prompt.in/video-item.html?slug=${encodeURIComponent(item.slug)}`;
+  const pageDescription = `AI-generated video: ${item.title}. Includes the exact prompt used to create it.`;
+  const thumb = youtubeThumb(item.youtube_id);
+
+  const metaDesc = document.getElementById('meta-description');
+  if (metaDesc) metaDesc.setAttribute('content', pageDescription);
+  const canonical = document.getElementById('canonical-link');
+  if (canonical) canonical.href = pageUrl;
+  const ogTitle = document.getElementById('meta-og-title');
+  if (ogTitle) ogTitle.setAttribute('content', `${item.title} — SmartPrompts Videos`);
+  const ogDesc = document.getElementById('meta-og-description');
+  if (ogDesc) ogDesc.setAttribute('content', pageDescription);
+  const ogUrl = document.getElementById('meta-og-url');
+  if (ogUrl) ogUrl.setAttribute('content', pageUrl);
+  const ogImage = document.getElementById('meta-og-image');
+  if (ogImage) ogImage.setAttribute('content', thumb);
+  const twitterImage = document.getElementById('meta-twitter-image');
+  if (twitterImage) twitterImage.setAttribute('content', thumb);
+
+  injectJsonLd([
+    {
+      '@context': 'https://schema.org',
+      '@type': 'VideoObject',
+      name: item.title,
+      description: item.prompt.slice(0, 500),
+      thumbnailUrl: thumb,
+      uploadDate: new Date(item.published_at + 'Z').toISOString(),
+      embedUrl: `https://www.youtube.com/embed/${item.youtube_id}`,
+      contentUrl: `https://www.youtube.com/watch?v=${item.youtube_id}`,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
+        { '@type': 'ListItem', position: 2, name: 'Videos', item: 'https://smart-prompt.in/videos.html' },
+        { '@type': 'ListItem', position: 3, name: item.title, item: pageUrl },
+      ],
+    },
+  ]);
+
+  detail.innerHTML = `
+    <a href="videos.html" class="back-link animate-fade-up">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      All Videos
+    </a>
+    <h1 class="prompt-page-title animate-fade-up">${escapeHtml(item.title)}</h1>
+    <div class="gallery-detail-category animate-fade-up">${escapeHtml(item.category || 'Other')}</div>
+    <div class="prompt-page-divider"></div>
+
+    <div class="video-embed-wrap animate-fade-up" style="animation-delay:50ms">
+      <iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(item.youtube_id)}" title="${escapeHtml(item.title)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+
+    <div class="animate-fade-up" style="animation-delay:120ms">
+      <div class="prompt-box">
+        <div class="prompt-box-header">
+          <div class="prompt-box-label">Prompt</div>
+          <button class="copy-btn" id="copy-video-prompt-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="prompt-text">${escapeHtml(item.prompt)}</div>
+      </div>
+    </div>
+
+    <p class="info-text animate-fade-up" style="margin-top:1.2rem;">Copy the prompt above and use it in your favorite AI video tool to make your own version.</p>
+  `;
+
+  document.getElementById('copy-video-prompt-btn').addEventListener('click', (e) => {
+    copyToClipboard(item.prompt, e.currentTarget);
+  });
+}
+
+/* --- Free SEO Title & Meta Description tool (seo-tool.html) --- */
+function initSeoToolPage() {
+  const btn = document.getElementById('seo-generate-btn');
+  if (!btn) return;
+
+  const input = document.getElementById('seo-topic-input');
+  const msg = document.getElementById('seo-tool-msg');
+  const resultWrap = document.getElementById('seo-result-wrap');
+  const titleOut = document.getElementById('seo-title-output');
+  const descOut = document.getElementById('seo-desc-output');
+  const titleCount = document.getElementById('seo-title-count');
+  const descCount = document.getElementById('seo-desc-count');
+
+  btn.addEventListener('click', async () => {
+    const topic = input.value.trim();
+    if (!topic) {
+      msg.textContent = 'Describe your page first.';
+      msg.style.color = 'var(--danger, #e0555f)';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Generating…';
+    msg.textContent = '';
+    resultWrap.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/seo-tool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.textContent = data.error || 'Something went wrong — please try again.';
+        msg.style.color = 'var(--danger, #e0555f)';
+        return;
+      }
+      titleOut.textContent = data.title;
+      descOut.textContent = data.metaDescription;
+      titleCount.textContent = `(${data.title.length} chars)`;
+      descCount.textContent = `(${data.metaDescription.length} chars)`;
+      resultWrap.style.display = '';
+      msg.textContent = '';
+    } catch (err) {
+      msg.textContent = 'Request failed — check your connection and try again.';
+      msg.style.color = 'var(--danger, #e0555f)';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✨ Generate';
+    }
+  });
+
+  document.getElementById('copy-seo-title-btn').addEventListener('click', (e) => {
+    copyToClipboard(titleOut.textContent, e.currentTarget);
+  });
+  document.getElementById('copy-seo-desc-btn').addEventListener('click', (e) => {
+    copyToClipboard(descOut.textContent, e.currentTarget);
+  });
+}
+
+/* --- Free Prompt Improver tool (prompt-improver.html) --- */
+function initPromptImproverPage() {
+  const btn = document.getElementById('improver-generate-btn');
+  if (!btn) return;
+
+  const input = document.getElementById('improver-input');
+  const msg = document.getElementById('improver-msg');
+  const resultWrap = document.getElementById('improver-result-wrap');
+  const output = document.getElementById('improver-output');
+  const explanation = document.getElementById('improver-explanation');
+
+  btn.addEventListener('click', async () => {
+    const roughPrompt = input.value.trim();
+    if (!roughPrompt) {
+      msg.textContent = 'Paste a prompt first.';
+      msg.style.color = 'var(--danger, #e0555f)';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Improving…';
+    msg.textContent = '';
+    resultWrap.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/prompt-improver', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: roughPrompt }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.textContent = data.error || 'Something went wrong — please try again.';
+        msg.style.color = 'var(--danger, #e0555f)';
+        return;
+      }
+      output.textContent = data.improvedPrompt;
+      explanation.textContent = data.whatChanged;
+      resultWrap.style.display = '';
+      msg.textContent = '';
+    } catch (err) {
+      msg.textContent = 'Request failed — check your connection and try again.';
+      msg.style.color = 'var(--danger, #e0555f)';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✨ Improve My Prompt';
+    }
+  });
+
+  document.getElementById('copy-improver-btn').addEventListener('click', (e) => {
+    copyToClipboard(output.textContent, e.currentTarget);
+  });
+}
+
+/* --- Free AI Image Prompt Generator tool (image-prompt-generator.html) --- */
+function initImagePromptGeneratorPage() {
+  const btn = document.getElementById('imggen-generate-btn');
+  if (!btn) return;
+
+  const input = document.getElementById('imggen-input');
+  const msg = document.getElementById('imggen-msg');
+  const resultWrap = document.getElementById('imggen-result-wrap');
+  const output = document.getElementById('imggen-output');
+  const styleLabel = document.getElementById('imggen-style-label');
+
+  btn.addEventListener('click', async () => {
+    const idea = input.value.trim();
+    if (!idea) {
+      msg.textContent = 'Describe your image idea first.';
+      msg.style.color = 'var(--danger, #e0555f)';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Generating…';
+    msg.textContent = '';
+    resultWrap.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/image-prompt-generator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idea }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.textContent = data.error || 'Something went wrong — please try again.';
+        msg.style.color = 'var(--danger, #e0555f)';
+        return;
+      }
+      output.textContent = data.imagePrompt;
+      styleLabel.textContent = `(${data.style})`;
+      resultWrap.style.display = '';
+      msg.textContent = '';
+    } catch (err) {
+      msg.textContent = 'Request failed — check your connection and try again.';
+      msg.style.color = 'var(--danger, #e0555f)';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✨ Generate Prompt';
+    }
+  });
+
+  document.getElementById('copy-imggen-btn').addEventListener('click', (e) => {
+    copyToClipboard(output.textContent, e.currentTarget);
   });
 }
 
@@ -1143,6 +1952,34 @@ async function initBlogPostPage() {
   if (ogDesc) ogDesc.setAttribute('content', pageDescription);
   const ogUrl = document.getElementById('meta-og-url');
   if (ogUrl) ogUrl.setAttribute('content', pageUrl);
+
+  injectJsonLd([
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: post.title,
+      description: pageDescription,
+      datePublished: new Date(post.published_at + 'Z').toISOString(),
+      dateModified: new Date(post.published_at + 'Z').toISOString(),
+      url: pageUrl,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+      author: { '@type': 'Organization', name: 'SmartPrompts' },
+      publisher: {
+        '@type': 'Organization',
+        name: 'SmartPrompts',
+        logo: { '@type': 'ImageObject', url: 'https://smart-prompt.in/favicon.png' },
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://smart-prompt.in/blog.html' },
+        { '@type': 'ListItem', position: 3, name: post.title, item: pageUrl },
+      ],
+    },
+  ]);
 
   /* --- Related posts: other recent posts, an honest "more from the blog"
      pick since blog posts don't have a category to match on --- */
@@ -1334,10 +2171,10 @@ function initIconNavBar() {
   const hash = window.location.hash;
   const isHome = path === '/' || path.endsWith('/') || path.endsWith('index.html');
   const isCategories = isHome && hash === '#category-browse';
-  const isTrending = isHome && hash === '#trending-section';
+  const isTrending = path.includes('trending-prompts');
   const isBlog = path.includes('blog');
   const isGallery = path.includes('gallery');
-  const isMore = path.includes('submit') || path.includes('about');
+  const isMore = path.includes('submit') || path.includes('about') || path.includes('videos') || path.includes('video-item') || path.includes('seo-tool') || path.includes('prompt-improver') || path.includes('image-prompt-generator');
 
   const items = [
     {
@@ -1351,7 +2188,7 @@ function initIconNavBar() {
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
     },
     {
-      label: 'Trending', href: 'index.html#trending-section',
+      label: 'Trending', href: 'trending-prompts.html',
       active: isTrending,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1-.5-2-1-3 2 1 3 3 3 6a6 6 0 0 1-12 0c0-4 2-5 4-10z"/></svg>',
     },
@@ -1382,19 +2219,38 @@ function initIconNavBar() {
       </span>
       <span class="icon-nav-label">More</span>
     </button>
-    <div class="icon-nav-more-popover" id="icon-nav-more-popover">
-      <a href="submit.html" class="site-nav-link">Submit Prompt</a>
-      <a href="about.html" class="site-nav-link">About</a>
-    </div>
   `;
 
   header.insertAdjacentElement('afterend', bar);
 
+  // The popover lives at the very end of <body> (not inside .icon-nav-bar)
+  // and uses position:fixed with JS-computed coordinates — .icon-nav-bar
+  // scrolls horizontally (overflow-x:auto), and CSS forces overflow-y to
+  // clip too whenever overflow-x isn't "visible", so anything absolutely
+  // positioned *inside* it that pokes out the bottom gets silently cut off.
+  const morePopover = document.createElement('div');
+  morePopover.className = 'icon-nav-more-popover';
+  morePopover.id = 'icon-nav-more-popover';
+  morePopover.innerHTML = `
+    <a href="videos.html" class="site-nav-link">Videos</a>
+    <a href="seo-tool.html" class="site-nav-link">SEO Tool</a>
+    <a href="prompt-improver.html" class="site-nav-link">Prompt Improver</a>
+    <a href="image-prompt-generator.html" class="site-nav-link">Image Prompt Generator</a>
+    <a href="submit.html" class="site-nav-link">Submit Prompt</a>
+    <a href="about.html" class="site-nav-link">About</a>
+  `;
+  document.body.appendChild(morePopover);
+
   const moreBtn = document.getElementById('icon-nav-more-btn');
-  const morePopover = document.getElementById('icon-nav-more-popover');
   moreBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    morePopover.classList.toggle('open');
+    const isOpening = !morePopover.classList.contains('open');
+    if (isOpening) {
+      const rect = moreBtn.getBoundingClientRect();
+      morePopover.style.top = `${rect.bottom + 6}px`;
+      morePopover.style.right = `${window.innerWidth - rect.right}px`;
+    }
+    morePopover.classList.toggle('open', isOpening);
   });
   document.addEventListener('click', (e) => {
     if (!morePopover.contains(e.target) && e.target !== moreBtn) {
@@ -1402,6 +2258,32 @@ function initIconNavBar() {
     }
   });
 }
+
+/* Same-page nav clicks (already on index.html, clicking Categories/Trending)
+   don't reload the page, so the load-time logic above never re-runs for
+   them — handle those here too. */
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash;
+
+  if (!hash) {
+    // "Home" was clicked from a filtered/scrolled state — reset to the
+    // default category-browse view instead of leaving whatever was showing.
+    if (typeof window.showCategoryBrowse === 'function') window.showCategoryBrowse();
+    return;
+  }
+
+  if (hash === '#category-browse' && typeof window.showCategoryBrowse === 'function') {
+    window.showCategoryBrowse();
+    return;
+  }
+
+  const target = document.querySelector(hash);
+  if (target) {
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+});
 
 /* ---- Init ---- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1414,5 +2296,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initBlogPostPage();
   initGalleryListPage();
   initGalleryItemPage();
+  initVideoListPage();
+  initVideoItemPage();
+  initSeoToolPage();
+  initPromptImproverPage();
+  initImagePromptGeneratorPage();
   initSubmitPage();
+  initTrendingPromptsPage();
 });
