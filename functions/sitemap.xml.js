@@ -33,7 +33,7 @@ export async function onRequestGet(context) {
       'SELECT DISTINCT slug FROM prompts'
     ).all();
     for (const p of prompts) {
-      urls.push(urlEntry(`${DOMAIN}/prompt.html?slug=${encodeURIComponent(p.slug)}`, today, 'monthly', '0.7'));
+      urls.push(urlEntry(`${DOMAIN}/prompt?slug=${encodeURIComponent(p.slug)}`, today, 'monthly', '0.7'));
     }
   } catch (e) { /* table not reachable — still serve the static pages below */ }
 
@@ -44,7 +44,7 @@ export async function onRequestGet(context) {
     ).all();
     for (const b of posts) {
       const lastmod = String(b.updated_at || b.published_at || today).slice(0, 10);
-      urls.push(urlEntry(`${DOMAIN}/blog-post.html?slug=${encodeURIComponent(b.slug)}`, lastmod, 'monthly', '0.7'));
+      urls.push(urlEntry(`${DOMAIN}/blog-post?slug=${encodeURIComponent(b.slug)}`, lastmod, 'monthly', '0.7'));
     }
   } catch (e) { /* table not reachable — still serve everything else */ }
 
@@ -55,7 +55,7 @@ export async function onRequestGet(context) {
     ).all();
     for (const g of items) {
       const lastmod = String(g.updated_at || g.published_at || today).slice(0, 10);
-      urls.push(urlEntry(`${DOMAIN}/gallery-item.html?slug=${encodeURIComponent(g.slug)}`, lastmod, 'monthly', '0.7'));
+      urls.push(urlEntry(`${DOMAIN}/gallery-item?slug=${encodeURIComponent(g.slug)}`, lastmod, 'monthly', '0.7'));
     }
   } catch (e) { /* table not reachable — still serve everything else */ }
 
@@ -66,7 +66,7 @@ export async function onRequestGet(context) {
     ).all();
     for (const v of videos) {
       const lastmod = String(v.updated_at || v.published_at || today).slice(0, 10);
-      urls.push(urlEntry(`${DOMAIN}/video-item.html?slug=${encodeURIComponent(v.slug)}`, lastmod, 'monthly', '0.7'));
+      urls.push(urlEntry(`${DOMAIN}/video-item?slug=${encodeURIComponent(v.slug)}`, lastmod, 'monthly', '0.7'));
     }
   } catch (e) { /* table not reachable — still serve everything else */ }
 

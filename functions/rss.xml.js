@@ -63,7 +63,7 @@ export async function onRequestGet(context) {
   } catch (e) { /* table not reachable — serve an empty-but-valid feed below */ }
 
   const items = posts.map(p => {
-    const link = `${DOMAIN}/blog-post.html?slug=${encodeURIComponent(p.slug)}`;
+    const link = `${DOMAIN}/blog-post?slug=${encodeURIComponent(p.slug)}`;
     const pubDate = new Date(String(p.published_at).replace(' ', 'T') + 'Z').toUTCString();
     const bodyHtml = contentToHtml(escapeXml(p.content || ''));
     return `
