@@ -900,6 +900,13 @@ body::before {
 }
 
 .category-card {
+  /* Grid items default to min-width:auto, i.e. they refuse to shrink
+     past their content's natural width. On a 2-column mobile grid that
+     let one card's icon+text+arrow row force itself wider than its 1fr
+     share, so it rendered full-size while the neighboring card got
+     squeezed/clipped past the screen edge. min-width:0 lets both cards
+     actually share the row equally. */
+  min-width: 0;
   position: relative;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -928,7 +935,12 @@ body::before {
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.75rem;
+  min-width: 0;
 }
+
+.category-card-info > div:first-child { min-width: 0; }
+
+.category-card-name { overflow-wrap: break-word; }
 
 .category-card-arrow {
   flex-shrink: 0;
@@ -2198,6 +2210,15 @@ body::before {
   .btn-signup { display: none; }
   .mobile-menu-toggle { display: flex; }
   .icon-nav-bar { display: flex; }
+
+  /* Hamburger + logo were eating so much width that the theme-toggle
+     button got pushed past the edge and clipped (body has overflow-x:
+     hidden, so it just vanished instead of scrolling into view).
+     Tighten the gaps and shrink the logo so everything fits. */
+  .header-inner { gap: 0.6rem; }
+  .site-logo { gap: 0.4rem; }
+  .site-logo-text { font-size: 1.05rem; }
+  .header-actions { gap: 0.4rem; }
 
   .hero { padding: 3rem 1.25rem 2rem; }
   .hero h1 { font-size: 2.2rem; }
