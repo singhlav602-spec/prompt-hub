@@ -93,7 +93,18 @@
 
   <!-- ======= DISCOVERY GRID ======= -->
   <main>
-    <div class="discovery-grid" id="discovery-page-grid"></div>
+    <div class="discovery-grid" id="discovery-page-grid">
+      <!-- Skeleton placeholders reserve grid space until the real cards
+           load — without these the grid starts at zero height and jumps
+           to full size once data arrives, shifting the footer down
+           (exactly the kind of layout shift Core Web Vitals penalizes). -->
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+    </div>
     <div class="empty-state" id="discovery-empty-state" style="display:none;">
       <div class="empty-state-icon">🔥</div>
       <h3>Nothing in this category yet</h3>
