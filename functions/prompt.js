@@ -19,7 +19,15 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
   const slug = url.searchParams.get('slug');
 
-  const assetResponse = await env.ASSETS.fetch(request);
+  // A fresh request with only the URL — no conditional-cache headers
+  // (If-None-Match / If-Modified-Since) carried over from the original.
+  // Forwarding those straight to env.ASSETS.fetch() can get back an empty
+  // 304 Not Modified body on repeat visits (e.g. after a back-navigation,
+  // when the browser sends validators from its own cache) — and since we
+  // always build a fresh 200 response below, that empty body would become
+  // an empty page instead of the real one. Always asking for the full
+  // asset avoids that entirely.
+  const assetResponse = await env.ASSETS.fetch(new Request(url.toString(), { method: 'GET' }));
 
   if (!slug) {
     // No slug at all — nothing legitimate links here without one.
