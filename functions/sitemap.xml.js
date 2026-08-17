@@ -15,17 +15,29 @@ export async function onRequestGet(context) {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [];
 
-  // Static pages
+  let hiddenSlugs = new Set();
+  try {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS page_visibility (
+      page_slug TEXT PRIMARY KEY,
+      hidden INTEGER NOT NULL DEFAULT 0
+    )`).run();
+    const { results } = await env.DB.prepare('SELECT page_slug FROM page_visibility WHERE hidden = 1').all();
+    hiddenSlugs = new Set(results.map(r => r.page_slug));
+  } catch (e) { /* if this fails, just include every static page as normal */ }
+
+  // Static pages — skipped while an admin has them hidden, so Google
+  // isn't pointed at a page that's currently showing a "check back soon"
+  // placeholder instead of real content.
   urls.push(urlEntry(`${DOMAIN}/`, today, 'daily', '1.0'));
-  urls.push(urlEntry(`${DOMAIN}/blog.html`, today, 'daily', '0.8'));
-  urls.push(urlEntry(`${DOMAIN}/gallery.html`, today, 'daily', '0.8'));
-  urls.push(urlEntry(`${DOMAIN}/trending-prompts.html`, today, 'daily', '0.8'));
-  urls.push(urlEntry(`${DOMAIN}/videos.html`, today, 'daily', '0.8'));
-  urls.push(urlEntry(`${DOMAIN}/seo-tool.html`, today, 'monthly', '0.6'));
-  urls.push(urlEntry(`${DOMAIN}/prompt-improver.html`, today, 'monthly', '0.6'));
-  urls.push(urlEntry(`${DOMAIN}/image-prompt-generator.html`, today, 'monthly', '0.6'));
-  urls.push(urlEntry(`${DOMAIN}/about.html`, today, 'monthly', '0.4'));
-  urls.push(urlEntry(`${DOMAIN}/submit.html`, today, 'monthly', '0.4'));
+  if (!hiddenSlugs.has('blog')) urls.push(urlEntry(`${DOMAIN}/blog.html`, today, 'daily', '0.8'));
+  if (!hiddenSlugs.has('gallery')) urls.push(urlEntry(`${DOMAIN}/gallery.html`, today, 'daily', '0.8'));
+  if (!hiddenSlugs.has('trending-prompts')) urls.push(urlEntry(`${DOMAIN}/trending-prompts.html`, today, 'daily', '0.8'));
+  if (!hiddenSlugs.has('videos')) urls.push(urlEntry(`${DOMAIN}/videos.html`, today, 'daily', '0.8'));
+  if (!hiddenSlugs.has('seo-tool')) urls.push(urlEntry(`${DOMAIN}/seo-tool.html`, today, 'monthly', '0.6'));
+  if (!hiddenSlugs.has('prompt-improver')) urls.push(urlEntry(`${DOMAIN}/prompt-improver.html`, today, 'monthly', '0.6'));
+  if (!hiddenSlugs.has('image-prompt-generator')) urls.push(urlEntry(`${DOMAIN}/image-prompt-generator.html`, today, 'monthly', '0.6'));
+  if (!hiddenSlugs.has('about')) urls.push(urlEntry(`${DOMAIN}/about.html`, today, 'monthly', '0.4'));
+  if (!hiddenSlugs.has('submit')) urls.push(urlEntry(`${DOMAIN}/submit.html`, today, 'monthly', '0.4'));
 
   // Every prompt currently in the live database
   try {
