@@ -2215,11 +2215,13 @@ function initIconNavBar() {
       active: isBlog && !isGallery,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
     },
-    {
-      label: 'Gallery', href: 'gallery.html',
-      active: isGallery,
-      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5-9 9"/></svg>',
-    },
+    // Gallery paused for now (R2 migration pending) — re-add this item
+    // when it's switched back on:
+    // {
+    //   label: 'Gallery', href: 'gallery.html',
+    //   active: isGallery,
+    //   icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5-9 9"/></svg>',
+    // },
     {
       label: 'Videos', href: 'videos.html',
       active: isVideos,

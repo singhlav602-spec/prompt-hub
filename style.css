@@ -914,6 +914,11 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  /* Grid items default to min-width:auto, so a card whose content can't
+     shrink below its min-content width forces its whole column wider —
+     shrinking the sibling column and cutting it off at the screen edge
+     on narrow phones. This is the actual fix for that. */
+  min-width: 0;
 }
 
 .category-card-icon {
@@ -964,6 +969,7 @@ body::before {
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.01em;
+  overflow-wrap: break-word;
 }
 
 .category-card-count {
@@ -2202,6 +2208,23 @@ body::before {
   .btn-signup { display: none; }
   .mobile-menu-toggle { display: flex; }
   .icon-nav-bar { display: flex; }
+
+  /* Header row = hamburger + logo + header-actions, all flex-shrink:0.
+     The base 1.5rem gap between them (fine on desktop with the full nav
+     in between) is too wide once .site-nav disappears here — on narrow
+     phones the total content no longer fits and, since overflow-x is
+     hidden on the page, the rightmost icon (theme-toggle) gets clipped
+     off the edge instead of wrapping. Tightening the gap + shrinking the
+     logo text a touch keeps everything on one row and fully visible. */
+  .header-inner { gap: 0.5rem; }
+  .site-logo-text { font-size: 1.05rem; }
+  .site-logo { gap: 0.4rem; }
+  .header-actions .icon-btn,
+  .header-actions .theme-toggle,
+  .mobile-menu-toggle {
+    width: 34px;
+    height: 34px;
+  }
 
   .hero { padding: 3rem 1.25rem 2rem; }
   .hero h1 { font-size: 2.2rem; }

@@ -73,7 +73,7 @@
         <a href="#category-browse" class="site-nav-link">Categories</a>
         <a href="trending-prompts.html" class="site-nav-link">Trending</a>
         <a href="blog.html" class="site-nav-link">Blog</a>
-        <a href="gallery.html" class="site-nav-link">Gallery</a>
+        <!-- Gallery paused for now (R2 migration pending) — <a href="gallery.html" class="site-nav-link">Gallery</a> -->
         <a href="videos.html" class="site-nav-link">Videos</a>
         <a href="seo-tool.html" class="site-nav-link">SEO Tool</a>
         <a href="prompt-improver.html" class="site-nav-link">Prompt Improver</a>
@@ -103,14 +103,10 @@
     </div>
   </header>
 
-  <!-- ======= FEATURED BLOG BANNER (shown only within 24h of a new post) ======= -->
-  <div class="featured-blog-banner" id="featured-blog-banner">
-    <a class="featured-blog-banner-inner" id="featured-blog-banner-link" href="blog.html">
-      <span class="featured-blog-banner-tag">New on the blog</span>
-      <span class="featured-blog-banner-title" id="featured-blog-banner-title"></span>
-      <span class="featured-blog-banner-cta">Read it →</span>
-    </a>
-  </div>
+  <!-- ======= FEATURED BLOG BANNER — removed from homepage on purpose.
+       Blog still lives at its own page (blog.html / nav link); JS
+       (initFeaturedBlogBanner) already no-ops safely when this element
+       is missing, so nothing else needed here. ======= -->
 
   <!-- ======= HERO ======= -->
   <section class="hero">
@@ -177,14 +173,10 @@
     </div>
   </section>
 
-  <!-- ======= TRENDING BANNER (links out to trending-prompts.html) ======= -->
-  <div class="trending-banner" id="trending-banner">
-    <a class="trending-banner-inner" href="trending-prompts.html">
-      <span class="trending-banner-tag">🔥 Live</span>
-      <span class="trending-banner-title">Trending &amp; Popular Prompts — see what's hot right now</span>
-      <span class="trending-banner-cta">Explore →</span>
-    </a>
-  </div>
+  <!-- ======= TRENDING BANNER — removed from homepage on purpose.
+       Trending still lives at its own page (trending-prompts.html / nav
+       link); JS already null-guards every reference to #trending-banner,
+       so nothing else needed here. ======= -->
 
   <!-- ======= STATS BAR ======= -->
   <section class="site-stats" id="site-stats">

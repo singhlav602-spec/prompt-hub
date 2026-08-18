@@ -2,5 +2,9 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /api/admin/
+# Gallery paused for now (R2 migration pending) — remove these two lines
+# when it's switched back on:
+Disallow: /gallery.html
+Disallow: /gallery-item
 
 Sitemap: https://smart-prompt.in/sitemap.xml
