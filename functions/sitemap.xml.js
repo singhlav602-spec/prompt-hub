@@ -30,7 +30,10 @@ export async function onRequestGet(context) {
   // placeholder instead of real content.
   urls.push(urlEntry(`${DOMAIN}/`, today, 'daily', '1.0'));
   if (!hiddenSlugs.has('blog')) urls.push(urlEntry(`${DOMAIN}/blog.html`, today, 'daily', '0.8'));
-  if (!hiddenSlugs.has('gallery')) urls.push(urlEntry(`${DOMAIN}/gallery.html`, today, 'daily', '0.8'));
+  // Gallery paused for now (R2 migration pending) — keep it out of the
+  // sitemap so Google doesn't crawl/index it while it's not being worked
+  // on. Uncomment when it's switched back on:
+  // if (!hiddenSlugs.has('gallery')) urls.push(urlEntry(`${DOMAIN}/gallery.html`, today, 'daily', '0.8'));
   if (!hiddenSlugs.has('trending-prompts')) urls.push(urlEntry(`${DOMAIN}/trending-prompts.html`, today, 'daily', '0.8'));
   if (!hiddenSlugs.has('videos')) urls.push(urlEntry(`${DOMAIN}/videos.html`, today, 'daily', '0.8'));
   if (!hiddenSlugs.has('seo-tool')) urls.push(urlEntry(`${DOMAIN}/seo-tool.html`, today, 'monthly', '0.6'));
@@ -60,16 +63,17 @@ export async function onRequestGet(context) {
     }
   } catch (e) { /* table not reachable — still serve everything else */ }
 
-  // Every gallery item currently in the live database
-  try {
-    const { results: items } = await env.DB.prepare(
-      'SELECT slug, published_at, updated_at FROM gallery_items'
-    ).all();
-    for (const g of items) {
-      const lastmod = String(g.updated_at || g.published_at || today).slice(0, 10);
-      urls.push(urlEntry(`${DOMAIN}/gallery-item?slug=${encodeURIComponent(g.slug)}`, lastmod, 'monthly', '0.7'));
-    }
-  } catch (e) { /* table not reachable — still serve everything else */ }
+  // Gallery paused for now (R2 migration pending) — skip gallery items too.
+  // Uncomment when it's switched back on:
+  // try {
+  //   const { results: items } = await env.DB.prepare(
+  //     'SELECT slug, published_at, updated_at FROM gallery_items'
+  //   ).all();
+  //   for (const g of items) {
+  //     const lastmod = String(g.updated_at || g.published_at || today).slice(0, 10);
+  //     urls.push(urlEntry(`${DOMAIN}/gallery-item?slug=${encodeURIComponent(g.slug)}`, lastmod, 'monthly', '0.7'));
+  //   }
+  // } catch (e) { /* table not reachable — still serve everything else */ }
 
   // Every video item currently in the live database
   try {
