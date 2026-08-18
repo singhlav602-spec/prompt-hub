@@ -545,6 +545,10 @@ body::before {
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 1.4rem;
+  min-height: 2.1rem; /* reserves space for the tag pills so they don't
+                          grow the hero after they load in, which shifts
+                          everything below it (this is what Cloudflare's
+                          Core Web Vitals was flagging as hero CLS) */
 }
 
 .hero-tags-label {
@@ -900,13 +904,6 @@ body::before {
 }
 
 .category-card {
-  /* Grid items default to min-width:auto, i.e. they refuse to shrink
-     past their content's natural width. On a 2-column mobile grid that
-     let one card's icon+text+arrow row force itself wider than its 1fr
-     share, so it rendered full-size while the neighboring card got
-     squeezed/clipped past the screen edge. min-width:0 lets both cards
-     actually share the row equally. */
-  min-width: 0;
   position: relative;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -935,12 +932,7 @@ body::before {
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.75rem;
-  min-width: 0;
 }
-
-.category-card-info > div:first-child { min-width: 0; }
-
-.category-card-name { overflow-wrap: break-word; }
 
 .category-card-arrow {
   flex-shrink: 0;
@@ -2211,15 +2203,6 @@ body::before {
   .mobile-menu-toggle { display: flex; }
   .icon-nav-bar { display: flex; }
 
-  /* Hamburger + logo were eating so much width that the theme-toggle
-     button got pushed past the edge and clipped (body has overflow-x:
-     hidden, so it just vanished instead of scrolling into view).
-     Tighten the gaps and shrink the logo so everything fits. */
-  .header-inner { gap: 0.6rem; }
-  .site-logo { gap: 0.4rem; }
-  .site-logo-text { font-size: 1.05rem; }
-  .header-actions { gap: 0.4rem; }
-
   .hero { padding: 3rem 1.25rem 2rem; }
   .hero h1 { font-size: 2.2rem; }
   .hero-search-row { flex-direction: column; }
@@ -2322,13 +2305,13 @@ body::before {
   margin-bottom: 0.6rem;
 }
 
-/* Featured "new post" banner on the homepage — only shown when there's an
-   unpinned post published in the last 24h (see initFeaturedBlogBanner), or
-   a pinned post, and only if this visitor hasn't dismissed it already.
-   That means most visits never have anything to show at all — reserving
-   space up front (the old visibility:hidden approach) left a permanent
-   blank gap on every one of those visits. display:none by default avoids
-   that; JS switches it to display:block only when there's real content. */
+/* Featured "new post" banner on the homepage — only shown for 24h.
+   Plain display:none by default — no permanently-reserved gap when
+   there's nothing to show. The decision runs as the very first thing
+   on page load (see initFeaturedBlogBanner) specifically so it resolves
+   before the user has really seen the page, keeping the old "pops in
+   after everything else" layout-shift to a minimum without leaving a
+   dead empty strip on days there's no post to feature. */
 .featured-blog-banner {
   display: none;
   max-width: var(--max-w);
