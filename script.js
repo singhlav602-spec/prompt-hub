@@ -343,6 +343,26 @@ async function initTrendingPromptsPage() {
   const grid = document.getElementById('discovery-page-grid');
   if (!grid) return;
 
+  // Keep the reserved skeleton space in sync with DISCOVERY_PROMPTS
+  // automatically — runs synchronously before the fetch below, so it's
+  // done before the page paints. This way the skeleton count never goes
+  // stale again: add or remove entries in DISCOVERY_PROMPTS above and the
+  // reserved space adjusts itself on the next load, no manual edit here
+  // needed. (Once real traffic makes /api/discovery return more items
+  // than the curated list, the reserved space can undershoot again —
+  // just by the difference, not by the whole list like before.)
+  const skeletons = grid.querySelectorAll('.skeleton');
+  const wanted = DISCOVERY_PROMPTS.length;
+  for (let i = skeletons.length; i < wanted; i++) {
+    const sk = document.createElement('div');
+    sk.className = 'skeleton';
+    sk.style.height = '220px';
+    grid.appendChild(sk);
+  }
+  for (let i = skeletons.length - 1; i >= wanted; i--) {
+    skeletons[i].remove();
+  }
+
   const prompts = await fetchPrompts();
   const items = await getDiscoveryItems(prompts);
 
@@ -638,6 +658,23 @@ async function initIndexPage() {
   const orderedCats = [...pinned, ...unpinned];
   const topCats = orderedCats.slice(0, TOP_N);
   const tailCats = orderedCats.slice(TOP_N);
+
+  // Keep the reserved skeleton space in sync with TOP_N automatically —
+  // same reasoning as the trending-prompts page fix. Runs before the
+  // category cards are rendered below, so it's in place before paint.
+  if (categoryGridEl) {
+    const catSkeletons = categoryGridEl.querySelectorAll('.skeleton');
+    for (let i = catSkeletons.length; i < TOP_N; i++) {
+      const sk = document.createElement('div');
+      sk.className = 'skeleton';
+      sk.style.height = '150px';
+      categoryGridEl.appendChild(sk);
+    }
+    for (let i = catSkeletons.length - 1; i >= TOP_N; i--) {
+      catSkeletons[i].remove();
+    }
+  }
+
 
   const topPromptsSection = document.getElementById('top-prompts-section');
 
@@ -2186,10 +2223,18 @@ function initMobileNav() {
 }
 
 /* ---- Mobile icon nav bar (Home/Categories/Trending/Blog/More) — sits
-   right below the header on small screens only; desktop is untouched ---- */
+   right below the header on small screens only; desktop is untouched.
+   The bar itself is now static HTML in every page (server-rendered, no
+   JS needed to see it) so it can never cause a layout shift by showing
+   up late — this function only builds it as a fallback for any page
+   that doesn't already have it, and always wires up the "More" popover
+   either way. ---- */
 function initIconNavBar() {
   const header = document.querySelector('.site-header');
-  if (!header || document.querySelector('.icon-nav-bar')) return;
+  if (!header) return;
+
+  let bar = document.querySelector('.icon-nav-bar');
+  if (!bar) {
 
   const path = window.location.pathname;
   const isHome = path === '/' || path.endsWith('/') || path.endsWith('index.html');
@@ -2229,7 +2274,7 @@ function initIconNavBar() {
     },
   ];
 
-  const bar = document.createElement('div');
+  bar = document.createElement('div');
   bar.className = 'icon-nav-bar';
   bar.innerHTML = `
     ${items.map(it => `
@@ -2247,6 +2292,7 @@ function initIconNavBar() {
   `;
 
   header.insertAdjacentElement('afterend', bar);
+  }
 
   // The popover lives at the very end of <body> (not inside .icon-nav-bar)
   // and uses position:fixed with JS-computed coordinates — .icon-nav-bar
