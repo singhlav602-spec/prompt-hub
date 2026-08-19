@@ -29,18 +29,18 @@ export async function onRequestGet(context) {
   // isn't pointed at a page that's currently showing a "check back soon"
   // placeholder instead of real content.
   urls.push(urlEntry(`${DOMAIN}/`, today, 'daily', '1.0'));
-  if (!hiddenSlugs.has('blog')) urls.push(urlEntry(`${DOMAIN}/blog.html`, today, 'daily', '0.8'));
+  if (!hiddenSlugs.has('blog')) urls.push(urlEntry(`${DOMAIN}/blog`, today, 'daily', '0.8'));
   // Gallery paused for now (R2 migration pending) — keep it out of the
   // sitemap so Google doesn't crawl/index it while it's not being worked
   // on. Uncomment when it's switched back on:
-  // if (!hiddenSlugs.has('gallery')) urls.push(urlEntry(`${DOMAIN}/gallery.html`, today, 'daily', '0.8'));
-  if (!hiddenSlugs.has('trending-prompts')) urls.push(urlEntry(`${DOMAIN}/trending-prompts.html`, today, 'daily', '0.8'));
-  if (!hiddenSlugs.has('videos')) urls.push(urlEntry(`${DOMAIN}/videos.html`, today, 'daily', '0.8'));
-  if (!hiddenSlugs.has('seo-tool')) urls.push(urlEntry(`${DOMAIN}/seo-tool.html`, today, 'monthly', '0.6'));
-  if (!hiddenSlugs.has('prompt-improver')) urls.push(urlEntry(`${DOMAIN}/prompt-improver.html`, today, 'monthly', '0.6'));
-  if (!hiddenSlugs.has('image-prompt-generator')) urls.push(urlEntry(`${DOMAIN}/image-prompt-generator.html`, today, 'monthly', '0.6'));
-  if (!hiddenSlugs.has('about')) urls.push(urlEntry(`${DOMAIN}/about.html`, today, 'monthly', '0.4'));
-  if (!hiddenSlugs.has('submit')) urls.push(urlEntry(`${DOMAIN}/submit.html`, today, 'monthly', '0.4'));
+  // if (!hiddenSlugs.has('gallery')) urls.push(urlEntry(`${DOMAIN}/gallery`, today, 'daily', '0.8'));
+  if (!hiddenSlugs.has('trending-prompts')) urls.push(urlEntry(`${DOMAIN}/trending-prompts`, today, 'daily', '0.8'));
+  if (!hiddenSlugs.has('videos')) urls.push(urlEntry(`${DOMAIN}/videos`, today, 'daily', '0.8'));
+  if (!hiddenSlugs.has('seo-tool')) urls.push(urlEntry(`${DOMAIN}/seo-tool`, today, 'monthly', '0.6'));
+  if (!hiddenSlugs.has('prompt-improver')) urls.push(urlEntry(`${DOMAIN}/prompt-improver`, today, 'monthly', '0.6'));
+  if (!hiddenSlugs.has('image-prompt-generator')) urls.push(urlEntry(`${DOMAIN}/image-prompt-generator`, today, 'monthly', '0.6'));
+  if (!hiddenSlugs.has('about')) urls.push(urlEntry(`${DOMAIN}/about`, today, 'monthly', '0.4'));
+  if (!hiddenSlugs.has('submit')) urls.push(urlEntry(`${DOMAIN}/submit`, today, 'monthly', '0.4'));
 
   // Every prompt currently in the live database
   try {

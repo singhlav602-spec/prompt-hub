@@ -81,7 +81,7 @@ export async function onRequestGet(context) {
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
 <channel>
 <title>SmartPrompts Blog</title>
-<link>${DOMAIN}/blog.html</link>
+<link>${DOMAIN}/blog</link>
 <description>Articles, tips and updates from SmartPrompts — the free AI prompt library.</description>
 <language>en-us</language>
 <atom:link xmlns:atom="http://www.w3.org/2005/Atom" href="${DOMAIN}/rss.xml" rel="self" type="application/rss+xml" />${items}
