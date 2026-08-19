@@ -177,7 +177,7 @@ async function toggleLikedSlug(slug, countEl) {
 function buildCard(prompt, delay = 0) {
   const a = document.createElement('a');
   a.className = 'prompt-card animate-fade-up' + (prompt.tag === 'trending' ? ' prompt-card-trending' : '');
-  a.href = `prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  a.href = `prompt?slug=${encodeURIComponent(prompt.slug)}`;
   a.style.animationDelay = `${delay}ms`;
 
   const tagBadge = prompt.tag === 'hot'
@@ -281,7 +281,7 @@ function buildDiscoveryCard(prompt, badgeKey) {
   const badge = DISCOVERY_BADGES[badgeKey];
   const a = document.createElement('a');
   a.className = 'prompt-card discovery-card';
-  a.href = `prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  a.href = `prompt?slug=${encodeURIComponent(prompt.slug)}`;
   a.innerHTML = `
     <div class="card-top-row">
       ${categoryTag(prompt.category)}
@@ -430,7 +430,7 @@ function injectDiscoveryStructuredData(items, includeBreadcrumb) {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
-        { '@type': 'ListItem', position: 2, name: 'Trending & Popular Prompts', item: 'https://smart-prompt.in/trending-prompts.html' },
+        { '@type': 'ListItem', position: 2, name: 'Trending & Popular Prompts', item: 'https://smart-prompt.in/trending-prompts' },
       ],
     });
   }
@@ -808,7 +808,7 @@ async function initIndexPage() {
         const icon = CATEGORY_ICONS[p.category] || '✨';
         const color = CARD_COLORS[i % CARD_COLORS.length];
         return `
-          <a class="top-prompt-item" href="prompt.html?slug=${encodeURIComponent(p.slug)}">
+          <a class="top-prompt-item" href="prompt?slug=${encodeURIComponent(p.slug)}">
             <div class="stat-icon stat-icon-${color}">${icon}</div>
             <div class="top-prompt-info">
               <div class="top-prompt-title">${escapeHtml(p.title)}</div>
@@ -904,7 +904,7 @@ async function initPromptPage() {
         <div class="error-code">404</div>
         <h2>No Prompt Specified</h2>
         <p>Please go back to the library and select a prompt.</p>
-        <a href="index.html" class="btn-home">
+        <a href="/" class="btn-home">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -924,7 +924,7 @@ async function initPromptPage() {
         <div class="error-code">404</div>
         <h2>Prompt Not Found</h2>
         <p>We couldn't find a prompt with the slug "<strong>${escapeHtml(slug)}</strong>".</p>
-        <a href="index.html" class="btn-home">
+        <a href="/" class="btn-home">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -947,7 +947,7 @@ async function initPromptPage() {
   /* --- Set unique meta description, OG tags & canonical (critical for search CTR) --- */
   const pageDescription = (prompt.preview || prompt.prompt.slice(0, 140))
     + ` Free ${prompt.category} prompt — copy & use instantly.`;
-  const pageUrl = `https://smart-prompt.in/prompt.html?slug=${encodeURIComponent(prompt.slug)}`;
+  const pageUrl = `https://smart-prompt.in/prompt?slug=${encodeURIComponent(prompt.slug)}`;
 
   const metaDesc = document.getElementById('meta-description');
   if (metaDesc) metaDesc.setAttribute('content', pageDescription);
@@ -989,7 +989,7 @@ async function initPromptPage() {
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
-      { "@type": "ListItem", "position": 2, "name": prompt.category, "item": "https://smart-prompt.in/index.html#category-browse" },
+      { "@type": "ListItem", "position": 2, "name": prompt.category, "item": "https://smart-prompt.in/#category-browse" },
       { "@type": "ListItem", "position": 3, "name": prompt.title, "item": pageUrl }
     ]
   };
@@ -1048,7 +1048,7 @@ async function initPromptPage() {
         <div class="related-title">More in ${escapeHtml(prompt.category)}</div>
         <div class="related-grid">
           ${related.map(r => `
-            <a class="prompt-card" href="prompt.html?slug=${encodeURIComponent(r.slug)}">
+            <a class="prompt-card" href="prompt?slug=${encodeURIComponent(r.slug)}">
               ${categoryTag(r.category)}
               <div class="card-title">${escapeHtml(r.title)}</div>
               <div class="card-preview">${escapeHtml(r.preview || r.prompt.slice(0, 90) + '…')}</div>
@@ -1069,7 +1069,7 @@ async function initPromptPage() {
 
   detail.innerHTML = `
     <div class="prompt-page-wrap">
-      <a href="index.html" class="back-link animate-fade-up">
+      <a href="/" class="back-link animate-fade-up">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
         </svg>
@@ -1077,9 +1077,9 @@ async function initPromptPage() {
       </a>
 
       <nav class="breadcrumb-nav animate-fade-up" aria-label="Breadcrumb">
-        <a href="index.html">Home</a>
+        <a href="/">Home</a>
         <span class="breadcrumb-sep">/</span>
-        <a href="index.html#category-browse">${escapeHtml(prompt.category)}</a>
+        <a href="/#category-browse">${escapeHtml(prompt.category)}</a>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">${escapeHtml(prompt.title)}</span>
       </nav>
@@ -1332,7 +1332,7 @@ async function initFeaturedBlogBanner() {
   if (getSeenBannerSlugs().includes(featured.slug)) return; // this visitor already opened it
 
   document.getElementById('featured-blog-banner-title').textContent = featured.title;
-  document.getElementById('featured-blog-banner-link').href = `blog-post.html?slug=${encodeURIComponent(featured.slug)}`;
+  document.getElementById('featured-blog-banner-link').href = `blog-post?slug=${encodeURIComponent(featured.slug)}`;
   banner.classList.add('show');
 }
 
@@ -1426,7 +1426,7 @@ async function initGalleryListPage() {
   function renderCards() {
     const filtered = activeCategory === 'All' ? items : items.filter(g => (g.category || 'Other') === activeCategory);
     renderGridInBatches(grid, sentinel, filtered, 24, (g) => `
-      <a class="gallery-card animate-fade-up" href="gallery-item.html?slug=${encodeURIComponent(g.slug)}">
+      <a class="gallery-card animate-fade-up" href="gallery-item?slug=${encodeURIComponent(g.slug)}">
         <div class="gallery-card-image-wrap">
           <img src="${escapeHtml(g.image_url)}" alt="${escapeHtml(g.title)}" loading="lazy" class="gallery-card-image" />
         </div>
@@ -1452,7 +1452,7 @@ async function initGalleryListPage() {
     itemListElement: items.slice(0, 30).map((g, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://smart-prompt.in/gallery-item.html?slug=${encodeURIComponent(g.slug)}`,
+      url: `https://smart-prompt.in/gallery-item?slug=${encodeURIComponent(g.slug)}`,
       name: g.title,
     })),
   });
@@ -1473,7 +1473,7 @@ async function initGalleryItemPage() {
         <div class="error-code">404</div>
         <h2>Image Not Found</h2>
         <p>This gallery image doesn't exist or may have been removed.</p>
-        <a href="gallery.html" class="btn-home">
+        <a href="gallery" class="btn-home">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -1485,7 +1485,7 @@ async function initGalleryItemPage() {
   }
 
   document.title = `${item.title} — SmartPrompts Gallery`;
-  const pageUrl = `https://smart-prompt.in/gallery-item.html?slug=${encodeURIComponent(item.slug)}`;
+  const pageUrl = `https://smart-prompt.in/gallery-item?slug=${encodeURIComponent(item.slug)}`;
   const pageDescription = `AI-generated image: ${item.title}. Includes the image prompt and video prompt used to create it.`;
 
   const metaDesc = document.getElementById('meta-description');
@@ -1520,14 +1520,14 @@ async function initGalleryItemPage() {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
-        { '@type': 'ListItem', position: 2, name: 'Gallery', item: 'https://smart-prompt.in/gallery.html' },
+        { '@type': 'ListItem', position: 2, name: 'Gallery', item: 'https://smart-prompt.in/gallery' },
         { '@type': 'ListItem', position: 3, name: item.title, item: pageUrl },
       ],
     },
   ]);
 
   detail.innerHTML = `
-    <a href="gallery.html" class="back-link animate-fade-up">
+    <a href="gallery" class="back-link animate-fade-up">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
       </svg>
@@ -1644,7 +1644,7 @@ async function initVideoListPage() {
   function renderCards() {
     const filtered = activeCategory === 'All' ? items : items.filter(v => (v.category || 'Other') === activeCategory);
     renderGridInBatches(grid, sentinel, filtered, 24, (v) => `
-      <a class="gallery-card animate-fade-up" href="video-item.html?slug=${encodeURIComponent(v.slug)}">
+      <a class="gallery-card animate-fade-up" href="video-item?slug=${encodeURIComponent(v.slug)}">
         <div class="gallery-card-image-wrap">
           <img src="${youtubeThumb(v.youtube_id)}" alt="${escapeHtml(v.title)}" loading="lazy" class="gallery-card-image" />
           <span class="gallery-card-video-badge">▶ Video</span>
@@ -1669,7 +1669,7 @@ async function initVideoListPage() {
     itemListElement: items.slice(0, 30).map((v, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://smart-prompt.in/video-item.html?slug=${encodeURIComponent(v.slug)}`,
+      url: `https://smart-prompt.in/video-item?slug=${encodeURIComponent(v.slug)}`,
       name: v.title,
     })),
   });
@@ -1690,7 +1690,7 @@ async function initVideoItemPage() {
         <div class="error-code">404</div>
         <h2>Video Not Found</h2>
         <p>This video doesn't exist or may have been removed.</p>
-        <a href="videos.html" class="btn-home">
+        <a href="videos" class="btn-home">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -1702,7 +1702,7 @@ async function initVideoItemPage() {
   }
 
   document.title = `${item.title} — SmartPrompts Videos`;
-  const pageUrl = `https://smart-prompt.in/video-item.html?slug=${encodeURIComponent(item.slug)}`;
+  const pageUrl = `https://smart-prompt.in/video-item?slug=${encodeURIComponent(item.slug)}`;
   const pageDescription = `AI-generated video: ${item.title}. Includes the exact prompt used to create it.`;
   const thumb = youtubeThumb(item.youtube_id);
 
@@ -1737,14 +1737,14 @@ async function initVideoItemPage() {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
-        { '@type': 'ListItem', position: 2, name: 'Videos', item: 'https://smart-prompt.in/videos.html' },
+        { '@type': 'ListItem', position: 2, name: 'Videos', item: 'https://smart-prompt.in/videos' },
         { '@type': 'ListItem', position: 3, name: item.title, item: pageUrl },
       ],
     },
   ]);
 
   detail.innerHTML = `
-    <a href="videos.html" class="back-link animate-fade-up">
+    <a href="videos" class="back-link animate-fade-up">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
       </svg>
@@ -1963,7 +1963,7 @@ async function initBlogListPage() {
   }
 
   grid.innerHTML = posts.map(p => `
-    <a class="prompt-card animate-fade-up" href="blog-post.html?slug=${encodeURIComponent(p.slug)}">
+    <a class="prompt-card animate-fade-up" href="blog-post?slug=${encodeURIComponent(p.slug)}">
       <span class="card-date">${escapeHtml(formatBlogDate(p.published_at))}</span>
       <div class="card-title">${escapeHtml(p.title)}</div>
       <div class="card-preview blog-excerpt">${escapeHtml(p.excerpt || p.content.slice(0, 140) + '…')}</div>
@@ -1995,7 +1995,7 @@ async function initBlogPostPage() {
         <div class="error-code">404</div>
         <h2>Post Not Found</h2>
         <p>We couldn't find that blog post.</p>
-        <a href="blog.html" class="btn-home">
+        <a href="blog" class="btn-home">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -2008,7 +2008,7 @@ async function initBlogPostPage() {
 
   document.title = `${post.title} — SmartPrompts Blog`;
   markBannerSlugSeen(post.slug);
-  const pageUrl = `https://smart-prompt.in/blog-post.html?slug=${encodeURIComponent(post.slug)}`;
+  const pageUrl = `https://smart-prompt.in/blog-post?slug=${encodeURIComponent(post.slug)}`;
   const pageDescription = post.excerpt || post.title;
 
   const metaDesc = document.getElementById('meta-description');
@@ -2045,7 +2045,7 @@ async function initBlogPostPage() {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
-        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://smart-prompt.in/blog.html' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://smart-prompt.in/blog' },
         { '@type': 'ListItem', position: 3, name: post.title, item: pageUrl },
       ],
     },
@@ -2060,7 +2060,7 @@ async function initBlogPostPage() {
         <div class="related-title">More from the Blog</div>
         <div class="related-grid">
           ${relatedPosts.map(r => `
-            <a class="prompt-card" href="blog-post.html?slug=${encodeURIComponent(r.slug)}">
+            <a class="prompt-card" href="blog-post?slug=${encodeURIComponent(r.slug)}">
               <span class="card-date">${escapeHtml(formatBlogDate(r.published_at))}</span>
               <div class="card-title">${escapeHtml(r.title)}</div>
               <div class="card-preview blog-excerpt">${escapeHtml(r.excerpt || r.content.slice(0, 90) + '…')}</div>
@@ -2080,7 +2080,7 @@ async function initBlogPostPage() {
     : '';
 
   detail.innerHTML = `
-    <a href="blog.html" class="back-link animate-fade-up">
+    <a href="blog" class="back-link animate-fade-up">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
       </svg>
@@ -2255,17 +2255,17 @@ function initIconNavBar() {
 
   const items = [
     {
-      label: 'Home', href: 'index.html',
+      label: 'Home', href: '/',
       active: isHome && !isTrending,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>',
     },
     {
-      label: 'Trending', href: 'trending-prompts.html',
+      label: 'Trending', href: 'trending-prompts',
       active: isTrending,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1-.5-2-1-3 2 1 3 3 3 6a6 6 0 0 1-12 0c0-4 2-5 4-10z"/></svg>',
     },
     {
-      label: 'Blog', href: 'blog.html',
+      label: 'Blog', href: 'blog',
       active: isBlog && !isGallery,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
     },
@@ -2277,7 +2277,7 @@ function initIconNavBar() {
     //   icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5-9 9"/></svg>',
     // },
     {
-      label: 'Videos', href: 'videos.html',
+      label: 'Videos', href: 'videos',
       active: isVideos,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="14" height="14" rx="2"/><path d="M21 8.5l-4.5 3.5 4.5 3.5v-7z"/></svg>',
     },
@@ -2312,11 +2312,11 @@ function initIconNavBar() {
   morePopover.className = 'icon-nav-more-popover';
   morePopover.id = 'icon-nav-more-popover';
   morePopover.innerHTML = `
-    <a href="seo-tool.html" class="site-nav-link">SEO Tool</a>
-    <a href="prompt-improver.html" class="site-nav-link">Prompt Improver</a>
-    <a href="image-prompt-generator.html" class="site-nav-link">Image Prompt Generator</a>
-    <a href="submit.html" class="site-nav-link">Submit Prompt</a>
-    <a href="about.html" class="site-nav-link">About</a>
+    <a href="seo-tool" class="site-nav-link">SEO Tool</a>
+    <a href="prompt-improver" class="site-nav-link">Prompt Improver</a>
+    <a href="image-prompt-generator" class="site-nav-link">Image Prompt Generator</a>
+    <a href="submit" class="site-nav-link">Submit Prompt</a>
+    <a href="about" class="site-nav-link">About</a>
   `;
   document.body.appendChild(morePopover);
 
@@ -2384,15 +2384,15 @@ window.addEventListener('hashchange', () => {
    "check back soon" message with a noindex hint instead of the real page
    — so no tool/API call can actually run while it's off. --- */
 const PAGE_SLUG_HREFS = {
-  'blog': 'blog.html',
-  'gallery': 'gallery.html',
-  'videos': 'videos.html',
-  'trending-prompts': 'trending-prompts.html',
-  'seo-tool': 'seo-tool.html',
-  'prompt-improver': 'prompt-improver.html',
-  'image-prompt-generator': 'image-prompt-generator.html',
-  'submit': 'submit.html',
-  'about': 'about.html',
+  'blog': 'blog',
+  'gallery': 'gallery',
+  'videos': 'videos',
+  'trending-prompts': 'trending-prompts',
+  'seo-tool': 'seo-tool',
+  'prompt-improver': 'prompt-improver',
+  'image-prompt-generator': 'image-prompt-generator',
+  'submit': 'submit',
+  'about': 'about',
 };
 
 async function applyPageVisibility() {
@@ -2409,7 +2409,7 @@ async function applyPageVisibility() {
     document.querySelectorAll(`a[href="${href}"]`).forEach(el => el.remove());
   });
 
-  const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+  const currentFile = window.location.pathname.split('/').pop() || '/';
   const currentSlug = Object.entries(PAGE_SLUG_HREFS).find(([, href]) => href === currentFile)?.[0];
   if (currentSlug && hidden.includes(currentSlug)) {
     const main = document.querySelector('main');
@@ -2419,7 +2419,7 @@ async function applyPageVisibility() {
           <div class="empty-state-icon">🚧</div>
           <h3>This page is temporarily unavailable</h3>
           <p>We're doing a bit of maintenance here — please check back soon.</p>
-          <a href="index.html" class="btn-home" style="margin-top:1rem;display:inline-flex;">
+          <a href="/" class="btn-home" style="margin-top:1rem;display:inline-flex;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
             </svg>
