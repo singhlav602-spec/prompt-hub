@@ -3,7 +3,12 @@
    Aesthetic: Dark Editorial / Literary
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap');
+/* Google Fonts (Sora, DM Mono, DM Sans) are now loaded via a direct
+   <link rel="stylesheet"> in every page's <head> instead of @import
+   here — @import forces the browser to wait for this whole file to
+   download before it even discovers the fonts request, so the two load
+   one after another instead of in parallel. That serial chain was the
+   main render-blocking/LCP cost PageSpeed Insights was flagging. */
 
 /* ---- Reset & Base ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
