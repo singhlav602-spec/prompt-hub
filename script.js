@@ -786,6 +786,15 @@ async function initIndexPage() {
      homepage isn't showing the same prompt twice. --- */
   const topPromptsList = document.getElementById('top-prompts-list');
   if (topPromptsSection && topPromptsList) {
+    // `trending` was referenced here but never defined anywhere in this
+    // function — a pre-existing bug (present even in the original
+    // upload) that threw a ReferenceError on every homepage load and
+    // silently stopped the rest of initIndexPage from running. Defining
+    // it directly from each prompt's `tag` field (same convention used
+    // elsewhere in this file, e.g. the trending badge on prompt cards)
+    // restores the intended behavior: skip prompts already tagged
+    // trending so Featured Prompts doesn't repeat them.
+    const trending = prompts.filter(p => p.tag === 'trending');
     const trendingSlugs = new Set(trending.map(p => p.slug));
     const usedCats = new Set();
     const picks = [];
