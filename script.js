@@ -115,6 +115,80 @@ const CATEGORY_ICONS = {
 };
 const CARD_COLORS = ['purple', 'blue', 'green', 'orange', 'pink', 'teal'];
 
+/* Category → realistic audience list for the prompt-detail page's "Use
+   cases" section. Previously this was one hardcoded array repeated
+   verbatim on every single prompt page (~3000 pages, byte-for-byte
+   identical text) — a big duplicate-content signal to Google. Keyed by
+   the exact `category` string used in prompts.json; __default__ covers
+   any category not listed here (e.g. a brand-new one added later via
+   the admin panel) so this never breaks. */
+const CATEGORY_USE_CASES = {
+  'AI Image': ['Content creators', 'Designers', 'Social media marketers', 'Digital artists', 'Advertisers'],
+  'Coding': ['Developers', 'Students', 'Software engineers', 'Bootcamp learners', 'Technical writers'],
+  'Writing': ['Writers', 'Bloggers', 'Authors', 'Content marketers', 'Students'],
+  'Marketing': ['Marketers', 'Small business owners', 'Agencies', 'Growth teams', 'Ecommerce sellers'],
+  'Business': ['Entrepreneurs', 'Startup founders', 'Consultants', 'Managers', 'Small business owners'],
+  'Education': ['Teachers', 'Students', 'Tutors', 'Homeschool parents', 'Curriculum designers'],
+  'Web Development': ['Developers', 'Freelancers', 'Agencies', 'Startups', 'Web designers'],
+  'YouTube': ['YouTubers', 'Video creators', 'Content creators', 'Influencers', 'Podcasters'],
+  'Story': ['Writers', 'Novelists', 'Screenwriters', 'Students', 'Game designers'],
+  'Social Media': ['Social media managers', 'Influencers', 'Marketers', 'Small businesses', 'Content creators'],
+  'Productivity': ['Professionals', 'Remote workers', 'Students', 'Managers', 'Freelancers'],
+  'Finance': ['Investors', 'Accountants', 'Financial advisors', 'Small business owners', 'Individuals'],
+  'Career': ['Job seekers', 'Professionals', 'Career changers', 'Graduates', 'HR teams'],
+  'Content Creation': ['Content creators', 'Bloggers', 'Marketers', 'YouTubers', 'Freelancers'],
+  'SEO': ['SEO specialists', 'Bloggers', 'Marketers', 'Website owners', 'Agencies'],
+  'Research': ['Students', 'Researchers', 'Academics', 'Analysts', 'Writers'],
+  'Self Improvement': ['Individuals', 'Coaches', 'Students', 'Professionals', 'Lifelong learners'],
+  'Learning': ['Students', 'Self-learners', 'Teachers', 'Professionals', 'Tutors'],
+  'Startup': ['Founders', 'Entrepreneurs', 'Investors', 'Product managers', 'Startup teams'],
+  'Freelancing': ['Freelancers', 'Consultants', 'Independent contractors', 'Creatives', 'Solopreneurs'],
+  'Ecommerce': ['Store owners', 'Dropshippers', 'Marketers', 'Product managers', 'Sellers'],
+  'Sales': ['Sales reps', 'Account executives', 'Business owners', 'Sales managers', 'Startups'],
+  'UX': ['UX designers', 'Product designers', 'Researchers', 'Product managers', 'Developers'],
+  'Data Analysis': ['Analysts', 'Data scientists', 'Researchers', 'Business analysts', 'Students'],
+  'LinkedIn': ['Job seekers', 'Professionals', 'Recruiters', 'Marketers', 'Founders'],
+  'Email': ['Marketers', 'Sales teams', 'Freelancers', 'Small businesses', 'Professionals'],
+  'Psychology': ['Students', 'Therapists', 'Coaches', 'Researchers', 'Writers'],
+  'Automation': ['Developers', 'Operations teams', 'Startups', 'Freelancers', 'Agencies'],
+  'Prompt Engineering': ['AI enthusiasts', 'Developers', 'Marketers', 'Researchers', 'Product teams'],
+  'Interview': ['Job seekers', 'Recruiters', 'HR teams', 'Career coaches', 'Graduates'],
+  'AI Tools': ['AI enthusiasts', 'Developers', 'Marketers', 'Content creators', 'Students'],
+  'Travel': ['Travelers', 'Bloggers', 'Travel agents', 'Content creators', 'Trip planners'],
+  'Fitness': ['Trainers', 'Fitness enthusiasts', 'Coaches', 'Gym owners', 'Content creators'],
+  'UI': ['UI designers', 'Product designers', 'Developers', 'Startups', 'Agencies'],
+  'Design': ['Designers', 'Freelancers', 'Agencies', 'Marketers', 'Small businesses'],
+  'Health': ['Health coaches', 'Individuals', 'Wellness bloggers', 'Content creators', 'Practitioners'],
+  'Resume': ['Job seekers', 'Career coaches', 'Graduates', 'Recruiters', 'HR teams'],
+  'Branding': ['Founders', 'Marketers', 'Designers', 'Agencies', 'Small businesses'],
+  'NotebookLM': ['Students', 'Researchers', 'Professionals', 'Educators', 'Analysts'],
+  'Python': ['Developers', 'Students', 'Data scientists', 'Engineers', 'Learners'],
+  'JavaScript': ['Developers', 'Web developers', 'Students', 'Freelancers', 'Engineers'],
+  'AI': ['AI enthusiasts', 'Developers', 'Researchers', 'Students', 'Professionals'],
+  'Image Generation': ['Designers', 'Content creators', 'Marketers', 'Artists', 'Social media managers'],
+  'Twitter': ['Marketers', 'Influencers', 'Founders', 'Content creators', 'Social media managers'],
+  'Study': ['Students', 'Tutors', 'Teachers', 'Self-learners', 'Exam takers'],
+  'Teaching': ['Teachers', 'Tutors', 'Educators', 'Trainers', 'Curriculum designers'],
+  'AI Art': ['Artists', 'Designers', 'Content creators', 'Hobbyists', 'Illustrators'],
+  'Motivation': ['Individuals', 'Coaches', 'Students', 'Professionals', 'Content creators'],
+  'Guides': ['Writers', 'Educators', 'Content creators', 'Trainers', 'Bloggers'],
+  'AI Video': ['Video creators', 'YouTubers', 'Marketers', 'Content creators', 'Agencies'],
+  'AI Control': ['Developers', 'AI engineers', 'Researchers', 'Product teams', 'Enthusiasts'],
+  'Video': ['Video editors', 'Content creators', 'YouTubers', 'Marketers', 'Agencies'],
+  'Short Video': ['Content creators', 'Influencers', 'Marketers', 'Social media managers', 'Agencies'],
+  'Strategy': ['Founders', 'Managers', 'Consultants', 'Marketers', 'Business owners'],
+  'Analysis': ['Analysts', 'Researchers', 'Consultants', 'Managers', 'Students'],
+  'Web Design': ['Designers', 'Freelancers', 'Agencies', 'Developers', 'Small businesses'],
+  'Food': ['Food bloggers', 'Chefs', 'Content creators', 'Restaurant owners', 'Home cooks'],
+  'Web Content': ['Writers', 'Marketers', 'Website owners', 'Freelancers', 'Agencies'],
+  'Product': ['Product managers', 'Founders', 'Designers', 'Startups', 'Marketers'],
+  'Creativity': ['Artists', 'Writers', 'Designers', 'Students', 'Creators'],
+  'Entertainment': ['Content creators', 'Writers', 'Marketers', 'Influencers', 'Fans'],
+  'Knowledge': ['Students', 'Researchers', 'Educators', 'Self-learners', 'Professionals'],
+  'Advice': ['Individuals', 'Coaches', 'Professionals', 'Students', 'Readers'],
+  '__default__': ['Professionals', 'Students', 'Freelancers', 'Content creators', 'Small business owners'],
+};
+
 window.openInAI = function(toolKey) {
   const tool = AI_TOOLS.find(t => t.key === toolKey);
   const text = window.__currentPromptText || '';
@@ -1009,7 +1083,7 @@ async function initPromptPage() {
     "mainEntity": [
       { "@type": "Question", "name": "Is this prompt free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — every prompt on SmartPrompts is free to use, copy, and customize." } },
       { "@type": "Question", "name": "Which AI models does it work with?", "acceptedAnswer": { "@type": "Answer", "text": "This is a plain-text prompt, so it works with ChatGPT, Gemini, Claude, Grok, DeepSeek, and most other AI chat tools." } },
-      { "@type": "Question", "name": "How do I get better output?", "acceptedAnswer": { "@type": "Answer", "text": "Fill in the placeholder fields with specific, real details instead of vague ones — the more specific your input, the better the AI's result." } },
+      { "@type": "Question", "name": "How do I get better output?", "acceptedAnswer": { "@type": "Answer", "text": `Fill in the placeholder fields with specific, real details instead of vague ones — for a ${prompt.category} prompt like this, the more precise your input, the closer the AI's result will match what you actually need.` } },
       { "@type": "Question", "name": "Can I use the output commercially?", "acceptedAnswer": { "@type": "Answer", "text": "The prompt itself is free to use for any purpose. What you can do with the AI's output depends on the terms of the AI tool you use it with." } }
     ]
   };
@@ -1139,7 +1213,7 @@ async function initPromptPage() {
 
         <h2 class="info-heading">Use cases</h2>
         <div class="chip-row">
-          ${['Students', 'Teachers', 'Developers', 'Business owners', 'Content creators'].map(u => `<span class="chip chip-outline">${u}</span>`).join('')}
+          ${(CATEGORY_USE_CASES[prompt.category] || CATEGORY_USE_CASES.__default__).map(u => `<span class="chip chip-outline">${escapeHtml(u)}</span>`).join('')}
         </div>
 
         ${variables.length > 0 ? `
@@ -1162,7 +1236,7 @@ async function initPromptPage() {
         </div>
         <div class="faq-item">
           <div class="faq-q">How do I get better output?</div>
-          <div class="faq-a">Fill in the placeholder fields with specific, real details instead of vague ones — the more specific your input, the better the AI's result.</div>
+          <div class="faq-a">Fill in the placeholder fields with specific, real details instead of vague ones — for a ${escapeHtml(prompt.category)} prompt like this, the more precise your input, the closer the AI's result will match what you actually need.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">Can I use the output commercially?</div>

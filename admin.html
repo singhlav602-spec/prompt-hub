@@ -234,6 +234,22 @@
         </div>
 
         <div class="card">
+          <label>📥 Bulk add prompts (paste a JSON array)</label>
+          <p class="stat" style="margin-top:-0.3rem;">
+            Same shape as prompts.json: <code>[{"title":"...","category":"...","preview":"...","prompt":"..."}]</code>.
+            Tag/featured_trending are optional per item. Missing fields and duplicate titles (checked against the
+            whole database) are skipped automatically — nothing gets overwritten.
+          </p>
+          <textarea id="bulk-prompts-input" style="min-height:160px;" placeholder='[
+  {"title":"Instagram Caption Generator","category":"Social Media","preview":"Generate engaging Instagram captions.","prompt":"Act as a social media expert..."}
+]'></textarea>
+          <div class="row" style="margin-top:0.7rem;">
+            <button id="bulk-import-btn">Bulk import</button>
+          </div>
+          <div id="bulk-import-msg"></div>
+        </div>
+
+        <div class="card">
           <div class="row" style="justify-content:space-between;">
             <strong id="form-heading">Add new prompt</strong>
             <button class="secondary hidden" id="cancel-edit-btn">Cancel edit</button>
@@ -740,6 +756,44 @@ document.getElementById('ai-generate-btn').addEventListener('click', async () =>
     document.getElementById('form-heading').scrollIntoView({ behavior: 'smooth' });
   } else {
     showMsg(msg, data.error || 'AI generation failed', 'error');
+  }
+});
+
+document.getElementById('bulk-import-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('bulk-import-btn');
+  const msg = document.getElementById('bulk-import-msg');
+  const raw = document.getElementById('bulk-prompts-input').value.trim();
+  if (!raw) { showMsg(msg, 'Paste a JSON array first.', 'error'); return; }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    showMsg(msg, 'Invalid JSON — check for a missing comma, quote, or bracket.', 'error');
+    return;
+  }
+  if (!Array.isArray(parsed) || !parsed.length) {
+    showMsg(msg, 'Paste a JSON array of prompt objects, e.g. [{"title": "...", "category": "...", "prompt": "..."}].', 'error');
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Importing…';
+  const { res, data } = await api('/api/admin/prompts', { method: 'POST', body: JSON.stringify({ prompts: parsed }) });
+  btn.disabled = false; btn.textContent = 'Bulk import';
+
+  if (res.ok) {
+    let text = `Imported ${data.imported} of ${data.totalSubmitted}.`;
+    if (data.skipped && data.skipped.length) {
+      const preview = data.skipped.slice(0, 5).map(s => `"${s.title}" (${s.reason})`).join(', ');
+      text += ` Skipped ${data.skipped.length}: ${preview}${data.skipped.length > 5 ? '…' : ''}`;
+    }
+    showMsg(msg, text, data.imported > 0 ? 'ok' : 'error');
+    if (data.imported > 0) {
+      document.getElementById('bulk-prompts-input').value = '';
+      loadList();
+    }
+  } else {
+    showMsg(msg, data.error || 'Bulk import failed', 'error');
   }
 });
 
