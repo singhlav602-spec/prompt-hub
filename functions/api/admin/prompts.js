@@ -76,9 +76,79 @@ export async function onRequest(context) {
     });
   }
 
-  // ---- POST: create ----
+  // ---- POST: create (single, or bulk when body = { prompts: [...] }) ----
   if (request.method === 'POST') {
     const body = await request.json();
+
+    // ---- Bulk import ----
+    if (Array.isArray(body.prompts)) {
+      const items = body.prompts;
+      if (!items.length) {
+        return new Response(JSON.stringify({ error: 'prompts array is empty' }), { status: 400 });
+      }
+
+      // Load existing titles/slugs once so every item can be deduped
+      // in memory instead of one DB round-trip per item.
+      const existingRows = await db.prepare('SELECT LOWER(TRIM(title)) as t, slug FROM prompts').all();
+      const existingTitles = new Set(existingRows.results.map(r => r.t));
+      const existingSlugs = new Set(existingRows.results.map(r => r.slug));
+      const seenTitlesThisBatch = new Set();
+
+      const skipped = [];
+      const toInsert = [];
+
+      for (const raw of items) {
+        const title = (raw.title || '').trim();
+        const category = (raw.category || '').trim();
+        const prompt = (raw.prompt || '').trim();
+        const preview = (raw.preview || '').trim();
+
+        if (!title || !category || !prompt) {
+          skipped.push({ title: title || '(no title)', reason: 'missing title, category, or prompt' });
+          continue;
+        }
+        const titleKey = title.toLowerCase();
+        if (existingTitles.has(titleKey) || seenTitlesThisBatch.has(titleKey)) {
+          skipped.push({ title, reason: 'duplicate title' });
+          continue;
+        }
+        seenTitlesThisBatch.add(titleKey);
+
+        const tag = VALID_TAGS.includes(raw.tag) ? raw.tag : 'normal';
+        const tagExpiresAt = computeExpiry(tag);
+        const featuredTrending = raw.featured_trending ? 1 : 0;
+
+        const baseSlug = slugify(raw.slug || title);
+        let slug = baseSlug;
+        let i = 2;
+        while (existingSlugs.has(slug)) { slug = `${baseSlug}-${i}`; i += 1; }
+        existingSlugs.add(slug);
+
+        toInsert.push({ slug, title, category, preview, prompt, tag, tagExpiresAt, featuredTrending });
+      }
+
+      const BATCH_SIZE = 200;
+      let imported = 0;
+      for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
+        const chunk = toInsert.slice(i, i + BATCH_SIZE);
+        const stmts = chunk.map(p =>
+          db.prepare(
+            'INSERT INTO prompts (slug, title, category, preview, prompt, tag, tag_expires_at, featured_trending) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+          ).bind(p.slug, p.title, p.category, p.preview, p.prompt, p.tag, p.tagExpiresAt, p.featuredTrending)
+        );
+        if (stmts.length) {
+          await db.batch(stmts);
+          imported += stmts.length;
+        }
+      }
+
+      return new Response(JSON.stringify({ ok: true, imported, skipped, totalSubmitted: items.length }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ---- Single create ----
     if (!body.title || !body.category || !body.prompt) {
       return new Response(JSON.stringify({ error: 'title, category, and prompt are required' }), { status: 400 });
     }
