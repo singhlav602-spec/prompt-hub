@@ -171,6 +171,7 @@
       <nav class="sidebar-nav">
         <button class="nav-item active" data-tab="dashboard">📊 Dashboard</button>
         <button class="nav-item" data-tab="prompts">💡 Prompts</button>
+        <button class="nav-item" data-tab="urls">🔗 URLs</button>
         <button class="nav-item" data-tab="blog">📝 Blog</button>
         <button class="nav-item" data-tab="gallery">🖼️ Gallery</button>
         <button class="nav-item" data-tab="videos">🎬 Videos</button>
@@ -293,6 +294,20 @@
             <span class="stat" id="page-label" style="align-self:center;"></span>
             <button class="secondary" id="next-page">Next →</button>
           </div>
+        </div>
+      </div>
+
+      <!-- ===== URLs TAB ===== -->
+      <div id="tab-urls" class="tab-panel hidden">
+        <h1>URLs</h1>
+        <div class="card">
+          <p class="stat" style="margin-top:0;">
+            Every URL currently live on the site — exactly what's being submitted to Google via sitemap.xml.
+          </p>
+          <label>Filter by title or URL</label>
+          <input type="text" id="urls-search-input" placeholder="Type to filter…" />
+          <p class="stat" id="urls-count-label" style="margin-top:0.5rem;"></p>
+          <div id="urls-list-container"></div>
         </div>
       </div>
 
@@ -507,6 +522,7 @@ function goToTab(tab) {
   document.getElementById(`tab-${tab}`).classList.remove('hidden');
   if (tab === 'dashboard') loadDashboardStats();
   if (tab === 'prompts') loadList();
+  if (tab === 'urls') loadUrlsList();
   if (tab === 'blog') loadBlogList();
   if (tab === 'gallery') loadGalleryList();
   if (tab === 'videos') loadVideosList();
@@ -815,6 +831,86 @@ document.getElementById('next-page').addEventListener('click', () => {
 });
 
 const refreshPromptsBulkBar = setupBulkActions('list-container', 'prompts-select-all', 'prompts-delete-selected', 'prompts-selected-count', '/api/admin/prompts', loadList);
+
+/* ============ URLs (read-only list of everything live on the site) ============ */
+const TYPE_LABELS = { prompt: '💡 Prompt', blog: '📝 Blog', video: '🎬 Video', static: '📄 Page' };
+
+async function loadUrlsList() {
+  const container = document.getElementById('urls-list-container');
+  container.innerHTML = '<p class="stat">Loading…</p>';
+  const { res, data } = await api('/api/admin/urls');
+  if (!res.ok) {
+    container.innerHTML = `<p class="stat">${escapeHtml(data.error || 'Failed to load URLs')}</p>`;
+    return;
+  }
+  window.__urlsCache = data.urls || [];
+  renderUrlsList(window.__urlsCache);
+}
+
+function renderUrlsList(list) {
+  const container = document.getElementById('urls-list-container');
+  document.getElementById('urls-count-label').textContent = `${list.length} of ${(window.__urlsCache || []).length} URLs`;
+
+  if (!list.length) {
+    container.innerHTML = '<p class="stat">No URLs match.</p>';
+    return;
+  }
+
+  container.innerHTML = list.map(item => `
+    <div class="prompt-item">
+      <div class="item-body">
+        <div style="flex:1;min-width:0;">
+          <div class="title">${TYPE_LABELS[item.type] || item.type} — ${escapeHtml(item.title || '(untitled)')}</div>
+          <div class="meta" style="word-break:break-all;">
+            <a href="${item.url}" target="_blank" rel="noopener">${escapeHtml(item.url)}</a>
+          </div>
+        </div>
+        <div class="row">
+          ${item.type === 'static'
+            ? '<span class="stat">Static page — edit in code</span>'
+            : `<button class="secondary" onclick="editFromUrlsList('${item.type}', ${item.id}, '${escapeHtml(item.title).replace(/'/g, "\\'")}')">Edit</button>`}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('urls-search-input').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  const all = window.__urlsCache || [];
+  const filtered = q
+    ? all.filter(item => (item.title || '').toLowerCase().includes(q) || item.url.toLowerCase().includes(q))
+    : all;
+  renderUrlsList(filtered);
+});
+
+// Jumps to the right tab, re-runs that tab's own search for this exact
+// title (so the item lands in its cache), then opens the same edit form
+// the tab's own Edit button uses — no separate fetch-by-id endpoint needed.
+window.editFromUrlsList = async function(type, id, title) {
+  if (type === 'prompt') {
+    goToTab('prompts');
+    document.getElementById('search-input').value = title;
+    currentSearch = title;
+    currentPage = 1;
+    await loadList();
+    editPrompt(id);
+  } else if (type === 'blog') {
+    goToTab('blog');
+    document.getElementById('blog-search-input').value = title;
+    blogSearch = title;
+    blogPage = 1;
+    await loadBlogList();
+    editBlogPost(id);
+  } else if (type === 'video') {
+    goToTab('videos');
+    document.getElementById('video-search-input').value = title;
+    videoSearch = title;
+    videoPage = 1;
+    await loadVideosList();
+    editVideoItem(id);
+  }
+};
 
 /* ============ BLOG ============ */
 async function loadBlogList() {
