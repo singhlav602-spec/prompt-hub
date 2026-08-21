@@ -860,7 +860,16 @@ async function initIndexPage() {
     if (newsletterBar) newsletterBar.style.display = '';
     listHeader.style.display = 'none';
     grid.style.display = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // requestAnimationFrame, not an immediate call: the display toggles
+    // just above change the page's total height, and scrollTo("smooth")
+    // needs that settled first — calling it synchronously forces the
+    // browser to recompute layout right in the middle of these writes
+    // (PageSpeed flags this exact line as a "forced reflow"). Letting one
+    // frame pass first means the layout is already done by the time we
+    // ask for scroll geometry, so nothing has to be recomputed early.
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
   // Exposed so the global hashchange handler (bottom of file) can switch
   // back to this view when the "Categories" nav link is clicked while
@@ -905,7 +914,13 @@ async function initIndexPage() {
       searchMissTimer = setTimeout(() => trackSearchMiss(trimmedTerm), 1200);
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Same reasoning as showCategoryBrowse() above — renderGrid() just
+    // rewrote a big chunk of the DOM, so scrollTo needs a frame to let
+    // that layout settle before it asks for scroll geometry, or it forces
+    // an early, synchronous recompute.
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
   window.showList = showList;
 
