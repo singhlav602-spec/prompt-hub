@@ -4,6 +4,8 @@
 // blog_posts table). This way the sitemap can never go stale — no manual
 // regeneration step, no missing URLs.
 
+import { slugifyCategory } from './_slug.js';
+
 const DOMAIN = 'https://smart-prompt.in';
 
 function urlEntry(loc, lastmod, changefreq, priority) {
@@ -51,6 +53,23 @@ export async function onRequestGet(context) {
       urls.push(urlEntry(`${DOMAIN}/prompt?slug=${encodeURIComponent(p.slug)}`, today, 'monthly', '0.7'));
     }
   } catch (e) { /* table not reachable — still serve the static pages below */ }
+
+  // One landing page per distinct category (e.g. /category/social-media).
+  // Deduped by slug, not just by category name — two differently-spelled
+  // category strings could theoretically collapse to the same slug, and a
+  // sitemap should never list the same <loc> twice.
+  try {
+    const { results: cats } = await env.DB.prepare(
+      'SELECT DISTINCT category FROM prompts'
+    ).all();
+    const seenSlugs = new Set();
+    for (const c of cats) {
+      const slug = slugifyCategory(c.category);
+      if (!slug || seenSlugs.has(slug)) continue;
+      seenSlugs.add(slug);
+      urls.push(urlEntry(`${DOMAIN}/category/${slug}`, today, 'weekly', '0.65'));
+    }
+  } catch (e) { /* table not reachable — still serve everything else */ }
 
   // Every blog post currently in the live database
   try {
