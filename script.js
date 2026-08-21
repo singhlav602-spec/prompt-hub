@@ -2558,12 +2558,6 @@ window.addEventListener('hashchange', () => {
 });
 
 /* ---- Init ---- */
-/* --- Page visibility: an admin can temporarily hide a whole page (e.g.
-   the SEO Tool, to pause it if API costs spike). When hidden: its nav
-   links disappear everywhere, it drops out of the sitemap (server-side,
-   see functions/sitemap.xml.js), and visiting it directly shows a plain
-   "check back soon" message with a noindex hint instead of the real page
-   — so no tool/API call can actually run while it's off. --- */
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
   initMobileNav();
