@@ -913,6 +913,7 @@ body::before {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
+  text-decoration: none;
   transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
   background: var(--bg-card);
   padding: 1.25rem 1.4rem;
@@ -1944,6 +1945,13 @@ body::before {
   padding: 0.3rem 0.8rem;
   display: inline-block;
   margin-bottom: 1.2rem;
+  text-decoration: none;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.prompt-page-category:hover {
+  border-color: var(--accent);
+  background: rgba(240,165,0,0.18);
 }
 
 .prompt-page-title {

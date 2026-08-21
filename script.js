@@ -77,6 +77,19 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+/* ---- Category name → URL slug, e.g. "Social Media" -> "social-media".
+   Used for the /category/<slug> landing pages. Must stay identical to the
+   server-side copy in functions/_slug.js — that copy decides which slugs
+   are indexable, this one decides what actually renders, and they need to
+   agree on every category or a page will 404 that shouldn't. ---- */
+function slugifyCategory(name) {
+  return String(name)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 /* ---- Inject/replace a page's JSON-LD structured-data block. Only ever
    called with real fields the page actually has — no invented ratings,
    dates, or durations, since fabricated schema data is against Google's
@@ -516,8 +529,83 @@ function injectDiscoveryStructuredData(items, includeBreadcrumb) {
   document.head.appendChild(script);
 }
 
+/* ---- /category/<slug> landing page. The server (functions/category/[slug].js)
+   already injected the correct <title>/canonical/meta tags before this ever
+   runs — this just fills in the body: match the URL slug back to a real
+   category name (same slugify function as the server, so they always
+   agree), then render that category's prompts into the standard grid. ---- */
+async function initCategoryPage() {
+  const pathMatch = window.location.pathname.match(/^\/category\/([^/]+)\/?$/);
+  if (!pathMatch) return;
+  const slugParam = decodeURIComponent(pathMatch[1]);
+
+  const grid = document.getElementById('prompt-grid');
+  const titleEl = document.getElementById('category-page-title');
+  const countEl = document.getElementById('category-page-count');
+  const emptyState = document.getElementById('category-empty-state');
+  if (!grid) return;
+
+  const prompts = await fetchPrompts();
+  const categoryNames = [...new Set(prompts.map(p => p.category))];
+  const matchedCategory = categoryNames.find(c => slugifyCategory(c) === slugParam);
+
+  if (!matchedCategory) {
+    grid.style.display = 'none';
+    if (countEl) countEl.style.display = 'none';
+    if (emptyState) emptyState.style.display = '';
+    return;
+  }
+
+  if (titleEl) titleEl.textContent = `${matchedCategory} Prompts`;
+  document.title = `${matchedCategory} Prompts — Free AI Prompt Library | SmartPrompts`;
+
+  // Unique intro copy per category — built from the same curated audience
+  // list already used for each prompt's "Use cases" section (CATEGORY_USE_CASES),
+  // so it's genuinely different per category (who it's for), not just the
+  // category name swapped into an otherwise identical template. Thin,
+  // near-duplicate body text across dozens of category pages is exactly
+  // what tanks indexing — same problem the canonical-tag fix solved for
+  // detail pages, just showing up as body content here instead.
+  const introEl = document.getElementById('category-page-intro');
+  if (introEl) {
+    const audience = CATEGORY_USE_CASES[matchedCategory] || CATEGORY_USE_CASES.__default__;
+    const promptCount = prompts.filter(p => p.category === matchedCategory).length;
+    introEl.textContent = `Free, ready-to-copy ${matchedCategory} prompts — built for ${audience[0]}, ${audience[1]} and ${audience[2]}. Browse ${promptCount}+ prompts below, paste into ChatGPT, Claude, Gemini or any AI tool, and customize the placeholders for your own use case.`;
+  }
+
+  const count = renderGrid(prompts, grid, '', matchedCategory, { noCap: true });
+  if (countEl) {
+    countEl.innerHTML = `Showing <strong>${count}</strong> ${escapeHtml(matchedCategory)} prompt${count === 1 ? '' : 's'}`;
+  }
+
+  const categoryUrl = `https://smart-prompt.in/category/${encodeURIComponent(slugParam)}`;
+  const itemList = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${matchedCategory} Prompts`,
+    itemListElement: prompts
+      .filter(p => p.category === matchedCategory)
+      .slice(0, 20)
+      .map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `https://smart-prompt.in/prompt?slug=${encodeURIComponent(p.slug)}`,
+        name: p.title,
+      })),
+  };
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://smart-prompt.in/' },
+      { '@type': 'ListItem', position: 2, name: `${matchedCategory} Prompts`, item: categoryUrl },
+    ],
+  };
+  injectJsonLd([itemList, breadcrumb]);
+}
+
 /* ---- Render the Card Grid ---- */
-function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All') {
+function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All', options = {}) {
   container.innerHTML = '';
 
   let filtered = prompts;
@@ -558,15 +646,20 @@ function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All')
   // Cap how many cards get built at once — rendering hundreds of DOM nodes
   // for a broad match (e.g. a single common letter) is what made typing feel
   // sluggish. Narrowing the search still reveals more as the list shortens.
+  // Callers with no live-typing box to narrow with (e.g. a category landing
+  // page, which should show every prompt in that category for both users
+  // and Google) pass { noCap: true } to skip this entirely — several
+  // categories already exceed 60 prompts, so this isn't just a future
+  // concern.
   const RENDER_CAP = 60;
-  const toRender = filtered.slice(0, RENDER_CAP);
+  const toRender = options.noCap ? filtered : filtered.slice(0, RENDER_CAP);
 
   toRender.forEach((prompt, i) => {
     const card = buildCard(prompt, i * 25);
     container.appendChild(card);
   });
 
-  if (totalMatches > RENDER_CAP) {
+  if (!options.noCap && totalMatches > RENDER_CAP) {
     const note = document.createElement('div');
     note.className = 'render-cap-note';
     note.textContent = `Showing first ${RENDER_CAP} of ${totalMatches} matches — narrow your search to see more specific results.`;
@@ -820,7 +913,7 @@ async function initIndexPage() {
     const icon = CATEGORY_ICONS[cat] || '✨';
     const color = CARD_COLORS[i % CARD_COLORS.length];
     return `
-    <div class="category-card" data-category="${escapeHtml(cat)}">
+    <a href="/category/${slugifyCategory(cat)}" class="category-card" data-category="${escapeHtml(cat)}">
       <div class="category-card-icon category-card-icon-${color}">${icon}</div>
       <div class="category-card-info">
         <div>
@@ -831,7 +924,7 @@ async function initIndexPage() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </div>
       </div>
-    </div>
+    </a>
   `;
   }).join('');
 
@@ -840,7 +933,13 @@ async function initIndexPage() {
   `).join('');
 
   categoryGridEl.querySelectorAll('.category-card').forEach(el => {
-    el.addEventListener('click', () => {
+    el.addEventListener('click', (e) => {
+      // Real <a href="/category/..."> now (crawlable + ctrl/cmd-click opens
+      // in a new tab correctly), but a plain click still does the instant
+      // in-page filter instead of a full navigation — same fast UX as
+      // before, just with a real link underneath it for Google and for
+      // anyone who wants to open it directly.
+      e.preventDefault();
       // A real hash change (not a direct showList() call) so this becomes
       // its own back-button stop — previously this was a silent JS-only
       // filter with no URL change, which is why "back" from a prompt page
@@ -1058,12 +1157,14 @@ async function initPromptPage() {
   ldScript.textContent = JSON.stringify(ldJson);
 
   /* --- Breadcrumb JSON-LD (helps Google show breadcrumb trail in search results) --- */
+  const categorySlug = slugifyCategory(prompt.category);
+  const categoryUrl = `https://smart-prompt.in/category/${categorySlug}`;
   const ldBreadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
-      { "@type": "ListItem", "position": 2, "name": prompt.category, "item": "https://smart-prompt.in/#category-browse" },
+      { "@type": "ListItem", "position": 2, "name": prompt.category, "item": categoryUrl },
       { "@type": "ListItem", "position": 3, "name": prompt.title, "item": pageUrl }
     ]
   };
@@ -1119,7 +1220,13 @@ async function initPromptPage() {
   const relatedHTML = related.length > 0
     ? `
       <div class="related-section animate-fade-up" style="animation-delay:250ms">
-        <div class="related-title">More in ${escapeHtml(prompt.category)}</div>
+        <div class="section-heading-row" style="margin-bottom:1.25rem;">
+          <div class="related-title" style="margin-bottom:0;flex:1;">More in ${escapeHtml(prompt.category)}</div>
+          <a href="/category/${categorySlug}" class="link-view-all">
+            View all
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
         <div class="related-grid">
           ${related.map(r => `
             <a class="prompt-card" href="prompt?slug=${encodeURIComponent(r.slug)}">
@@ -1153,14 +1260,14 @@ async function initPromptPage() {
       <nav class="breadcrumb-nav animate-fade-up" aria-label="Breadcrumb">
         <a href="/">Home</a>
         <span class="breadcrumb-sep">/</span>
-        <a href="/#category-browse">${escapeHtml(prompt.category)}</a>
+        <a href="/category/${categorySlug}">${escapeHtml(prompt.category)}</a>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">${escapeHtml(prompt.title)}</span>
       </nav>
 
       <div class="animate-fade-up" style="animation-delay:50ms">
         <div class="prompt-page-meta-row">
-          <div class="prompt-page-category">${escapeHtml(prompt.category)}</div>
+          <a href="/category/${categorySlug}" class="prompt-page-category">${escapeHtml(prompt.category)}</a>
           <span class="difficulty-badge difficulty-${difficulty.toLowerCase()}">${difficulty}</span>
         </div>
         <h1 class="prompt-page-title">${escapeHtml(prompt.title)}</h1>
@@ -2457,61 +2564,6 @@ window.addEventListener('hashchange', () => {
    see functions/sitemap.xml.js), and visiting it directly shows a plain
    "check back soon" message with a noindex hint instead of the real page
    — so no tool/API call can actually run while it's off. --- */
-const PAGE_SLUG_HREFS = {
-  'blog': 'blog',
-  'gallery': 'gallery',
-  'videos': 'videos',
-  'trending-prompts': 'trending-prompts',
-  'seo-tool': 'seo-tool',
-  'prompt-improver': 'prompt-improver',
-  'image-prompt-generator': 'image-prompt-generator',
-  'submit': 'submit',
-  'about': 'about',
-};
-
-async function applyPageVisibility() {
-  let hidden = [];
-  try {
-    const res = await fetch('/api/page-visibility');
-    if (res.ok) hidden = (await res.json()).hidden || [];
-  } catch (e) { return; }
-  if (!hidden.length) return;
-
-  hidden.forEach(slug => {
-    const href = PAGE_SLUG_HREFS[slug];
-    if (!href) return;
-    document.querySelectorAll(`a[href="${href}"]`).forEach(el => el.remove());
-  });
-
-  const currentFile = window.location.pathname.split('/').pop() || '/';
-  const currentSlug = Object.entries(PAGE_SLUG_HREFS).find(([, href]) => href === currentFile)?.[0];
-  if (currentSlug && hidden.includes(currentSlug)) {
-    const main = document.querySelector('main');
-    if (main) {
-      main.innerHTML = `
-        <div class="empty-state" style="padding:4rem 1rem;">
-          <div class="empty-state-icon">🚧</div>
-          <h3>This page is temporarily unavailable</h3>
-          <p>We're doing a bit of maintenance here — please check back soon.</p>
-          <a href="/" class="btn-home" style="margin-top:1rem;display:inline-flex;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-            </svg>
-            Back to Home
-          </a>
-        </div>
-      `;
-    }
-    let robotsMeta = document.querySelector('meta[name="robots"]');
-    if (!robotsMeta) {
-      robotsMeta = document.createElement('meta');
-      robotsMeta.name = 'robots';
-      document.head.appendChild(robotsMeta);
-    }
-    robotsMeta.setAttribute('content', 'noindex, follow');
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
   initMobileNav();
@@ -2534,5 +2586,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initImagePromptGeneratorPage();
   initSubmitPage();
   initTrendingPromptsPage();
-  applyPageVisibility();
+  initCategoryPage();
 });
