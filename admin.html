@@ -259,8 +259,7 @@
           <label>Title</label>
           <input type="text" id="f-title" />
           <label>Category</label>
-          <input type="text" id="f-category" list="category-datalist" autocomplete="off" />
-          <datalist id="category-datalist"></datalist>
+          <input type="text" id="f-category" />
           <label>Preview (one line)</label>
           <input type="text" id="f-preview" />
           <label>Tag</label>
@@ -617,26 +616,6 @@ function setupBulkActions(containerId, selectAllId, deleteBtnId, countId, apiPat
 }
 
 /* ---- Auth ---- */
-/* ---- Category suggestions: pulls every category already in use so the
-   Category field can suggest them as you type (a plain <datalist>, not a
-   locked dropdown — a genuinely new category can still be typed). This is
-   the fix for how the site ended up with 300+ near-duplicate categories
-   ("SEO & Marketing", "SEO & Technical SEO", "Local SEO"...) — free text
-   with no visibility into what already exists. Loaded once at login;
-   doesn't need to be perfectly live-updated within a single session. ---- */
-async function loadCategoryList() {
-  try {
-    const res = await fetch('/api/prompts');
-    if (!res.ok) return;
-    const prompts = await res.json();
-    const categories = [...new Set(prompts.map(p => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-    const datalist = document.getElementById('category-datalist');
-    if (datalist) {
-      datalist.innerHTML = categories.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
-    }
-  } catch (e) { /* suggestions are a nice-to-have — a failed fetch shouldn't block the form */ }
-}
-
 async function checkAuth() {
   const { res } = await api('/api/admin/prompts?page=1');
   if (res.status === 401) {
@@ -647,7 +626,6 @@ async function checkAuth() {
     document.getElementById('dashboard-view').classList.remove('hidden');
     loadDashboardStats();
     refreshPendingBadge();
-    loadCategoryList();
   }
 }
 

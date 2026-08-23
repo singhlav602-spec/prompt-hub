@@ -19,46 +19,6 @@ async function fetchPrompts() {
   }
 }
 
-/* ---- Fetch just one category's prompts (server-side filtered via
-   /api/prompts?category=), instead of downloading and then filtering the
-   full 6000+ row table client-side. Used by the /category/<slug> page,
-   which only ever needs one category's rows. Cached per category name so
-   re-rendering the same category page doesn't refetch. ---- */
-const _promptsByCategoryCache = {};
-async function fetchPromptsByCategory(category) {
-  if (_promptsByCategoryCache[category]) return _promptsByCategoryCache[category];
-  try {
-    const res = await fetch(`/api/prompts?category=${encodeURIComponent(category)}`);
-    if (!res.ok) throw new Error('Failed to load category prompts');
-    const data = await res.json();
-    _promptsByCategoryCache[category] = data;
-    return data;
-  } catch (err) {
-    console.error('Error loading category prompts:', err);
-    return [];
-  }
-}
-
-/* ---- Fetch the lightweight per-category counts (SQL GROUP BY, ~170 tiny
-   rows) instead of the full prompt table — used anywhere that only needs
-   category names + how many prompts are in each, e.g. painting the
-   homepage category grid or checking which category a /category/<slug>
-   URL matches, without waiting on every prompt's full text to download
-   first. ---- */
-let _categoryCountsCache = null;
-async function fetchCategoryCounts() {
-  if (_categoryCountsCache) return _categoryCountsCache;
-  try {
-    const res = await fetch('/api/category-counts');
-    if (!res.ok) throw new Error('Failed to load category counts');
-    _categoryCountsCache = await res.json();
-    return _categoryCountsCache;
-  } catch (err) {
-    console.error('Error loading category counts:', err);
-    return [];
-  }
-}
-
 /* ---- Fetch the auto-computed Trending/Rising/Popular/High-Demand list.
    Returns [] when there isn't enough real traffic data yet — callers
    should fall back to the curated DISCOVERY_PROMPTS seed list in that
@@ -585,18 +545,8 @@ async function initCategoryPage() {
   const emptyState = document.getElementById('category-empty-state');
   if (!grid) return;
 
-  // Match the URL slug against the lightweight per-category counts first
-  // (a ~170-row aggregate) instead of downloading every prompt in the
-  // entire library just to work out which category this is and whether
-  // it clears MIN_CATEGORY_PROMPTS. The matched category's actual prompts
-  // are fetched separately below, filtered server-side to just that one
-  // category — same reasoning, the page never needed the other 6000+ rows.
-  const categoryCounts = await fetchCategoryCounts();
-  // Same MIN_CATEGORY_PROMPTS bar as the server (functions/category/[slug].js)
-  // — a thin category shouldn't render here just because the DB had a 404
-  // hiccup upstream; keep the two checks in agreement.
-  const MIN_CATEGORY_PROMPTS = 5;
-  const categoryNames = categoryCounts.filter(c => c.count >= MIN_CATEGORY_PROMPTS).map(c => c.category);
+  const prompts = await fetchPrompts();
+  const categoryNames = [...new Set(prompts.map(p => p.category))];
   const matchedCategory = categoryNames.find(c => slugifyCategory(c) === slugParam);
 
   if (!matchedCategory) {
@@ -605,8 +555,6 @@ async function initCategoryPage() {
     if (emptyState) emptyState.style.display = '';
     return;
   }
-
-  const prompts = await fetchPromptsByCategory(matchedCategory);
 
   if (titleEl) titleEl.textContent = `${matchedCategory} Prompts`;
   document.title = `${matchedCategory} Prompts — Free AI Prompt Library | SmartPrompts`;
@@ -764,96 +712,7 @@ async function initIndexPage() {
   const grid = document.getElementById('prompt-grid');
   if (!grid) return;
 
-  // Fire the full prompt list (heavy — every prompt's full text, 6000+
-  // rows) and the lightweight per-category counts + featured-category
-  // settings off in parallel. The category grid only needs the latter
-  // two (a ~170-row aggregate), so it no longer has to wait for the
-  // heavy payload to finish downloading before it can paint — this was
-  // the main reason the category cards sat on their skeleton
-  // placeholders noticeably longer than the rest of the page.
-  const promptsPromise = fetchPrompts();
-  const countsPromise = fetchCategoryCounts();
-  const featuredSettingsPromise = fetch('/api/category-settings')
-    .then(r => r.ok ? r.json() : { featured: [] })
-    .catch(() => ({ featured: [] }));
-
-  const categoryGridEl = document.getElementById('category-grid');
-  const categoryTailEl = document.getElementById('category-tail');
-
-  /* --- Build category cards (top categories) + long-tail chips, from the
-     lightweight counts endpoint — resolves fast, doesn't wait on the full
-     prompt list below. Anything an admin has manually pinned as
-     "featured" (via the admin panel) always gets a full card, even if it
-     wouldn't otherwise be in the top N by prompt count — the rest still
-     fall back to count order. --- */
-  const [countsData, featuredData] = await Promise.all([countsPromise, featuredSettingsPromise]);
-  const sortedCats = countsData.map(r => [r.category, r.count]).sort((a, b) => b[1] - a[1]);
-  const TOP_N = 12;
-  const featuredCats = featuredData.featured || [];
-
-  const pinned = sortedCats.filter(([cat]) => featuredCats.includes(cat));
-  // Everything else only qualifies for a card/chip if it clears the same
-  // MIN_CATEGORY_PROMPTS bar the /category/<slug> pages use (kept in sync
-  // by hand here — script.js can't import functions/_slug.js, they run in
-  // different environments). An admin who explicitly pinned a category is
-  // still shown regardless of count; that's a deliberate override, not an
-  // automatic listing.
-  const MIN_CATEGORY_PROMPTS = 5;
-  const unpinned = sortedCats.filter(([cat, count]) => !featuredCats.includes(cat) && count >= MIN_CATEGORY_PROMPTS);
-  const orderedCats = [...pinned, ...unpinned];
-  const topCats = orderedCats.slice(0, TOP_N);
-  const tailCats = orderedCats.slice(TOP_N);
-
-  // Keep the reserved skeleton space in sync with TOP_N automatically —
-  // same reasoning as the trending-prompts page fix. Runs before the
-  // category cards are rendered below, so it's in place before paint.
-  if (categoryGridEl) {
-    const catSkeletons = categoryGridEl.querySelectorAll('.skeleton');
-    for (let i = catSkeletons.length; i < TOP_N; i++) {
-      const sk = document.createElement('div');
-      sk.className = 'skeleton';
-      sk.style.height = '150px';
-      categoryGridEl.appendChild(sk);
-    }
-    for (let i = catSkeletons.length - 1; i >= TOP_N; i--) {
-      catSkeletons[i].remove();
-    }
-
-    categoryGridEl.innerHTML = topCats.map(([cat, count], i) => {
-      const icon = CATEGORY_ICONS[cat] || '✨';
-      const color = CARD_COLORS[i % CARD_COLORS.length];
-      return `
-      <a href="/category/${slugifyCategory(cat)}" class="category-card" data-category="${escapeHtml(cat)}">
-        <div class="category-card-icon category-card-icon-${color}">${icon}</div>
-        <div class="category-card-info">
-          <div>
-            <div class="category-card-name">${escapeHtml(cat)}</div>
-            <div class="category-card-count">${count}+ Prompts</div>
-          </div>
-          <div class="category-card-arrow category-card-arrow-${color}">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
-        </div>
-      </a>
-    `;
-    }).join('');
-  }
-
-  if (categoryTailEl) {
-    categoryTailEl.innerHTML = tailCats.map(([cat, count]) => `
-      <button class="filter-btn" data-category="${escapeHtml(cat)}">${escapeHtml(cat)} · ${count}</button>
-    `).join('');
-    // Category cards above are real <a href="/category/..."> links —
-    // clicking one navigates to that category's own page. The tail chips
-    // aren't links, so they keep the hash-based in-page filter.
-    categoryTailEl.querySelectorAll('.filter-btn').forEach(el => {
-      el.addEventListener('click', () => {
-        location.hash = '#category=' + encodeURIComponent(el.dataset.category);
-      });
-    });
-  }
-
-  const prompts = await promptsPromise;
+  const prompts = await fetchPrompts();
 
   /* --- Hero + featured blog banner + trending banner: hidden during
      category/search results views (see showList below); shown by default. --- */
@@ -907,24 +766,6 @@ async function initIndexPage() {
     });
   }
 
-  /* --- Hero search box: results already update live on every keystroke
-     (see the 'input' listener below), so the Search button and the
-     keyboard's own Enter/Go key don't need to trigger anything new — their
-     job is just to dismiss the on-screen keyboard and bring the results
-     into view, since on a phone the keyboard covers most of the results
-     the moment the field is focused. --- */
-  function submitHeroSearch() {
-    if (searchHero) searchHero.blur();
-    if (listHeader) listHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  const heroSearchBtn = document.getElementById('hero-search-btn');
-  if (heroSearchBtn) heroSearchBtn.addEventListener('click', submitHeroSearch);
-  if (searchHero) {
-    searchHero.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); submitHeroSearch(); }
-    });
-  }
-
   /* --- Header search icon focuses the hero search field --- */
   const headerSearchBtn = document.getElementById('header-search-btn');
   if (headerSearchBtn) {
@@ -954,6 +795,8 @@ async function initIndexPage() {
   const searchHero      = document.getElementById('search-hero');
   const countEl         = document.getElementById('prompt-count');
   const categoryBrowse  = document.getElementById('category-browse');
+  const categoryGridEl  = document.getElementById('category-grid');
+  const categoryTailEl  = document.getElementById('category-tail');
   const listHeader      = document.getElementById('list-header');
   const promoBanner     = document.querySelector('.promo-banner');
   const newsletterBar   = document.querySelector('.newsletter-bar');
@@ -962,75 +805,61 @@ async function initIndexPage() {
   let activeCategory = 'All';
   let searchTerm = '';
 
-  // topCats/tailCats/categoryGridEl/categoryTailEl were already built and
-  // rendered above (from the lightweight counts endpoint, before the full
-  // prompt list even started downloading) — nothing more to do for the
-  // category grid here.
+  /* --- Build category cards (top categories) + long-tail chips.
+     Anything an admin has manually pinned as "featured" (via the admin
+     panel) always gets a full card, even if it wouldn't otherwise be in
+     the top N by prompt count — the rest still fall back to count order. --- */
+  const catCounts = {};
+  prompts.forEach(p => { catCounts[p.category] = (catCounts[p.category] || 0) + 1; });
+  const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
+  const TOP_N = 12;
 
-  const topPromptsSection = document.getElementById('top-prompts-section');
+  let featuredCats = [];
+  try {
+    const featRes = await fetch('/api/category-settings');
+    if (featRes.ok) featuredCats = (await featRes.json()).featured || [];
+  } catch (e) { /* if this fails, just fall back to plain count-based order */ }
 
-  /* ---- Smooth show/hide for the big homepage view-swap (browse <-> search
-     results). Plain display:none/'' swaps every section at once, which is
-     exactly the kind of instant, all-or-nothing layout change that feels
-     like a jump — this fades each one instead, so content eases in/out
-     rather than popping. It doesn't remove the underlying layout shift
-     (the page height still changes), but a shift you can see happening
-     smoothly reads as an intentional transition, not a glitch.
+  const pinned = sortedCats.filter(([cat]) => featuredCats.includes(cat));
+  const unpinned = sortedCats.filter(([cat]) => !featuredCats.includes(cat));
+  const orderedCats = [...pinned, ...unpinned];
+  const topCats = orderedCats.slice(0, TOP_N);
+  const tailCats = orderedCats.slice(TOP_N);
 
-     firstViewRendered guards against fading on the very first call: the
-     raw HTML already ships in the correct default state (category-browse
-     etc. visible, list-header/grid hidden), so the initial showCategoryBrowse()
-     or showList() call on page load isn't a transition at all — nothing
-     is actually changing, so animating it would just be a pointless flash
-     over content that was already sitting there. Every call after that
-     first one is a real transition (typing, clearing, a hash change) and
-     gets the fade. ---- */
-  let firstViewRendered = false;
-  function fadeOut(el) {
-    if (!el || el.style.display === 'none') return;
-    el.style.transition = 'opacity 0.15s ease';
-    el.style.opacity = '0';
-    setTimeout(() => { el.style.display = 'none'; }, 150);
-  }
-  function fadeIn(el, displayValue = '') {
-    if (!el) return;
-    if (el.style.display !== 'none' && el.style.opacity === '1') return;
-    el.style.display = displayValue;
-    el.style.opacity = '0';
-    void el.offsetWidth; // force layout so the browser sees opacity:0 before animating to 1
-    el.style.transition = 'opacity 0.2s ease';
-    el.style.opacity = '1';
-  }
-  function setShown(el, show, displayValue = '') {
-    if (!el) return;
-    if (!firstViewRendered) {
-      el.style.display = show ? displayValue : 'none';
-    } else if (show) {
-      fadeIn(el, displayValue);
-    } else {
-      fadeOut(el);
+  // Keep the reserved skeleton space in sync with TOP_N automatically —
+  // same reasoning as the trending-prompts page fix. Runs before the
+  // category cards are rendered below, so it's in place before paint.
+  if (categoryGridEl) {
+    const catSkeletons = categoryGridEl.querySelectorAll('.skeleton');
+    for (let i = catSkeletons.length; i < TOP_N; i++) {
+      const sk = document.createElement('div');
+      sk.className = 'skeleton';
+      sk.style.height = '150px';
+      categoryGridEl.appendChild(sk);
+    }
+    for (let i = catSkeletons.length - 1; i >= TOP_N; i--) {
+      catSkeletons[i].remove();
     }
   }
+
+
+  const topPromptsSection = document.getElementById('top-prompts-section');
 
   function showCategoryBrowse() {
     activeCategory = 'All';
     searchTerm = '';
     if (searchInput) searchInput.value = '';
     if (searchHero) searchHero.value = '';
-    // heroSection is never actually hidden by either view (showList keeps
-    // it visible too) — no need to fade something that never toggles, a
-    // plain assignment avoids an unnecessary fade flicker on page load.
     if (heroSection) heroSection.style.display = '';
-    setShown(featuredBanner, true);
-    setShown(trendingBanner, true);
-    setShown(categoryBrowse, true);
-    setShown(statsBar, true);
-    setShown(topPromptsSection, true);
-    setShown(promoBanner, true);
-    setShown(newsletterBar, true);
-    setShown(listHeader, false);
-    setShown(grid, false);
-    firstViewRendered = true;
+    if (featuredBanner) featuredBanner.style.display = '';
+    if (trendingBanner) trendingBanner.style.display = '';
+    categoryBrowse.style.display = '';
+    if (statsBar) statsBar.style.display = '';
+    if (topPromptsSection) topPromptsSection.style.display = '';
+    if (promoBanner) promoBanner.style.display = '';
+    if (newsletterBar) newsletterBar.style.display = '';
+    listHeader.style.display = 'none';
+    grid.style.display = 'none';
     // requestAnimationFrame, not an immediate call: the display toggles
     // just above change the page's total height, and scrollTo("smooth")
     // needs that settled first — calling it synchronously forces the
@@ -1058,18 +887,17 @@ async function initIndexPage() {
     // but the trending banner and blog banner stay hidden here too, same
     // as the rest of "everything between the hero and the results" below.
     if (heroSection) heroSection.style.display = '';
-    setShown(featuredBanner, false);
-    setShown(trendingBanner, false);
-    setShown(categoryBrowse, false);
+    if (featuredBanner) featuredBanner.style.display = 'none';
+    if (trendingBanner) trendingBanner.style.display = 'none';
+    categoryBrowse.style.display = 'none';
     // Hide everything between the hero and the results so results land
     // right under the search box instead of way down the page.
-    setShown(statsBar, false);
-    setShown(topPromptsSection, false);
-    setShown(promoBanner, false);
-    setShown(newsletterBar, false);
-    setShown(listHeader, true, 'flex');
-    setShown(grid, true);
-    firstViewRendered = true;
+    if (statsBar) statsBar.style.display = 'none';
+    if (topPromptsSection) topPromptsSection.style.display = 'none';
+    if (promoBanner) promoBanner.style.display = 'none';
+    if (newsletterBar) newsletterBar.style.display = 'none';
+    listHeader.style.display = 'flex';
+    grid.style.display = '';
     const count = renderGrid(prompts, grid, searchTerm, activeCategory);
     if (countEl) {
       const label = searchTerm
@@ -1095,6 +923,50 @@ async function initIndexPage() {
     });
   }
   window.showList = showList;
+
+  categoryGridEl.innerHTML = topCats.map(([cat, count], i) => {
+    const icon = CATEGORY_ICONS[cat] || '✨';
+    const color = CARD_COLORS[i % CARD_COLORS.length];
+    return `
+    <a href="/category/${slugifyCategory(cat)}" class="category-card" data-category="${escapeHtml(cat)}">
+      <div class="category-card-icon category-card-icon-${color}">${icon}</div>
+      <div class="category-card-info">
+        <div>
+          <div class="category-card-name">${escapeHtml(cat)}</div>
+          <div class="category-card-count">${count}+ Prompts</div>
+        </div>
+        <div class="category-card-arrow category-card-arrow-${color}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </div>
+    </a>
+  `;
+  }).join('');
+
+  categoryTailEl.innerHTML = tailCats.map(([cat, count]) => `
+    <button class="filter-btn" data-category="${escapeHtml(cat)}">${escapeHtml(cat)} · ${count}</button>
+  `).join('');
+
+  categoryGridEl.querySelectorAll('.category-card').forEach(el => {
+    el.addEventListener('click', (e) => {
+      // Real <a href="/category/..."> now (crawlable + ctrl/cmd-click opens
+      // in a new tab correctly), but a plain click still does the instant
+      // in-page filter instead of a full navigation — same fast UX as
+      // before, just with a real link underneath it for Google and for
+      // anyone who wants to open it directly.
+      e.preventDefault();
+      // A real hash change (not a direct showList() call) so this becomes
+      // its own back-button stop — previously this was a silent JS-only
+      // filter with no URL change, which is why "back" from a prompt page
+      // opened from here had nowhere sensible to land.
+      location.hash = '#category=' + encodeURIComponent(el.dataset.category);
+    });
+  });
+  categoryTailEl.querySelectorAll('.filter-btn').forEach(el => {
+    el.addEventListener('click', () => {
+      location.hash = '#category=' + encodeURIComponent(el.dataset.category);
+    });
+  });
 
   /* --- Featured Prompts: one pick per top category, no invented view
      counts — just an honest, varied sample of the library.
@@ -1302,25 +1174,14 @@ async function initPromptPage() {
   /* --- Breadcrumb JSON-LD (helps Google show breadcrumb trail in search results) --- */
   const categorySlug = slugifyCategory(prompt.category);
   const categoryUrl = `https://smart-prompt.in/category/${categorySlug}`;
-  // A category only has its own /category/<slug> page once it clears
-  // MIN_CATEGORY_PROMPTS (functions/_slug.js) — same bar the server and
-  // initCategoryPage() use. Below that, every link to it here would be a
-  // dead link into a 404, so those spots fall back to plain (unlinked)
-  // text instead.
-  const categoryHasPage = prompts.filter(p => p.category === prompt.category).length >= 5;
   const ldBreadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": categoryHasPage
-      ? [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
-          { "@type": "ListItem", "position": 2, "name": prompt.category, "item": categoryUrl },
-          { "@type": "ListItem", "position": 3, "name": prompt.title, "item": pageUrl }
-        ]
-      : [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
-          { "@type": "ListItem", "position": 2, "name": prompt.title, "item": pageUrl }
-        ]
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
+      { "@type": "ListItem", "position": 2, "name": prompt.category, "item": categoryUrl },
+      { "@type": "ListItem", "position": 3, "name": prompt.title, "item": pageUrl }
+    ]
   };
   let ldBreadcrumbScript = document.getElementById('ld-json-breadcrumb');
   if (!ldBreadcrumbScript) {
@@ -1371,32 +1232,15 @@ async function initPromptPage() {
   const shareUrl = encodeURIComponent(pageUrl);
   const shareText = encodeURIComponent(`${prompt.title} — free AI prompt on SmartPrompts`);
 
-  /* --- Quick related pills: the full "More in Category" section already
-     exists further down (after the FAQ), but that's several screens of
-     scrolling away — most visitors never see it. This is a compact,
-     low-height preview of the same `related` list, placed right under the
-     copy box, so it's visible without scrolling. --- */
-  const quickRelatedHTML = related.length > 0
-    ? `
-      <div class="quick-related-row animate-fade-up" style="animation-delay:140ms">
-        <span class="quick-related-label">More ${escapeHtml(prompt.category)}</span>
-        ${related.slice(0, 3).map(r => `
-          <a href="/prompt?slug=${encodeURIComponent(r.slug)}" class="quick-related-pill">${escapeHtml(r.title)}</a>
-        `).join('')}
-      </div>
-    ` : '';
-
   const relatedHTML = related.length > 0
     ? `
       <div class="related-section animate-fade-up" style="animation-delay:250ms">
         <div class="section-heading-row" style="margin-bottom:1.25rem;">
           <div class="related-title" style="margin-bottom:0;flex:1;">More in ${escapeHtml(prompt.category)}</div>
-          ${categoryHasPage ? `
           <a href="/category/${categorySlug}" class="link-view-all">
             View all
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </a>
-          ` : ''}
         </div>
         <div class="related-grid">
           ${related.map(r => `
@@ -1431,18 +1275,14 @@ async function initPromptPage() {
       <nav class="breadcrumb-nav animate-fade-up" aria-label="Breadcrumb">
         <a href="/">Home</a>
         <span class="breadcrumb-sep">/</span>
-        ${categoryHasPage
-          ? `<a href="/category/${categorySlug}">${escapeHtml(prompt.category)}</a>`
-          : `<span>${escapeHtml(prompt.category)}</span>`}
+        <a href="/category/${categorySlug}">${escapeHtml(prompt.category)}</a>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">${escapeHtml(prompt.title)}</span>
       </nav>
 
       <div class="animate-fade-up" style="animation-delay:50ms">
         <div class="prompt-page-meta-row">
-          ${categoryHasPage
-            ? `<a href="/category/${categorySlug}" class="prompt-page-category">${escapeHtml(prompt.category)}</a>`
-            : `<span class="prompt-page-category">${escapeHtml(prompt.category)}</span>`}
+          <a href="/category/${categorySlug}" class="prompt-page-category">${escapeHtml(prompt.category)}</a>
           <span class="difficulty-badge difficulty-${difficulty.toLowerCase()}">${difficulty}</span>
         </div>
         <h1 class="prompt-page-title">${escapeHtml(prompt.title)}</h1>
@@ -1477,8 +1317,6 @@ async function initPromptPage() {
           <div class="prompt-text" id="prompt-text">${highlightPlaceholders(escapeHtml(prompt.prompt))}</div>
         </div>
       </div>
-
-      ${quickRelatedHTML}
 
       <div class="prompt-info-section animate-fade-up" style="animation-delay:180ms">
         <h2 class="info-heading">What this prompt does</h2>
@@ -2508,57 +2346,6 @@ function initSubmitPage() {
   });
 }
 
-/* ---- Contact Us form (contact.html) ---- */
-function initContactPage() {
-  const form = document.getElementById('contact-form');
-  if (!form) return;
-
-  const msg = document.getElementById('contact-msg');
-  const submitBtn = document.getElementById('contact-submit-btn');
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const body = {
-      name: document.getElementById('c-name').value.trim(),
-      email: document.getElementById('c-email').value.trim(),
-      message: document.getElementById('c-message').value.trim(),
-      website: document.getElementById('c-website').value.trim(), // honeypot
-    };
-
-    if (!body.name || !body.email || !body.message) {
-      msg.textContent = 'Please fill in your name, email, and message.';
-      msg.style.color = '#e0555f';
-      return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending…';
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        form.reset();
-        form.style.display = 'none';
-        msg.textContent = "Thanks for reaching out — we'll get back to you soon.";
-        msg.style.color = 'var(--accent)';
-      } else {
-        msg.textContent = data.error || 'Something went wrong — please try again.';
-        msg.style.color = '#e0555f';
-      }
-    } catch {
-      msg.textContent = 'Network error — please try again.';
-      msg.style.color = '#e0555f';
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Send Message';
-    }
-  });
-}
-
 /* ---- Theme toggle (shared across index.html and prompt.html) ---- */
 function initThemeToggle() {
   const btn = document.getElementById('theme-toggle');
@@ -2809,5 +2596,4 @@ document.addEventListener('DOMContentLoaded', () => {
   initSubmitPage();
   initTrendingPromptsPage();
   initCategoryPage();
-  initContactPage();
 });

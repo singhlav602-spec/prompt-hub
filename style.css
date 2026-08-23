@@ -1765,15 +1765,12 @@ body::before {
 }
 
 .breadcrumb-nav a {
-  color: var(--text);
-  text-decoration: underline;
-  text-decoration-color: var(--border);
-  text-underline-offset: 3px;
-  transition: color var(--transition), text-decoration-color var(--transition);
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--transition);
 }
 
-.breadcrumb-nav a:hover,
-.breadcrumb-nav a:active { color: var(--accent); text-decoration-color: var(--accent); }
+.breadcrumb-nav a:hover { color: var(--accent); }
 
 .breadcrumb-sep { color: var(--border); }
 
@@ -2097,44 +2094,6 @@ body::before {
 /* ============================================
    RELATED PROMPTS SECTION
    ============================================ */
-/* ---- Quick related pills (right under the copy box on prompt.html) ---- */
-.quick-related-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  margin: -0.5rem 0 1.75rem;
-  padding: 0.5rem 0.1rem;
-}
-.quick-related-row::-webkit-scrollbar { display: none; }
-
-.quick-related-label {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.quick-related-pill {
-  font-size: 0.78rem;
-  color: var(--text);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.35rem 0.85rem;
-  white-space: nowrap;
-  flex-shrink: 0;
-  text-decoration: none;
-  transition: border-color var(--transition), color var(--transition);
-}
-.quick-related-pill:hover,
-.quick-related-pill:active { border-color: var(--accent); color: var(--accent); }
-
 .related-section {
   margin-top: 3.5rem;
 }
