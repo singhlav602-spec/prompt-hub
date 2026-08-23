@@ -12,3 +12,13 @@ export function slugifyCategory(name) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
+// Minimum number of prompts a category needs before it gets its own
+// /category/<slug> page, a sitemap entry, or a chip on the homepage. Below
+// this, a category is "thin content" — a dedicated page with 1-4 prompts
+// looks abandoned to a visitor and reads as low-quality to Google. Prompts
+// in a below-threshold category are still fully findable through search;
+// they just don't get a standalone landing page. Raise this over time as
+// the library grows — it should track "how many prompts make a category
+// page feel worth landing on," not stay fixed forever.
+export const MIN_CATEGORY_PROMPTS = 5;

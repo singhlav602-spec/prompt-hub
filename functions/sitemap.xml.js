@@ -4,7 +4,7 @@
 // blog_posts table). This way the sitemap can never go stale — no manual
 // regeneration step, no missing URLs.
 
-import { slugifyCategory } from './_slug.js';
+import { slugifyCategory, MIN_CATEGORY_PROMPTS } from './_slug.js';
 
 const DOMAIN = 'https://smart-prompt.in';
 
@@ -43,6 +43,9 @@ export async function onRequestGet(context) {
   if (!hiddenSlugs.has('image-prompt-generator')) urls.push(urlEntry(`${DOMAIN}/image-prompt-generator`, today, 'monthly', '0.6'));
   if (!hiddenSlugs.has('about')) urls.push(urlEntry(`${DOMAIN}/about`, today, 'monthly', '0.4'));
   if (!hiddenSlugs.has('submit')) urls.push(urlEntry(`${DOMAIN}/submit`, today, 'monthly', '0.4'));
+  if (!hiddenSlugs.has('contact')) urls.push(urlEntry(`${DOMAIN}/contact`, today, 'monthly', '0.3'));
+  if (!hiddenSlugs.has('privacy-policy')) urls.push(urlEntry(`${DOMAIN}/privacy-policy`, today, 'yearly', '0.2'));
+  if (!hiddenSlugs.has('terms')) urls.push(urlEntry(`${DOMAIN}/terms`, today, 'yearly', '0.2'));
 
   // Every prompt currently in the live database
   try {
@@ -54,14 +57,16 @@ export async function onRequestGet(context) {
     }
   } catch (e) { /* table not reachable — still serve the static pages below */ }
 
-  // One landing page per distinct category (e.g. /category/social-media).
-  // Deduped by slug, not just by category name — two differently-spelled
-  // category strings could theoretically collapse to the same slug, and a
-  // sitemap should never list the same <loc> twice.
+  // One landing page per category with enough prompts to be worth a
+  // standalone page (see MIN_CATEGORY_PROMPTS) — a thin category with 1-2
+  // prompts is exactly the kind of low-value page Google penalizes a site
+  // for having lots of. Deduped by slug too, not just by category name —
+  // two differently-spelled category strings could theoretically collapse
+  // to the same slug, and a sitemap should never list the same <loc> twice.
   try {
     const { results: cats } = await env.DB.prepare(
-      'SELECT DISTINCT category FROM prompts'
-    ).all();
+      'SELECT category FROM prompts GROUP BY category HAVING COUNT(*) >= ?'
+    ).bind(MIN_CATEGORY_PROMPTS).all();
     const seenSlugs = new Set();
     for (const c of cats) {
       const slug = slugifyCategory(c.category);
