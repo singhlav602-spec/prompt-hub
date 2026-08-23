@@ -5,8 +5,11 @@ import { resolveTag } from '../_tags.js';
 export async function onRequestGet(context) {
   const { env } = context;
   try {
-    try { await env.DB.prepare('ALTER TABLE prompts ADD COLUMN likes INTEGER NOT NULL DEFAULT 0').run(); } catch (e) {}
-
+    // Note: the one-time "likes" column migration that used to run here on
+    // every single request has been removed — that column was added to
+    // the D1 table long ago, so this was just a wasted extra database call
+    // on every homepage load. If a fresh migration is ever needed again,
+    // run it once by hand instead of on every request.
     const { results } = await env.DB.prepare(
       'SELECT slug, title, category, preview, prompt, tag, tag_expires_at, likes FROM prompts ORDER BY id ASC'
     ).all();
