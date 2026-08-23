@@ -30,31 +30,11 @@
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Free AI Image Prompt Generator — SmartPrompts</title>
-  <meta name="description" content="Free AI tool: describe a simple image idea and get a detailed prompt for Midjourney, DALL-E, or Stable Diffusion instantly. No sign-up." />
+  <title>Contact Us — SmartPrompts</title>
+  <meta name="description" content="Get in touch with the SmartPrompts team — questions, feedback, or partnership enquiries." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://smart-prompt.in/image-prompt-generator" />
-  <meta property="og:title" content="Free AI Image Prompt Generator — SmartPrompts" />
-  <meta property="og:description" content="Describe a simple image idea, get a detailed prompt for Midjourney, DALL-E, or Stable Diffusion instantly." />
-  <meta property="og:url" content="https://smart-prompt.in/image-prompt-generator" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://smart-prompt.in/images/og-image.jpg" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://smart-prompt.in/images/og-image.jpg" />
+  <link rel="canonical" href="https://smart-prompt.in/contact" />
   <link rel="icon" type="image/png" href="favicon.png" />
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Free AI Image Prompt Generator",
-    "url": "https://smart-prompt.in/image-prompt-generator",
-    "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Any",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-  }
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" />
@@ -91,7 +71,7 @@
         <a href="videos" class="site-nav-link">Videos</a>
         <a href="seo-tool" class="site-nav-link">SEO Tool</a>
         <a href="prompt-improver" class="site-nav-link">Prompt Improver</a>
-        <a href="image-prompt-generator" class="site-nav-link active">Image Prompt Generator</a>
+        <a href="image-prompt-generator" class="site-nav-link">Image Prompt Generator</a>
         <a href="submit" class="site-nav-link">Submit Prompt</a>
         <a href="about" class="site-nav-link">About</a>
       </nav>
@@ -134,49 +114,52 @@
       <span class="icon-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="14" height="14" rx="2"/><path d="M21 8.5l-4.5 3.5 4.5 3.5v-7z"/></svg></span>
       <span class="icon-nav-label">Videos</span>
     </a>
-    <button type="button" class="icon-nav-item icon-nav-more active" id="icon-nav-more-btn">
+    <button type="button" class="icon-nav-item icon-nav-more" id="icon-nav-more-btn">
       <span class="icon-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></span>
       <span class="icon-nav-label">More</span>
     </button>
   </div>
 
-  <main class="prompt-page-wrap">
-    <h1 class="prompt-page-title animate-fade-up">Free AI Image Prompt Generator</h1>
-    <p style="color:var(--muted);font-size:0.92rem;max-width:560px;margin-top:0.5rem;" class="animate-fade-up">Describe a simple idea — get a detailed prompt ready for Midjourney, DALL-E, or Stable Diffusion. Free, no sign-up.</p>
+  <main class="prompt-page-wrap simple-page">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to Library
+    </a>
+
+    <h1 class="prompt-page-title">Contact Us</h1>
     <div class="prompt-page-divider"></div>
 
-    <div class="animate-fade-up" style="animation-delay:60ms">
-      <div class="prompt-box">
-        <div class="prompt-box-label" style="margin-bottom:0.6rem;">Your idea</div>
-        <textarea id="imggen-input" rows="3" placeholder="e.g. a cat sitting on a beach at sunset" style="width:100%;background:var(--bg-alt,transparent);border:1px solid var(--border);border-radius:10px;padding:0.75rem 0.9rem;font-family:inherit;font-size:0.94rem;color:var(--text);resize:vertical;"></textarea>
-        <button id="imggen-generate-btn" class="btn-primary" style="margin-top:0.9rem;">✨ Generate Prompt</button>
-        <div id="imggen-msg" style="margin-top:0.6rem;font-size:0.85rem;"></div>
-      </div>
-    </div>
+    <div class="prompt-info-section">
+      <p class="info-text">Questions, feedback, a broken prompt, a partnership idea — send it over and we'll get back to you.</p>
 
-    <div id="imggen-result-wrap" style="display:none;">
-      <div class="animate-fade-up" style="animation-delay:100ms">
-        <div class="prompt-box">
-          <div class="prompt-box-header">
-            <div class="prompt-box-label">Image Prompt <span id="imggen-style-label" style="color:var(--muted);font-weight:400;"></span></div>
-            <button class="copy-btn" id="copy-imggen-btn">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-              <span>Copy</span>
-            </button>
-          </div>
-          <div class="prompt-text" id="imggen-output"></div>
+      <form id="contact-form">
+        <label for="c-name">Your name</label>
+        <input type="text" id="c-name" placeholder="Your name" required maxlength="100" />
+
+        <label for="c-email">Your email</label>
+        <input type="email" id="c-email" placeholder="you@example.com" required maxlength="200" />
+
+        <label for="c-message">Message</label>
+        <textarea id="c-message" placeholder="What's up?" required maxlength="4000"></textarea>
+
+        <!-- Honeypot — hidden from real visitors, bots often fill every field -->
+        <div class="honeypot-field" aria-hidden="true">
+          <label for="c-website">Website</label>
+          <input type="text" id="c-website" tabindex="-1" autocomplete="off" />
         </div>
-      </div>
-      <p class="info-text animate-fade-up" style="margin-top:1rem;">Want to see this style in action? Check out the <a href="gallery">Gallery</a> for real AI-generated images and their prompts.</p>
+
+        <button type="submit" class="btn-submit" id="contact-submit-btn">Send Message</button>
+        <div class="form-hint" id="contact-msg"></div>
+      </form>
     </div>
   </main>
 
   <!-- ======= FOOTER ======= -->
   <footer class="site-footer">
     <p>SmartPrompts &mdash; A free, open AI prompt library &mdash; Built with ♥ and vanilla JS</p>
-    <p><a href="about">About</a> · <a href="blog">Blog</a> · <a href="gallery">Gallery</a> · <a href="videos">Videos</a> · <a href="submit">Submit a Prompt</a> · <a href="contact">Contact</a> · <a href="privacy-policy">Privacy Policy</a> · <a href="terms">Terms</a></p>
+    <p><a href="about">About</a> · <a href="blog">Blog</a> · <a href="submit">Submit a Prompt</a> · <a href="contact">Contact</a> · <a href="privacy-policy">Privacy Policy</a> · <a href="terms">Terms</a></p>
   </footer>
 
   <script src="script.min.js"></script>

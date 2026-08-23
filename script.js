@@ -546,7 +546,13 @@ async function initCategoryPage() {
   if (!grid) return;
 
   const prompts = await fetchPrompts();
-  const categoryNames = [...new Set(prompts.map(p => p.category))];
+  // Same MIN_CATEGORY_PROMPTS bar as the server (functions/category/[slug].js)
+  // — a thin category shouldn't render here just because the DB had a 404
+  // hiccup upstream; keep the two checks in agreement.
+  const MIN_CATEGORY_PROMPTS = 5;
+  const categoryCounts = {};
+  prompts.forEach(p => { categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1; });
+  const categoryNames = Object.keys(categoryCounts).filter(c => categoryCounts[c] >= MIN_CATEGORY_PROMPTS);
   const matchedCategory = categoryNames.find(c => slugifyCategory(c) === slugParam);
 
   if (!matchedCategory) {
@@ -766,6 +772,24 @@ async function initIndexPage() {
     });
   }
 
+  /* --- Hero search box: results already update live on every keystroke
+     (see the 'input' listener below), so the Search button and the
+     keyboard's own Enter/Go key don't need to trigger anything new — their
+     job is just to dismiss the on-screen keyboard and bring the results
+     into view, since on a phone the keyboard covers most of the results
+     the moment the field is focused. --- */
+  function submitHeroSearch() {
+    if (searchHero) searchHero.blur();
+    if (listHeader) listHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  const heroSearchBtn = document.getElementById('hero-search-btn');
+  if (heroSearchBtn) heroSearchBtn.addEventListener('click', submitHeroSearch);
+  if (searchHero) {
+    searchHero.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); submitHeroSearch(); }
+    });
+  }
+
   /* --- Header search icon focuses the hero search field --- */
   const headerSearchBtn = document.getElementById('header-search-btn');
   if (headerSearchBtn) {
@@ -821,7 +845,14 @@ async function initIndexPage() {
   } catch (e) { /* if this fails, just fall back to plain count-based order */ }
 
   const pinned = sortedCats.filter(([cat]) => featuredCats.includes(cat));
-  const unpinned = sortedCats.filter(([cat]) => !featuredCats.includes(cat));
+  // Everything else only qualifies for a card/chip if it clears the same
+  // MIN_CATEGORY_PROMPTS bar the /category/<slug> pages use (kept in sync
+  // by hand here — script.js can't import functions/_slug.js, they run in
+  // different environments). An admin who explicitly pinned a category is
+  // still shown regardless of count; that's a deliberate override, not an
+  // automatic listing.
+  const MIN_CATEGORY_PROMPTS = 5;
+  const unpinned = sortedCats.filter(([cat, count]) => !featuredCats.includes(cat) && count >= MIN_CATEGORY_PROMPTS);
   const orderedCats = [...pinned, ...unpinned];
   const topCats = orderedCats.slice(0, TOP_N);
   const tailCats = orderedCats.slice(TOP_N);
@@ -845,21 +876,68 @@ async function initIndexPage() {
 
   const topPromptsSection = document.getElementById('top-prompts-section');
 
+  /* ---- Smooth show/hide for the big homepage view-swap (browse <-> search
+     results). Plain display:none/'' swaps every section at once, which is
+     exactly the kind of instant, all-or-nothing layout change that feels
+     like a jump — this fades each one instead, so content eases in/out
+     rather than popping. It doesn't remove the underlying layout shift
+     (the page height still changes), but a shift you can see happening
+     smoothly reads as an intentional transition, not a glitch.
+
+     firstViewRendered guards against fading on the very first call: the
+     raw HTML already ships in the correct default state (category-browse
+     etc. visible, list-header/grid hidden), so the initial showCategoryBrowse()
+     or showList() call on page load isn't a transition at all — nothing
+     is actually changing, so animating it would just be a pointless flash
+     over content that was already sitting there. Every call after that
+     first one is a real transition (typing, clearing, a hash change) and
+     gets the fade. ---- */
+  let firstViewRendered = false;
+  function fadeOut(el) {
+    if (!el || el.style.display === 'none') return;
+    el.style.transition = 'opacity 0.15s ease';
+    el.style.opacity = '0';
+    setTimeout(() => { el.style.display = 'none'; }, 150);
+  }
+  function fadeIn(el, displayValue = '') {
+    if (!el) return;
+    if (el.style.display !== 'none' && el.style.opacity === '1') return;
+    el.style.display = displayValue;
+    el.style.opacity = '0';
+    void el.offsetWidth; // force layout so the browser sees opacity:0 before animating to 1
+    el.style.transition = 'opacity 0.2s ease';
+    el.style.opacity = '1';
+  }
+  function setShown(el, show, displayValue = '') {
+    if (!el) return;
+    if (!firstViewRendered) {
+      el.style.display = show ? displayValue : 'none';
+    } else if (show) {
+      fadeIn(el, displayValue);
+    } else {
+      fadeOut(el);
+    }
+  }
+
   function showCategoryBrowse() {
     activeCategory = 'All';
     searchTerm = '';
     if (searchInput) searchInput.value = '';
     if (searchHero) searchHero.value = '';
+    // heroSection is never actually hidden by either view (showList keeps
+    // it visible too) — no need to fade something that never toggles, a
+    // plain assignment avoids an unnecessary fade flicker on page load.
     if (heroSection) heroSection.style.display = '';
-    if (featuredBanner) featuredBanner.style.display = '';
-    if (trendingBanner) trendingBanner.style.display = '';
-    categoryBrowse.style.display = '';
-    if (statsBar) statsBar.style.display = '';
-    if (topPromptsSection) topPromptsSection.style.display = '';
-    if (promoBanner) promoBanner.style.display = '';
-    if (newsletterBar) newsletterBar.style.display = '';
-    listHeader.style.display = 'none';
-    grid.style.display = 'none';
+    setShown(featuredBanner, true);
+    setShown(trendingBanner, true);
+    setShown(categoryBrowse, true);
+    setShown(statsBar, true);
+    setShown(topPromptsSection, true);
+    setShown(promoBanner, true);
+    setShown(newsletterBar, true);
+    setShown(listHeader, false);
+    setShown(grid, false);
+    firstViewRendered = true;
     // requestAnimationFrame, not an immediate call: the display toggles
     // just above change the page's total height, and scrollTo("smooth")
     // needs that settled first — calling it synchronously forces the
@@ -887,17 +965,18 @@ async function initIndexPage() {
     // but the trending banner and blog banner stay hidden here too, same
     // as the rest of "everything between the hero and the results" below.
     if (heroSection) heroSection.style.display = '';
-    if (featuredBanner) featuredBanner.style.display = 'none';
-    if (trendingBanner) trendingBanner.style.display = 'none';
-    categoryBrowse.style.display = 'none';
+    setShown(featuredBanner, false);
+    setShown(trendingBanner, false);
+    setShown(categoryBrowse, false);
     // Hide everything between the hero and the results so results land
     // right under the search box instead of way down the page.
-    if (statsBar) statsBar.style.display = 'none';
-    if (topPromptsSection) topPromptsSection.style.display = 'none';
-    if (promoBanner) promoBanner.style.display = 'none';
-    if (newsletterBar) newsletterBar.style.display = 'none';
-    listHeader.style.display = 'flex';
-    grid.style.display = '';
+    setShown(statsBar, false);
+    setShown(topPromptsSection, false);
+    setShown(promoBanner, false);
+    setShown(newsletterBar, false);
+    setShown(listHeader, true, 'flex');
+    setShown(grid, true);
+    firstViewRendered = true;
     const count = renderGrid(prompts, grid, searchTerm, activeCategory);
     if (countEl) {
       const label = searchTerm
@@ -947,21 +1026,16 @@ async function initIndexPage() {
     <button class="filter-btn" data-category="${escapeHtml(cat)}">${escapeHtml(cat)} · ${count}</button>
   `).join('');
 
-  categoryGridEl.querySelectorAll('.category-card').forEach(el => {
-    el.addEventListener('click', (e) => {
-      // Real <a href="/category/..."> now (crawlable + ctrl/cmd-click opens
-      // in a new tab correctly), but a plain click still does the instant
-      // in-page filter instead of a full navigation — same fast UX as
-      // before, just with a real link underneath it for Google and for
-      // anyone who wants to open it directly.
-      e.preventDefault();
-      // A real hash change (not a direct showList() call) so this becomes
-      // its own back-button stop — previously this was a silent JS-only
-      // filter with no URL change, which is why "back" from a prompt page
-      // opened from here had nowhere sensible to land.
-      location.hash = '#category=' + encodeURIComponent(el.dataset.category);
-    });
-  });
+  // Category cards are real <a href="/category/..."> links now — clicking
+  // one navigates to that category's own page instead of filtering in
+  // place on the homepage. This used to intercept the click and do an
+  // instant in-page filter instead (for a snappier feel before the
+  // category pages existed), but with real pages to send people to, a
+  // full navigation is the more honest interaction: it looks and behaves
+  // like clicking into a page, and it fully sidesteps the layout-shift
+  // that in-page filtering caused. The "filter-btn" tail chips (below)
+  // aren't links, so they keep the hash-based filter — that's a smaller,
+  // low-stakes list with nothing to navigate to in the same sense.
   categoryTailEl.querySelectorAll('.filter-btn').forEach(el => {
     el.addEventListener('click', () => {
       location.hash = '#category=' + encodeURIComponent(el.dataset.category);
@@ -1174,14 +1248,25 @@ async function initPromptPage() {
   /* --- Breadcrumb JSON-LD (helps Google show breadcrumb trail in search results) --- */
   const categorySlug = slugifyCategory(prompt.category);
   const categoryUrl = `https://smart-prompt.in/category/${categorySlug}`;
+  // A category only has its own /category/<slug> page once it clears
+  // MIN_CATEGORY_PROMPTS (functions/_slug.js) — same bar the server and
+  // initCategoryPage() use. Below that, every link to it here would be a
+  // dead link into a 404, so those spots fall back to plain (unlinked)
+  // text instead.
+  const categoryHasPage = prompts.filter(p => p.category === prompt.category).length >= 5;
   const ldBreadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
-      { "@type": "ListItem", "position": 2, "name": prompt.category, "item": categoryUrl },
-      { "@type": "ListItem", "position": 3, "name": prompt.title, "item": pageUrl }
-    ]
+    "itemListElement": categoryHasPage
+      ? [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
+          { "@type": "ListItem", "position": 2, "name": prompt.category, "item": categoryUrl },
+          { "@type": "ListItem", "position": 3, "name": prompt.title, "item": pageUrl }
+        ]
+      : [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smart-prompt.in/" },
+          { "@type": "ListItem", "position": 2, "name": prompt.title, "item": pageUrl }
+        ]
   };
   let ldBreadcrumbScript = document.getElementById('ld-json-breadcrumb');
   if (!ldBreadcrumbScript) {
@@ -1232,15 +1317,32 @@ async function initPromptPage() {
   const shareUrl = encodeURIComponent(pageUrl);
   const shareText = encodeURIComponent(`${prompt.title} — free AI prompt on SmartPrompts`);
 
+  /* --- Quick related pills: the full "More in Category" section already
+     exists further down (after the FAQ), but that's several screens of
+     scrolling away — most visitors never see it. This is a compact,
+     low-height preview of the same `related` list, placed right under the
+     copy box, so it's visible without scrolling. --- */
+  const quickRelatedHTML = related.length > 0
+    ? `
+      <div class="quick-related-row animate-fade-up" style="animation-delay:140ms">
+        <span class="quick-related-label">More ${escapeHtml(prompt.category)}</span>
+        ${related.slice(0, 3).map(r => `
+          <a href="/prompt?slug=${encodeURIComponent(r.slug)}" class="quick-related-pill">${escapeHtml(r.title)}</a>
+        `).join('')}
+      </div>
+    ` : '';
+
   const relatedHTML = related.length > 0
     ? `
       <div class="related-section animate-fade-up" style="animation-delay:250ms">
         <div class="section-heading-row" style="margin-bottom:1.25rem;">
           <div class="related-title" style="margin-bottom:0;flex:1;">More in ${escapeHtml(prompt.category)}</div>
+          ${categoryHasPage ? `
           <a href="/category/${categorySlug}" class="link-view-all">
             View all
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </a>
+          ` : ''}
         </div>
         <div class="related-grid">
           ${related.map(r => `
@@ -1275,14 +1377,18 @@ async function initPromptPage() {
       <nav class="breadcrumb-nav animate-fade-up" aria-label="Breadcrumb">
         <a href="/">Home</a>
         <span class="breadcrumb-sep">/</span>
-        <a href="/category/${categorySlug}">${escapeHtml(prompt.category)}</a>
+        ${categoryHasPage
+          ? `<a href="/category/${categorySlug}">${escapeHtml(prompt.category)}</a>`
+          : `<span>${escapeHtml(prompt.category)}</span>`}
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">${escapeHtml(prompt.title)}</span>
       </nav>
 
       <div class="animate-fade-up" style="animation-delay:50ms">
         <div class="prompt-page-meta-row">
-          <a href="/category/${categorySlug}" class="prompt-page-category">${escapeHtml(prompt.category)}</a>
+          ${categoryHasPage
+            ? `<a href="/category/${categorySlug}" class="prompt-page-category">${escapeHtml(prompt.category)}</a>`
+            : `<span class="prompt-page-category">${escapeHtml(prompt.category)}</span>`}
           <span class="difficulty-badge difficulty-${difficulty.toLowerCase()}">${difficulty}</span>
         </div>
         <h1 class="prompt-page-title">${escapeHtml(prompt.title)}</h1>
@@ -1317,6 +1423,8 @@ async function initPromptPage() {
           <div class="prompt-text" id="prompt-text">${highlightPlaceholders(escapeHtml(prompt.prompt))}</div>
         </div>
       </div>
+
+      ${quickRelatedHTML}
 
       <div class="prompt-info-section animate-fade-up" style="animation-delay:180ms">
         <h2 class="info-heading">What this prompt does</h2>
@@ -2346,6 +2454,57 @@ function initSubmitPage() {
   });
 }
 
+/* ---- Contact Us form (contact.html) ---- */
+function initContactPage() {
+  const form = document.getElementById('contact-form');
+  if (!form) return;
+
+  const msg = document.getElementById('contact-msg');
+  const submitBtn = document.getElementById('contact-submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      name: document.getElementById('c-name').value.trim(),
+      email: document.getElementById('c-email').value.trim(),
+      message: document.getElementById('c-message').value.trim(),
+      website: document.getElementById('c-website').value.trim(), // honeypot
+    };
+
+    if (!body.name || !body.email || !body.message) {
+      msg.textContent = 'Please fill in your name, email, and message.';
+      msg.style.color = '#e0555f';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        form.reset();
+        form.style.display = 'none';
+        msg.textContent = "Thanks for reaching out — we'll get back to you soon.";
+        msg.style.color = 'var(--accent)';
+      } else {
+        msg.textContent = data.error || 'Something went wrong — please try again.';
+        msg.style.color = '#e0555f';
+      }
+    } catch {
+      msg.textContent = 'Network error — please try again.';
+      msg.style.color = '#e0555f';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Message';
+    }
+  });
+}
+
 /* ---- Theme toggle (shared across index.html and prompt.html) ---- */
 function initThemeToggle() {
   const btn = document.getElementById('theme-toggle');
@@ -2596,4 +2755,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initSubmitPage();
   initTrendingPromptsPage();
   initCategoryPage();
+  initContactPage();
 });
