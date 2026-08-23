@@ -718,6 +718,17 @@ async function initIndexPage() {
   const grid = document.getElementById('prompt-grid');
   if (!grid) return;
 
+  // Kick off the category-settings request at the same time as the prompt
+  // list instead of after it finishes. Previously this fetch only started
+  // once fetchPrompts() below had already resolved, adding a full second
+  // network round-trip before the category cards could render — visible
+  // as the category grid sitting on its skeleton placeholders noticeably
+  // longer than the rest of the page (which renders right after the
+  // prompt list alone finishes loading).
+  const featuredSettingsPromise = fetch('/api/category-settings')
+    .then(r => r.ok ? r.json() : { featured: [] })
+    .catch(() => ({ featured: [] }));
+
   const prompts = await fetchPrompts();
 
   /* --- Hero + featured blog banner + trending banner: hidden during
@@ -838,11 +849,10 @@ async function initIndexPage() {
   const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
   const TOP_N = 12;
 
-  let featuredCats = [];
-  try {
-    const featRes = await fetch('/api/category-settings');
-    if (featRes.ok) featuredCats = (await featRes.json()).featured || [];
-  } catch (e) { /* if this fails, just fall back to plain count-based order */ }
+  // Already in flight (kicked off in parallel with fetchPrompts() above),
+  // so this just reads a request that's very likely already finished by
+  // now instead of starting a fresh one and waiting all over again.
+  const featuredCats = (await featuredSettingsPromise).featured || [];
 
   const pinned = sortedCats.filter(([cat]) => featuredCats.includes(cat));
   // Everything else only qualifies for a card/chip if it clears the same
