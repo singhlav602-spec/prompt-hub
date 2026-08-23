@@ -19,6 +19,46 @@ async function fetchPrompts() {
   }
 }
 
+/* ---- Fetch just one category's prompts (server-side filtered via
+   /api/prompts?category=), instead of downloading and then filtering the
+   full 6000+ row table client-side. Used by the /category/<slug> page,
+   which only ever needs one category's rows. Cached per category name so
+   re-rendering the same category page doesn't refetch. ---- */
+const _promptsByCategoryCache = {};
+async function fetchPromptsByCategory(category) {
+  if (_promptsByCategoryCache[category]) return _promptsByCategoryCache[category];
+  try {
+    const res = await fetch(`/api/prompts?category=${encodeURIComponent(category)}`);
+    if (!res.ok) throw new Error('Failed to load category prompts');
+    const data = await res.json();
+    _promptsByCategoryCache[category] = data;
+    return data;
+  } catch (err) {
+    console.error('Error loading category prompts:', err);
+    return [];
+  }
+}
+
+/* ---- Fetch the lightweight per-category counts (SQL GROUP BY, ~170 tiny
+   rows) instead of the full prompt table — used anywhere that only needs
+   category names + how many prompts are in each, e.g. painting the
+   homepage category grid or checking which category a /category/<slug>
+   URL matches, without waiting on every prompt's full text to download
+   first. ---- */
+let _categoryCountsCache = null;
+async function fetchCategoryCounts() {
+  if (_categoryCountsCache) return _categoryCountsCache;
+  try {
+    const res = await fetch('/api/category-counts');
+    if (!res.ok) throw new Error('Failed to load category counts');
+    _categoryCountsCache = await res.json();
+    return _categoryCountsCache;
+  } catch (err) {
+    console.error('Error loading category counts:', err);
+    return [];
+  }
+}
+
 /* ---- Fetch the auto-computed Trending/Rising/Popular/High-Demand list.
    Returns [] when there isn't enough real traffic data yet — callers
    should fall back to the curated DISCOVERY_PROMPTS seed list in that
@@ -545,14 +585,18 @@ async function initCategoryPage() {
   const emptyState = document.getElementById('category-empty-state');
   if (!grid) return;
 
-  const prompts = await fetchPrompts();
+  // Match the URL slug against the lightweight per-category counts first
+  // (a ~170-row aggregate) instead of downloading every prompt in the
+  // entire library just to work out which category this is and whether
+  // it clears MIN_CATEGORY_PROMPTS. The matched category's actual prompts
+  // are fetched separately below, filtered server-side to just that one
+  // category — same reasoning, the page never needed the other 6000+ rows.
+  const categoryCounts = await fetchCategoryCounts();
   // Same MIN_CATEGORY_PROMPTS bar as the server (functions/category/[slug].js)
   // — a thin category shouldn't render here just because the DB had a 404
   // hiccup upstream; keep the two checks in agreement.
   const MIN_CATEGORY_PROMPTS = 5;
-  const categoryCounts = {};
-  prompts.forEach(p => { categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1; });
-  const categoryNames = Object.keys(categoryCounts).filter(c => categoryCounts[c] >= MIN_CATEGORY_PROMPTS);
+  const categoryNames = categoryCounts.filter(c => c.count >= MIN_CATEGORY_PROMPTS).map(c => c.category);
   const matchedCategory = categoryNames.find(c => slugifyCategory(c) === slugParam);
 
   if (!matchedCategory) {
@@ -561,6 +605,8 @@ async function initCategoryPage() {
     if (emptyState) emptyState.style.display = '';
     return;
   }
+
+  const prompts = await fetchPromptsByCategory(matchedCategory);
 
   if (titleEl) titleEl.textContent = `${matchedCategory} Prompts`;
   document.title = `${matchedCategory} Prompts — Free AI Prompt Library | SmartPrompts`;
@@ -718,18 +764,96 @@ async function initIndexPage() {
   const grid = document.getElementById('prompt-grid');
   if (!grid) return;
 
-  // Kick off the category-settings request at the same time as the prompt
-  // list instead of after it finishes. Previously this fetch only started
-  // once fetchPrompts() below had already resolved, adding a full second
-  // network round-trip before the category cards could render — visible
-  // as the category grid sitting on its skeleton placeholders noticeably
-  // longer than the rest of the page (which renders right after the
-  // prompt list alone finishes loading).
+  // Fire the full prompt list (heavy — every prompt's full text, 6000+
+  // rows) and the lightweight per-category counts + featured-category
+  // settings off in parallel. The category grid only needs the latter
+  // two (a ~170-row aggregate), so it no longer has to wait for the
+  // heavy payload to finish downloading before it can paint — this was
+  // the main reason the category cards sat on their skeleton
+  // placeholders noticeably longer than the rest of the page.
+  const promptsPromise = fetchPrompts();
+  const countsPromise = fetchCategoryCounts();
   const featuredSettingsPromise = fetch('/api/category-settings')
     .then(r => r.ok ? r.json() : { featured: [] })
     .catch(() => ({ featured: [] }));
 
-  const prompts = await fetchPrompts();
+  const categoryGridEl = document.getElementById('category-grid');
+  const categoryTailEl = document.getElementById('category-tail');
+
+  /* --- Build category cards (top categories) + long-tail chips, from the
+     lightweight counts endpoint — resolves fast, doesn't wait on the full
+     prompt list below. Anything an admin has manually pinned as
+     "featured" (via the admin panel) always gets a full card, even if it
+     wouldn't otherwise be in the top N by prompt count — the rest still
+     fall back to count order. --- */
+  const [countsData, featuredData] = await Promise.all([countsPromise, featuredSettingsPromise]);
+  const sortedCats = countsData.map(r => [r.category, r.count]).sort((a, b) => b[1] - a[1]);
+  const TOP_N = 12;
+  const featuredCats = featuredData.featured || [];
+
+  const pinned = sortedCats.filter(([cat]) => featuredCats.includes(cat));
+  // Everything else only qualifies for a card/chip if it clears the same
+  // MIN_CATEGORY_PROMPTS bar the /category/<slug> pages use (kept in sync
+  // by hand here — script.js can't import functions/_slug.js, they run in
+  // different environments). An admin who explicitly pinned a category is
+  // still shown regardless of count; that's a deliberate override, not an
+  // automatic listing.
+  const MIN_CATEGORY_PROMPTS = 5;
+  const unpinned = sortedCats.filter(([cat, count]) => !featuredCats.includes(cat) && count >= MIN_CATEGORY_PROMPTS);
+  const orderedCats = [...pinned, ...unpinned];
+  const topCats = orderedCats.slice(0, TOP_N);
+  const tailCats = orderedCats.slice(TOP_N);
+
+  // Keep the reserved skeleton space in sync with TOP_N automatically —
+  // same reasoning as the trending-prompts page fix. Runs before the
+  // category cards are rendered below, so it's in place before paint.
+  if (categoryGridEl) {
+    const catSkeletons = categoryGridEl.querySelectorAll('.skeleton');
+    for (let i = catSkeletons.length; i < TOP_N; i++) {
+      const sk = document.createElement('div');
+      sk.className = 'skeleton';
+      sk.style.height = '150px';
+      categoryGridEl.appendChild(sk);
+    }
+    for (let i = catSkeletons.length - 1; i >= TOP_N; i--) {
+      catSkeletons[i].remove();
+    }
+
+    categoryGridEl.innerHTML = topCats.map(([cat, count], i) => {
+      const icon = CATEGORY_ICONS[cat] || '✨';
+      const color = CARD_COLORS[i % CARD_COLORS.length];
+      return `
+      <a href="/category/${slugifyCategory(cat)}" class="category-card" data-category="${escapeHtml(cat)}">
+        <div class="category-card-icon category-card-icon-${color}">${icon}</div>
+        <div class="category-card-info">
+          <div>
+            <div class="category-card-name">${escapeHtml(cat)}</div>
+            <div class="category-card-count">${count}+ Prompts</div>
+          </div>
+          <div class="category-card-arrow category-card-arrow-${color}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </a>
+    `;
+    }).join('');
+  }
+
+  if (categoryTailEl) {
+    categoryTailEl.innerHTML = tailCats.map(([cat, count]) => `
+      <button class="filter-btn" data-category="${escapeHtml(cat)}">${escapeHtml(cat)} · ${count}</button>
+    `).join('');
+    // Category cards above are real <a href="/category/..."> links —
+    // clicking one navigates to that category's own page. The tail chips
+    // aren't links, so they keep the hash-based in-page filter.
+    categoryTailEl.querySelectorAll('.filter-btn').forEach(el => {
+      el.addEventListener('click', () => {
+        location.hash = '#category=' + encodeURIComponent(el.dataset.category);
+      });
+    });
+  }
+
+  const prompts = await promptsPromise;
 
   /* --- Hero + featured blog banner + trending banner: hidden during
      category/search results views (see showList below); shown by default. --- */
@@ -830,8 +954,6 @@ async function initIndexPage() {
   const searchHero      = document.getElementById('search-hero');
   const countEl         = document.getElementById('prompt-count');
   const categoryBrowse  = document.getElementById('category-browse');
-  const categoryGridEl  = document.getElementById('category-grid');
-  const categoryTailEl  = document.getElementById('category-tail');
   const listHeader      = document.getElementById('list-header');
   const promoBanner     = document.querySelector('.promo-banner');
   const newsletterBar   = document.querySelector('.newsletter-bar');
@@ -840,49 +962,10 @@ async function initIndexPage() {
   let activeCategory = 'All';
   let searchTerm = '';
 
-  /* --- Build category cards (top categories) + long-tail chips.
-     Anything an admin has manually pinned as "featured" (via the admin
-     panel) always gets a full card, even if it wouldn't otherwise be in
-     the top N by prompt count — the rest still fall back to count order. --- */
-  const catCounts = {};
-  prompts.forEach(p => { catCounts[p.category] = (catCounts[p.category] || 0) + 1; });
-  const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
-  const TOP_N = 12;
-
-  // Already in flight (kicked off in parallel with fetchPrompts() above),
-  // so this just reads a request that's very likely already finished by
-  // now instead of starting a fresh one and waiting all over again.
-  const featuredCats = (await featuredSettingsPromise).featured || [];
-
-  const pinned = sortedCats.filter(([cat]) => featuredCats.includes(cat));
-  // Everything else only qualifies for a card/chip if it clears the same
-  // MIN_CATEGORY_PROMPTS bar the /category/<slug> pages use (kept in sync
-  // by hand here — script.js can't import functions/_slug.js, they run in
-  // different environments). An admin who explicitly pinned a category is
-  // still shown regardless of count; that's a deliberate override, not an
-  // automatic listing.
-  const MIN_CATEGORY_PROMPTS = 5;
-  const unpinned = sortedCats.filter(([cat, count]) => !featuredCats.includes(cat) && count >= MIN_CATEGORY_PROMPTS);
-  const orderedCats = [...pinned, ...unpinned];
-  const topCats = orderedCats.slice(0, TOP_N);
-  const tailCats = orderedCats.slice(TOP_N);
-
-  // Keep the reserved skeleton space in sync with TOP_N automatically —
-  // same reasoning as the trending-prompts page fix. Runs before the
-  // category cards are rendered below, so it's in place before paint.
-  if (categoryGridEl) {
-    const catSkeletons = categoryGridEl.querySelectorAll('.skeleton');
-    for (let i = catSkeletons.length; i < TOP_N; i++) {
-      const sk = document.createElement('div');
-      sk.className = 'skeleton';
-      sk.style.height = '150px';
-      categoryGridEl.appendChild(sk);
-    }
-    for (let i = catSkeletons.length - 1; i >= TOP_N; i--) {
-      catSkeletons[i].remove();
-    }
-  }
-
+  // topCats/tailCats/categoryGridEl/categoryTailEl were already built and
+  // rendered above (from the lightweight counts endpoint, before the full
+  // prompt list even started downloading) — nothing more to do for the
+  // category grid here.
 
   const topPromptsSection = document.getElementById('top-prompts-section');
 
@@ -1012,45 +1095,6 @@ async function initIndexPage() {
     });
   }
   window.showList = showList;
-
-  categoryGridEl.innerHTML = topCats.map(([cat, count], i) => {
-    const icon = CATEGORY_ICONS[cat] || '✨';
-    const color = CARD_COLORS[i % CARD_COLORS.length];
-    return `
-    <a href="/category/${slugifyCategory(cat)}" class="category-card" data-category="${escapeHtml(cat)}">
-      <div class="category-card-icon category-card-icon-${color}">${icon}</div>
-      <div class="category-card-info">
-        <div>
-          <div class="category-card-name">${escapeHtml(cat)}</div>
-          <div class="category-card-count">${count}+ Prompts</div>
-        </div>
-        <div class="category-card-arrow category-card-arrow-${color}">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </div>
-      </div>
-    </a>
-  `;
-  }).join('');
-
-  categoryTailEl.innerHTML = tailCats.map(([cat, count]) => `
-    <button class="filter-btn" data-category="${escapeHtml(cat)}">${escapeHtml(cat)} · ${count}</button>
-  `).join('');
-
-  // Category cards are real <a href="/category/..."> links now — clicking
-  // one navigates to that category's own page instead of filtering in
-  // place on the homepage. This used to intercept the click and do an
-  // instant in-page filter instead (for a snappier feel before the
-  // category pages existed), but with real pages to send people to, a
-  // full navigation is the more honest interaction: it looks and behaves
-  // like clicking into a page, and it fully sidesteps the layout-shift
-  // that in-page filtering caused. The "filter-btn" tail chips (below)
-  // aren't links, so they keep the hash-based filter — that's a smaller,
-  // low-stakes list with nothing to navigate to in the same sense.
-  categoryTailEl.querySelectorAll('.filter-btn').forEach(el => {
-    el.addEventListener('click', () => {
-      location.hash = '#category=' + encodeURIComponent(el.dataset.category);
-    });
-  });
 
   /* --- Featured Prompts: one pick per top category, no invented view
      counts — just an honest, varied sample of the library.
