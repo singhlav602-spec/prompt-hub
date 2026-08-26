@@ -643,27 +643,49 @@ function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All',
     return 0;
   }
 
-  // Cap how many cards get built at once — rendering hundreds of DOM nodes
-  // for a broad match (e.g. a single common letter) is what made typing feel
-  // sluggish. Narrowing the search still reveals more as the list shortens.
+  // Render in batches instead of building every card (and every image/DOM
+  // node it contains) at once — hundreds of cards for a broad match (e.g. a
+  // single common letter, or a big category like YouTube's 274) made typing
+  // and scrolling feel sluggish. A "Load more" button reveals the next
+  // batch on demand instead of hard-cutting the list with just a note.
   // Callers with no live-typing box to narrow with (e.g. a category landing
-  // page, which should show every prompt in that category for both users
-  // and Google) pass { noCap: true } to skip this entirely — several
-  // categories already exceed 60 prompts, so this isn't just a future
-  // concern.
-  const RENDER_CAP = 60;
-  const toRender = options.noCap ? filtered : filtered.slice(0, RENDER_CAP);
+  // page, which should show every prompt in that category up front for both
+  // users and Google) pass { noCap: true } to skip batching entirely.
+  const BATCH_SIZE = 50;
+  const firstBatch = options.noCap ? filtered : filtered.slice(0, BATCH_SIZE);
 
-  toRender.forEach((prompt, i) => {
+  firstBatch.forEach((prompt, i) => {
     const card = buildCard(prompt, i * 25);
     container.appendChild(card);
   });
 
-  if (!options.noCap && totalMatches > RENDER_CAP) {
-    const note = document.createElement('div');
-    note.className = 'render-cap-note';
-    note.textContent = `Showing first ${RENDER_CAP} of ${totalMatches} matches — narrow your search to see more specific results.`;
-    container.appendChild(note);
+  if (!options.noCap && totalMatches > BATCH_SIZE) {
+    let renderedCount = firstBatch.length;
+
+    const loadMoreBtn = document.createElement('button');
+    loadMoreBtn.type = 'button';
+    loadMoreBtn.className = 'btn-primary btn-load-more';
+
+    const updateLabel = () => {
+      loadMoreBtn.textContent = `Load more (${renderedCount} of ${totalMatches})`;
+    };
+    updateLabel();
+
+    loadMoreBtn.addEventListener('click', () => {
+      const nextBatch = filtered.slice(renderedCount, renderedCount + BATCH_SIZE);
+      nextBatch.forEach((prompt, i) => {
+        const card = buildCard(prompt, i * 25);
+        loadMoreBtn.insertAdjacentElement('beforebegin', card);
+      });
+      renderedCount += nextBatch.length;
+      if (renderedCount >= totalMatches) {
+        loadMoreBtn.remove();
+      } else {
+        updateLabel();
+      }
+    });
+
+    container.appendChild(loadMoreBtn);
   }
 
   return totalMatches;
@@ -1317,6 +1339,13 @@ async function initPromptPage() {
           <div class="prompt-text" id="prompt-text">${highlightPlaceholders(escapeHtml(prompt.prompt))}</div>
         </div>
       </div>
+
+      ${related.length > 0 ? `
+      <div class="quick-related-row animate-fade-up" style="animation-delay:150ms">
+        <span class="quick-related-label">Related:</span>
+        ${related.map(r => `<a class="quick-related-link" href="prompt?slug=${encodeURIComponent(r.slug)}">${escapeHtml(r.title)}</a>`).join('')}
+      </div>
+      ` : ''}
 
       <div class="prompt-info-section animate-fade-up" style="animation-delay:180ms">
         <h2 class="info-heading">What this prompt does</h2>
