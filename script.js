@@ -2376,6 +2376,72 @@ function initSubmitPage() {
 }
 
 /* ---- Theme toggle (shared across index.html and prompt.html) ---- */
+/* ---- PWA install button. Registers the service worker (required by
+   Chrome before it'll consider the site installable), then listens for
+   beforeinstallprompt — the signal that the browser has verified the
+   manifest + service worker and is ready to install. Injects a plain
+   download-icon button into the header (reusing the existing .icon-btn
+   style, no new CSS needed) that triggers the native install flow on
+   click. Never shown on browsers that don't support it (e.g. iOS Safari)
+   or once the app is already running installed. ---- */
+let deferredInstallPrompt = null;
+
+function initPwaInstall() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  if (isStandalone) return;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showPwaInstallButton();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    const btn = document.getElementById('pwa-install-btn');
+    if (btn) btn.remove();
+  });
+}
+
+function showPwaInstallButton() {
+  if (document.getElementById('pwa-install-btn')) return;
+  const actions = document.querySelector('.header-actions');
+  if (!actions) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'pwa-install-btn';
+  btn.type = 'button';
+  btn.className = 'icon-btn';
+  btn.setAttribute('aria-label', 'Install app');
+  btn.title = 'Install app';
+  btn.innerHTML = `
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><path d="M5 21h14"/>
+    </svg>
+  `;
+  btn.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    btn.disabled = true;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    btn.remove();
+  });
+  // .prepend() rather than inserting before a specific search-button id —
+  // on index.html the search icon is a <button id="header-search-btn">,
+  // but on every other page (about, blog, prompt, etc.) it's a plain
+  // <a href="/"> with no id. Prepending as the first child of
+  // .header-actions puts the install button to the left of whichever
+  // search element is there, on every page, without depending on an id
+  // that only exists on one of them.
+  actions.prepend(btn);
+}
+
 function initThemeToggle() {
   const btn = document.getElementById('theme-toggle');
   if (!btn) return;
@@ -2603,6 +2669,7 @@ window.addEventListener('hashchange', () => {
 
 /* ---- Init ---- */
 document.addEventListener('DOMContentLoaded', () => {
+  initPwaInstall();
   initThemeToggle();
   initMobileNav();
   initIconNavBar();
