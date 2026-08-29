@@ -2524,3 +2524,28 @@ body::before {
 @media (max-width: 720px) {
   .featured-blog-banner { padding: 0 1.25rem; }
 }
+
+/* ============================================
+   PWA INSTALL BUTTON (header pill) — own branding, no Play Store assets.
+   ============================================ */
+.pwa-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--gradient-brand);
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform var(--transition), opacity var(--transition);
+}
+.pwa-header-btn:hover { transform: translateY(-1px); opacity: 0.92; }
+@media (max-width: 480px) {
+  .pwa-header-btn span { display: none; }
+  .pwa-header-btn { padding: 0.55rem; }
+}

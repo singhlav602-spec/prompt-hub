@@ -2378,12 +2378,11 @@ function initSubmitPage() {
 /* ---- Theme toggle (shared across index.html and prompt.html) ---- */
 /* ---- PWA install button. Registers the service worker (required by
    Chrome before it'll consider the site installable), then listens for
-   beforeinstallprompt — the signal that the browser has verified the
-   manifest + service worker and is ready to install. Injects a plain
-   download-icon button into the header (reusing the existing .icon-btn
-   style, no new CSS needed) that triggers the native install flow on
-   click. Never shown on browsers that don't support it (e.g. iOS Safari)
-   or once the app is already running installed. ---- */
+   beforeinstallprompt — the signal that the browser is ready to install —
+   and shows a compact "Install" pill in the header (every page, no
+   Google Play branding — this is a browser install, not a Play Store
+   listing). Disappears once installed, or if the app is already running
+   installed. ---- */
 let deferredInstallPrompt = null;
 
 function initPwaInstall() {
@@ -2398,17 +2397,30 @@ function initPwaInstall() {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredInstallPrompt = e;
-    showPwaInstallButton();
+    showPwaHeaderButton();
   });
 
   window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
-    const btn = document.getElementById('pwa-install-btn');
-    if (btn) btn.remove();
+    hidePwaInstallUI();
   });
 }
 
-function showPwaInstallButton() {
+async function triggerPwaInstall() {
+  if (!deferredInstallPrompt) return;
+  const promptEvent = deferredInstallPrompt;
+  deferredInstallPrompt = null;
+  hidePwaInstallUI();
+  promptEvent.prompt();
+  await promptEvent.userChoice;
+}
+
+function hidePwaInstallUI() {
+  const btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.remove();
+}
+
+function showPwaHeaderButton() {
   if (document.getElementById('pwa-install-btn')) return;
   const actions = document.querySelector('.header-actions');
   if (!actions) return;
@@ -2416,22 +2428,15 @@ function showPwaInstallButton() {
   const btn = document.createElement('button');
   btn.id = 'pwa-install-btn';
   btn.type = 'button';
-  btn.className = 'icon-btn';
+  btn.className = 'pwa-header-btn';
   btn.setAttribute('aria-label', 'Install app');
-  btn.title = 'Install app';
   btn.innerHTML = `
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><path d="M5 21h14"/>
     </svg>
+    <span>Install</span>
   `;
-  btn.addEventListener('click', async () => {
-    if (!deferredInstallPrompt) return;
-    btn.disabled = true;
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    btn.remove();
-  });
+  btn.addEventListener('click', triggerPwaInstall);
   // .prepend() rather than inserting before a specific search-button id —
   // on index.html the search icon is a <button id="header-search-btn">,
   // but on every other page (about, blog, prompt, etc.) it's a plain
