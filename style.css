@@ -2545,7 +2545,3 @@ body::before {
   transition: transform var(--transition), opacity var(--transition);
 }
 .pwa-header-btn:hover { transform: translateY(-1px); opacity: 0.92; }
-@media (max-width: 480px) {
-  .pwa-header-btn span { display: none; }
-  .pwa-header-btn { padding: 0.55rem; }
-}
