@@ -16,6 +16,7 @@
 // actual requested URL.
 import { injectSeoTags } from '../_seo.js';
 import { slugifyCategory } from '../_slug.js';
+import { getCategoryCounts } from '../_category-counts.js';
 
 const DOMAIN = 'https://smart-prompt.in';
 
@@ -39,16 +40,13 @@ export async function onRequestGet(context) {
   let promptCount = 0;
   let dbOk = true;
   try {
-    const { results } = await env.DB.prepare(
-      'SELECT DISTINCT category FROM prompts'
-    ).all();
-    const match = results.find(r => slugifyCategory(r.category) === slug);
+    // Cached aggregate (see _category-counts.js) instead of a
+    // SELECT DISTINCT scan + a COUNT(*) scan on every single visit.
+    const { counts } = await getCategoryCounts(context);
+    const match = Object.keys(counts).find(c => slugifyCategory(c) === slug);
     if (match) {
-      categoryName = match.category;
-      const countRow = await env.DB.prepare(
-        'SELECT COUNT(*) AS n FROM prompts WHERE category = ?'
-      ).bind(categoryName).first();
-      promptCount = countRow ? countRow.n : 0;
+      categoryName = match;
+      promptCount = counts[match];
     }
   } catch (e) {
     dbOk = false; // DB hiccup — don't take the page down over it, serve the shell as-is below.
