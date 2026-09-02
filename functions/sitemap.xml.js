@@ -5,6 +5,7 @@
 // regeneration step, no missing URLs.
 
 import { slugifyCategory } from './_slug.js';
+import { withEdgeCache } from './_edge-cache.js';
 
 const DOMAIN = 'https://smart-prompt.in';
 
@@ -13,6 +14,7 @@ function urlEntry(loc, lastmod, changefreq, priority) {
 }
 
 export async function onRequestGet(context) {
+  return withEdgeCache(context, async () => {
   const { env } = context;
   const today = new Date().toISOString().slice(0, 10);
   const urls = [];
@@ -110,9 +112,11 @@ export async function onRequestGet(context) {
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=UTF-8',
-      // Cached at the edge for an hour — a sitemap doesn't need to be
-      // millisecond-fresh, and this saves a D1 query on every crawler hit.
+      // Now actually enforced at the edge via withEdgeCache (see
+      // _edge-cache.js) — this header alone previously did nothing for a
+      // Pages Function, so every crawler hit re-ran all the scans above.
       'Cache-Control': 'public, max-age=3600',
     },
+  });
   });
 }

@@ -1,6 +1,7 @@
 // GET /rss.xml — RSS 2.0 feed for the blog, built from the live D1 database
 // on every request (same approach as /sitemap.xml). No manual regeneration
 // step, never goes stale.
+import { withEdgeCache } from './_edge-cache.js';
 
 const DOMAIN = 'https://smart-prompt.in';
 
@@ -52,6 +53,7 @@ function contentToHtml(escapedText) {
 }
 
 export async function onRequestGet(context) {
+  return withEdgeCache(context, async () => {
   const { env } = context;
 
   let posts = [];
@@ -94,5 +96,6 @@ export async function onRequestGet(context) {
       'Content-Type': 'application/rss+xml; charset=UTF-8',
       'Cache-Control': 'public, max-age=1800',
     },
+  });
   });
 }
