@@ -1,5 +1,8 @@
 // GET /api/videos — public, read-only. Newest first.
+import { withEdgeCache } from '../_edge-cache.js';
+
 export async function onRequestGet(context) {
+  return withEdgeCache(context, async () => {
   const { env } = context;
   try {
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS video_items (
@@ -20,7 +23,7 @@ export async function onRequestGet(context) {
     return new Response(JSON.stringify(results), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=60',
+        'Cache-Control': 'public, max-age=120',
       },
     });
   } catch (err) {
@@ -29,4 +32,5 @@ export async function onRequestGet(context) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  });
 }
