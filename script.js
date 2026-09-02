@@ -545,15 +545,34 @@ async function initCategoryPage() {
   const emptyState = document.getElementById('category-empty-state');
   if (!grid) return;
 
-  const prompts = await fetchPrompts();
-  const categoryNames = [...new Set(prompts.map(p => p.category))];
-  const matchedCategory = categoryNames.find(c => slugifyCategory(c) === slugParam);
+  // Resolve the URL slug back to a real category name using the small
+  // cached counts payload (not the full ~3000-row prompts table), then
+  // fetch only that category's prompts server-side instead of fetching
+  // everything and filtering client-side.
+  let matchedCategory = null;
+  let prompts = [];
+  try {
+    const countsRes = await fetch('/api/category-counts');
+    if (countsRes.ok) {
+      const { counts } = await countsRes.json();
+      matchedCategory = Object.keys(counts).find(c => slugifyCategory(c) === slugParam) || null;
+    }
+  } catch (err) {
+    console.error('Error loading category counts:', err);
+  }
 
   if (!matchedCategory) {
     grid.style.display = 'none';
     if (countEl) countEl.style.display = 'none';
     if (emptyState) emptyState.style.display = '';
     return;
+  }
+
+  try {
+    const res = await fetch(`/api/prompts?category=${encodeURIComponent(matchedCategory)}`);
+    if (res.ok) prompts = await res.json();
+  } catch (err) {
+    console.error('Error loading category prompts:', err);
   }
 
   if (titleEl) titleEl.textContent = `${matchedCategory} Prompts`;
@@ -1125,8 +1144,18 @@ async function initPromptPage() {
     return;
   }
 
-  const prompts = await fetchPrompts();
-  const prompt  = prompts.find(p => p.slug === slug);
+  let prompt = null;
+  let related = [];
+  try {
+    const res = await fetch(`/api/prompt-detail?slug=${encodeURIComponent(slug)}`);
+    if (res.ok) {
+      const data = await res.json();
+      prompt = data.prompt;
+      related = data.related || [];
+    }
+  } catch (err) {
+    console.error('Error loading prompt:', err);
+  }
 
   if (!prompt) {
     detail.innerHTML = `
@@ -1233,11 +1262,6 @@ async function initPromptPage() {
     document.head.appendChild(ldFaqScript);
   }
   ldFaqScript.textContent = JSON.stringify(ldFaq);
-
-  /* --- Related prompts --- */
-  const related = prompts
-    .filter(p => p.category === prompt.category && p.slug !== prompt.slug)
-    .slice(0, 6);
 
   const placeholderCount = (prompt.prompt.match(/\[[^\[\]]{2,80}\]/g) || []).length;
   window.__currentPromptText = prompt.prompt;
