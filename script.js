@@ -750,6 +750,16 @@ async function copyToClipboard(text, btn) {
    (runs only when #prompt-grid is present)
    ============================================================ */
 async function initIndexPage() {
+  // category.html reuses the exact same #prompt-grid id as the homepage
+  // (both templates share that markup pattern), so the element-existence
+  // check just below never returns early on a category page — meaning
+  // this entire homepage init (including a full, unfiltered fetchPrompts()
+  // call) was silently running a second time on every single category
+  // page visit, then crashing partway through trying to populate
+  // #category-grid, which only exists on the homepage. This guard stops
+  // that: bail out immediately if we're anywhere under /category/.
+  if (window.location.pathname.match(/^\/category\//)) return;
+
   const grid = document.getElementById('prompt-grid');
   if (!grid) return;
 
