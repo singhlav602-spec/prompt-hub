@@ -264,7 +264,7 @@ async function toggleLikedSlug(slug, countEl) {
 function buildCard(prompt, delay = 0) {
   const a = document.createElement('a');
   a.className = 'prompt-card animate-fade-up' + (prompt.tag === 'trending' ? ' prompt-card-trending' : '');
-  a.href = `prompt?slug=${encodeURIComponent(prompt.slug)}`;
+  a.href = `/prompt?slug=${encodeURIComponent(prompt.slug)}`;
   a.style.animationDelay = `${delay}ms`;
 
   const tagBadge = prompt.tag === 'hot'
@@ -368,7 +368,7 @@ function buildDiscoveryCard(prompt, badgeKey) {
   const badge = DISCOVERY_BADGES[badgeKey];
   const a = document.createElement('a');
   a.className = 'prompt-card discovery-card';
-  a.href = `prompt?slug=${encodeURIComponent(prompt.slug)}`;
+  a.href = `/prompt?slug=${encodeURIComponent(prompt.slug)}`;
   a.innerHTML = `
     <div class="card-top-row">
       ${categoryTag(prompt.category)}
@@ -1047,7 +1047,7 @@ async function initIndexPage() {
         const icon = CATEGORY_ICONS[p.category] || '✨';
         const color = CARD_COLORS[i % CARD_COLORS.length];
         return `
-          <a class="top-prompt-item" href="prompt?slug=${encodeURIComponent(p.slug)}">
+          <a class="top-prompt-item" href="/prompt?slug=${encodeURIComponent(p.slug)}">
             <div class="stat-icon stat-icon-${color}">${icon}</div>
             <div class="top-prompt-info">
               <div class="top-prompt-title">${escapeHtml(p.title)}</div>
@@ -1300,7 +1300,7 @@ async function initPromptPage() {
         </div>
         <div class="related-grid">
           ${related.map(r => `
-            <a class="prompt-card" href="prompt?slug=${encodeURIComponent(r.slug)}">
+            <a class="prompt-card" href="/prompt?slug=${encodeURIComponent(r.slug)}">
               ${categoryTag(r.category)}
               <div class="card-title">${escapeHtml(r.title)}</div>
               <div class="card-preview">${escapeHtml(r.preview || r.prompt.slice(0, 90) + '…')}</div>
@@ -1377,7 +1377,7 @@ async function initPromptPage() {
       ${related.length > 0 ? `
       <div class="quick-related-row animate-fade-up" style="animation-delay:150ms">
         <span class="quick-related-label">Related:</span>
-        ${related.map(r => `<a class="quick-related-link" href="prompt?slug=${encodeURIComponent(r.slug)}">${escapeHtml(r.title)}</a>`).join('')}
+        ${related.map(r => `<a class="quick-related-link" href="/prompt?slug=${encodeURIComponent(r.slug)}">${escapeHtml(r.title)}</a>`).join('')}
       </div>
       ` : ''}
 
@@ -1591,7 +1591,7 @@ async function initFeaturedBlogBanner() {
   if (getSeenBannerSlugs().includes(featured.slug)) return; // this visitor already opened it
 
   document.getElementById('featured-blog-banner-title').textContent = featured.title;
-  document.getElementById('featured-blog-banner-link').href = `blog-post?slug=${encodeURIComponent(featured.slug)}`;
+  document.getElementById('featured-blog-banner-link').href = `/blog-post?slug=${encodeURIComponent(featured.slug)}`;
   banner.classList.add('show');
 }
 
@@ -1685,7 +1685,7 @@ async function initGalleryListPage() {
   function renderCards() {
     const filtered = activeCategory === 'All' ? items : items.filter(g => (g.category || 'Other') === activeCategory);
     renderGridInBatches(grid, sentinel, filtered, 24, (g) => `
-      <a class="gallery-card animate-fade-up" href="gallery-item?slug=${encodeURIComponent(g.slug)}">
+      <a class="gallery-card animate-fade-up" href="/gallery-item?slug=${encodeURIComponent(g.slug)}">
         <div class="gallery-card-image-wrap">
           <img src="${escapeHtml(g.image_url)}" alt="${escapeHtml(g.title)}" loading="lazy" class="gallery-card-image" />
         </div>
@@ -1732,7 +1732,7 @@ async function initGalleryItemPage() {
         <div class="error-code">404</div>
         <h2>Image Not Found</h2>
         <p>This gallery image doesn't exist or may have been removed.</p>
-        <a href="gallery" class="btn-home">
+        <a href="/gallery" class="btn-home">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -1786,7 +1786,7 @@ async function initGalleryItemPage() {
   ]);
 
   detail.innerHTML = `
-    <a href="gallery" class="back-link animate-fade-up">
+    <a href="/gallery" class="back-link animate-fade-up">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
       </svg>
@@ -1903,7 +1903,7 @@ async function initVideoListPage() {
   function renderCards() {
     const filtered = activeCategory === 'All' ? items : items.filter(v => (v.category || 'Other') === activeCategory);
     renderGridInBatches(grid, sentinel, filtered, 24, (v) => `
-      <a class="gallery-card animate-fade-up" href="video-item?slug=${encodeURIComponent(v.slug)}">
+      <a class="gallery-card animate-fade-up" href="/video-item?slug=${encodeURIComponent(v.slug)}">
         <div class="gallery-card-image-wrap">
           <img src="${youtubeThumb(v.youtube_id)}" alt="${escapeHtml(v.title)}" loading="lazy" class="gallery-card-image" />
           <span class="gallery-card-video-badge">▶ Video</span>
@@ -1949,7 +1949,7 @@ async function initVideoItemPage() {
         <div class="error-code">404</div>
         <h2>Video Not Found</h2>
         <p>This video doesn't exist or may have been removed.</p>
-        <a href="videos" class="btn-home">
+        <a href="/videos" class="btn-home">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -2003,7 +2003,7 @@ async function initVideoItemPage() {
   ]);
 
   detail.innerHTML = `
-    <a href="videos" class="back-link animate-fade-up">
+    <a href="/videos" class="back-link animate-fade-up">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
       </svg>
@@ -2222,7 +2222,7 @@ async function initBlogListPage() {
   }
 
   grid.innerHTML = posts.map(p => `
-    <a class="prompt-card animate-fade-up" href="blog-post?slug=${encodeURIComponent(p.slug)}">
+    <a class="prompt-card animate-fade-up" href="/blog-post?slug=${encodeURIComponent(p.slug)}">
       <span class="card-date">${escapeHtml(formatBlogDate(p.published_at))}</span>
       <div class="card-title">${escapeHtml(p.title)}</div>
       <div class="card-preview blog-excerpt">${escapeHtml(p.excerpt || p.content.slice(0, 140) + '…')}</div>
@@ -2254,7 +2254,7 @@ async function initBlogPostPage() {
         <div class="error-code">404</div>
         <h2>Post Not Found</h2>
         <p>We couldn't find that blog post.</p>
-        <a href="blog" class="btn-home">
+        <a href="/blog" class="btn-home">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -2319,7 +2319,7 @@ async function initBlogPostPage() {
         <div class="related-title">More from the Blog</div>
         <div class="related-grid">
           ${relatedPosts.map(r => `
-            <a class="prompt-card" href="blog-post?slug=${encodeURIComponent(r.slug)}">
+            <a class="prompt-card" href="/blog-post?slug=${encodeURIComponent(r.slug)}">
               <span class="card-date">${escapeHtml(formatBlogDate(r.published_at))}</span>
               <div class="card-title">${escapeHtml(r.title)}</div>
               <div class="card-preview blog-excerpt">${escapeHtml(r.excerpt || r.content.slice(0, 90) + '…')}</div>
@@ -2339,7 +2339,7 @@ async function initBlogPostPage() {
     : '';
 
   detail.innerHTML = `
-    <a href="blog" class="back-link animate-fade-up">
+    <a href="/blog" class="back-link animate-fade-up">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
       </svg>
@@ -2590,24 +2590,24 @@ function initIconNavBar() {
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>',
     },
     {
-      label: 'Trending', href: 'trending-prompts',
+      label: 'Trending', href: '/trending-prompts',
       active: isTrending,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1-.5-2-1-3 2 1 3 3 3 6a6 6 0 0 1-12 0c0-4 2-5 4-10z"/></svg>',
     },
     {
-      label: 'Blog', href: 'blog',
+      label: 'Blog', href: '/blog',
       active: isBlog && !isGallery,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
     },
     // Gallery paused for now (R2 migration pending) — re-add this item
     // when it's switched back on:
     // {
-    //   label: 'Gallery', href: 'gallery.html',
+    //   label: 'Gallery', href: '/gallery.html',
     //   active: isGallery,
     //   icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5-9 9"/></svg>',
     // },
     {
-      label: 'Videos', href: 'videos',
+      label: 'Videos', href: '/videos',
       active: isVideos,
       icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="14" height="14" rx="2"/><path d="M21 8.5l-4.5 3.5 4.5 3.5v-7z"/></svg>',
     },
@@ -2642,11 +2642,11 @@ function initIconNavBar() {
   morePopover.className = 'icon-nav-more-popover';
   morePopover.id = 'icon-nav-more-popover';
   morePopover.innerHTML = `
-    <a href="seo-tool" class="site-nav-link">SEO Tool</a>
-    <a href="prompt-improver" class="site-nav-link">Prompt Improver</a>
-    <a href="image-prompt-generator" class="site-nav-link">Image Prompt Generator</a>
-    <a href="submit" class="site-nav-link">Submit Prompt</a>
-    <a href="about" class="site-nav-link">About</a>
+    <a href="/seo-tool" class="site-nav-link">SEO Tool</a>
+    <a href="/prompt-improver" class="site-nav-link">Prompt Improver</a>
+    <a href="/image-prompt-generator" class="site-nav-link">Image Prompt Generator</a>
+    <a href="/submit" class="site-nav-link">Submit Prompt</a>
+    <a href="/about" class="site-nav-link">About</a>
   `;
   document.body.appendChild(morePopover);
 
