@@ -43,10 +43,20 @@ export async function onRequestGet(context) {
     // Cached aggregate (see _category-counts.js) instead of a
     // SELECT DISTINCT scan + a COUNT(*) scan on every single visit.
     const { counts } = await getCategoryCounts(context);
-    const match = Object.keys(counts).find(c => slugifyCategory(c) === slug);
-    if (match) {
-      categoryName = match;
-      promptCount = counts[match];
+    const categoryKeys = Object.keys(counts);
+    // Safety net: if the aggregate ever comes back empty (a transient D1
+    // hiccup during the cache-refresh query, or a corrupted cache entry),
+    // treat it the same as a DB failure below — NOT as "no category
+    // matched" — so we never 404 every single category page for up to the
+    // 10-minute cache window over what would just be bad luck on one query.
+    if (categoryKeys.length === 0) {
+      dbOk = false;
+    } else {
+      const match = categoryKeys.find(c => slugifyCategory(c) === slug);
+      if (match) {
+        categoryName = match;
+        promptCount = counts[match];
+      }
     }
   } catch (e) {
     dbOk = false; // DB hiccup — don't take the page down over it, serve the shell as-is below.
