@@ -21,18 +21,26 @@ export async function onRequestPost(context) {
 
   const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
-  try {
-    await db.prepare(`CREATE TABLE IF NOT EXISTS prompt_views (
-      slug TEXT NOT NULL,
-      day TEXT NOT NULL,
-      views INTEGER NOT NULL DEFAULT 0,
-      PRIMARY KEY (slug, day)
-    )`).run();
+  const upsert = () => db.prepare(
+    `INSERT INTO prompt_views (slug, day, views) VALUES (?, ?, 1)
+     ON CONFLICT(slug, day) DO UPDATE SET views = views + 1`
+  ).bind(slug, today).run();
 
-    await db.prepare(
-      `INSERT INTO prompt_views (slug, day, views) VALUES (?, ?, 1)
-       ON CONFLICT(slug, day) DO UPDATE SET views = views + 1`
-    ).bind(slug, today).run();
+  try {
+    // The table already exists on any live DB, so go straight to the write
+    // (one query per view instead of two). Only if that fails — e.g. a
+    // brand-new database — create the table and retry once.
+    try {
+      await upsert();
+    } catch (e) {
+      await db.prepare(`CREATE TABLE IF NOT EXISTS prompt_views (
+        slug TEXT NOT NULL,
+        day TEXT NOT NULL,
+        views INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (slug, day)
+      )`).run();
+      await upsert();
+    }
 
     // Occasionally prune rows older than 60 days so the table doesn't
     // grow forever. No Cron Trigger needed — just a random chance on

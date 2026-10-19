@@ -12,10 +12,22 @@
 // (see MIN_TOTAL_VIEWS) — the site falls back to its small hand-picked
 // seed list (DISCOVERY_PROMPTS in script.js) until then. Nothing else
 // needs to change when real data takes over; it just starts happening.
+import { withEdgeCache } from '../_edge-cache.js';
+
+// Edge-cached (see _edge-cache.js). Before this, every homepage/trending-page
+// visit re-ran the queries below against D1 — including a scan of the whole
+// prompt_views table. A Cache-Control header alone does nothing for a Pages
+// Function, so the cache is applied explicitly via withEdgeCache.
+const CACHE_SECONDS = 900; // 15 min — trending data doesn't need to be instant
+
 const MIN_TOTAL_VIEWS = 30; // below this (last 30 days, all prompts), not enough signal yet
 const PER_BADGE = 5;        // cards per badge, ~20 total across all four
 
 export async function onRequestGet(context) {
+  return withEdgeCache(context, () => computeDiscovery(context));
+}
+
+async function computeDiscovery(context) {
   const { env } = context;
   try {
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS prompt_views (
@@ -24,6 +36,12 @@ export async function onRequestGet(context) {
       views INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (slug, day)
     )`).run();
+
+    // Index so the featured lookup below doesn't scan every prompt row.
+    // Idempotent; only runs on a cache miss. Ignored if the column is missing.
+    try {
+      await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_prompts_featured ON prompts(featured_trending)').run();
+    } catch (e) { /* column may not exist yet on a very old DB — ignore */ }
 
     // Manually-featured prompts (admin checked "Feature on Trending") always
     // appear, regardless of real view data — lets a brand-new prompt show up
@@ -52,7 +70,7 @@ export async function onRequestGet(context) {
     if (totalViews < MIN_TOTAL_VIEWS) {
       if (featured.length) {
         return new Response(JSON.stringify(featured), {
-          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': `public, max-age=${CACHE_SECONDS}` },
         });
       }
       return emptyResponse();
@@ -108,7 +126,7 @@ export async function onRequestGet(context) {
     return new Response(JSON.stringify(combined), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300', // 5 min edge cache — this doesn't need to be instant
+        'Cache-Control': `public, max-age=${CACHE_SECONDS}`,
       },
     });
   } catch (err) {
@@ -123,7 +141,7 @@ function emptyResponse() {
   return new Response(JSON.stringify([]), {
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=300',
+      'Cache-Control': `public, max-age=${CACHE_SECONDS}`,
     },
   });
 }
