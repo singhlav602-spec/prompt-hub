@@ -43,6 +43,7 @@ export async function onRequestGet(context) {
   if (!hiddenSlugs.has('seo-tool')) urls.push(urlEntry(`${DOMAIN}/seo-tool`, today, 'monthly', '0.6'));
   if (!hiddenSlugs.has('prompt-improver')) urls.push(urlEntry(`${DOMAIN}/prompt-improver`, today, 'monthly', '0.6'));
   if (!hiddenSlugs.has('image-prompt-generator')) urls.push(urlEntry(`${DOMAIN}/image-prompt-generator`, today, 'monthly', '0.6'));
+  if (!hiddenSlugs.has('color-poster-prompt-generator')) urls.push(urlEntry(`${DOMAIN}/color-poster-prompt-generator`, today, 'monthly', '0.6'));
   if (!hiddenSlugs.has('about')) urls.push(urlEntry(`${DOMAIN}/about`, today, 'monthly', '0.4'));
   if (!hiddenSlugs.has('submit')) urls.push(urlEntry(`${DOMAIN}/submit`, today, 'monthly', '0.4'));
 
