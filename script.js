@@ -2733,3 +2733,219 @@ document.addEventListener('DOMContentLoaded', () => {
   initTrendingPromptsPage();
   initCategoryPage();
 });
+
+/* =========================================================================
+   SmartPrompts — context-aware funny messages
+   - A small card slides up from the bottom, stays 7 seconds (never < 6 s).
+   - The first one comes after 45 s, then one every 60 s while the visitor stays.
+   - The text matches the section / page being viewed (home sections, studio modes, blog, submit, ...).
+   - A message never repeats until the whole pool for that section has been used.
+   - Max 10 per visit, then one goodbye message and silence. 3 closes = quiet for the day.
+   - Messages live in /funny-messages.json (fetched once, after the first timer). No D1, no API.
+   - Testing: add ?funny=fast to any URL (first message after ~2.5 s, then every 9 s).
+   ========================================================================= */
+(function () {
+  'use strict';
+  if (window.__spFunny) return;
+  window.__spFunny = true;
+
+  var FAST = /[?&]funny=fast\b/.test(location.search);
+  var MAXQ = FAST && location.search.match(/[?&]funnymax=(\d+)/);
+  var FIRST_MS = FAST ? 2500 : 45000;
+  var EVERY_MS = FAST ? 9000 : 60000;
+  var STAY_MS = 7000;                         // must stay >= 6000
+  var MAX_PER_VISIT = MAXQ ? parseInt(MAXQ[1], 10) : 10;
+  var CLOSE_LIMIT = 3;
+  var DATA_URL = '/funny-messages.json';
+
+  var DATA = null, SEEN = {}, shown = 0, closes = 0, stopped = false, retries = 0;
+  var timer = null, hideT = null, shownAt = 0, remaining = STAY_MS, el = null, card = null, textEl = null, barEl = null;
+  var homeVis = {};
+
+  /* ---------- small storage helpers ---------- */
+  function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function today() { return new Date().toISOString().slice(0, 10); }
+
+  var c = lsGet('sp_funny_closes');
+  if (c && c.d === today()) closes = c.n || 0;
+  if (closes >= CLOSE_LIMIT) return;          // asked to be left alone today
+  SEEN = lsGet('sp_funny_seen') || {};
+
+  /* ---------- which page / section is the visitor on? ---------- */
+  function pageCtx() {
+    var p = location.pathname.replace(/\/+$/, '').replace(/\.html$/, '').toLowerCase() || '/';
+    if (p === '/' || p === '/index') return 'home';
+    if (p === '/trending-prompts') return 'trending';
+    if (p === '/blog' || p === '/blog-post') return 'blog';
+    if (p === '/videos' || p === '/video-item') return 'videos';
+    if (p === '/category') return 'prompts';
+    if (p === '/prompt') return 'prompt';
+    if (p === '/saved') return 'saved';
+    if (p === '/submit') return 'submit';
+    if (p === '/about' || p === '/contact') return 'about';
+    if (p === '/seo-tool' || p === '/prompt-improver' || p === '/image-prompt-generator') return 'tools';
+    if (p === '/color-poster-prompt-generator') return 'studio';
+    return 'generic';
+  }
+
+  var HOME_SECTIONS = [
+    ['.hero', 'hero'], ['#category-browse', 'categories'], ['#top-prompts-section', 'trending'],
+    ['.promo-banner', 'newprompts'], ['.newsletter-bar', 'newsletter'], ['#prompt-grid', 'prompts']
+  ];
+  function watchHome() {
+    if (pageCtx() !== 'home' || !('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { homeVis[e.target.__spCtx] = e.isIntersecting ? e.intersectionRect.height : 0; });
+    }, { threshold: [0, 0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 1] });
+    HOME_SECTIONS.forEach(function (s) {
+      var n = document.querySelector(s[0]);
+      if (n) { n.__spCtx = s[1]; io.observe(n); }
+    });
+  }
+  function homeCtx() {
+    var best = null, bestH = 80;                // a section must show at least ~80px to count
+    Object.keys(homeVis).forEach(function (k) { if (homeVis[k] > bestH) { best = k; bestH = homeVis[k]; } });
+    return best || (window.scrollY < 300 ? 'hero' : 'generic');
+  }
+  function studioMode() {
+    var m = document.querySelector('[data-design-mode][aria-pressed="true"]');
+    var v = m && m.getAttribute('data-design-mode');
+    return (v === 'wallpaper' || v === 'poster' || v === 'banner' || v === 'background') ? v : null;
+  }
+  function choosePool() {
+    var ctx = pageCtx(), r = Math.random();
+    if (ctx === 'home') return r < 0.78 ? homeCtx() : 'generic';
+    if (ctx === 'studio') {
+      var m = studioMode();
+      if (m && r < 0.55) return 'studio_' + m;
+      return r < 0.85 ? 'studio' : 'generic';
+    }
+    return r < 0.8 ? ctx : 'generic';
+  }
+
+  /* ---------- pick a message that has not been used yet ---------- */
+  function pick(pool) {
+    var list = DATA && DATA[pool];
+    if (!list || !list.length) { pool = 'generic'; list = DATA && DATA.generic; }
+    if (!list || !list.length) return null;
+    var seen = SEEN[pool] || (SEEN[pool] = []), avail = [], i;
+    for (i = 0; i < list.length; i++) if (seen.indexOf(i) < 0) avail.push(i);
+    if (!avail.length) {                         // whole pool used: start over, but never repeat the last one back-to-back
+      var last = seen[seen.length - 1];
+      seen.length = 0;
+      for (i = 0; i < list.length; i++) if (i !== last) avail.push(i);
+    }
+    var idx = avail[Math.floor(Math.random() * avail.length)];
+    seen.push(idx);
+    lsSet('sp_funny_seen', SEEN);
+    return { pool: pool, text: list[idx] };
+  }
+
+  /* ---------- the card ---------- */
+  function injectCss() {
+    if (document.getElementById('sp-funny-css')) return;
+    var s = document.createElement('style');
+    s.id = 'sp-funny-css';
+    s.textContent =
+      '#sp-funny{position:fixed;left:0;right:0;bottom:0;z-index:9000;display:flex;justify-content:center;padding:0 12px calc(12px + env(safe-area-inset-bottom));pointer-events:none}' +
+      '.spf-card{position:relative;pointer-events:auto;box-sizing:border-box;max-width:min(94vw,430px);min-width:min(86vw,280px);padding:.85rem 2.4rem 1rem 1rem;border-radius:16px;background:var(--bg-card,#fff);color:var(--text,#111);border:1.5px solid rgba(99,102,241,.45);box-shadow:0 18px 40px -14px rgba(49,46,129,.55);overflow:hidden;transform:translateY(170%);opacity:0;transition:transform .38s cubic-bezier(.2,.9,.3,1.15),opacity .25s ease}' +
+      '.spf-card.on{transform:none;opacity:1}' +
+      '.spf-text{font:700 .94rem/1.45 var(--font-body,system-ui,sans-serif);color:#4f46e5;background:linear-gradient(90deg,#4f46e5,#db2777);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}' +
+      ':root:not([data-theme="light"]) .spf-text{color:#a5b4fc;background-image:linear-gradient(90deg,#a5b4fc,#f9a8d4)}' +
+      '.spf-x{position:absolute;top:.3rem;right:.35rem;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:inherit;font-size:1.35rem;line-height:1;cursor:pointer;opacity:.65}' +
+      '.spf-x:hover{opacity:1;background:rgba(99,102,241,.12)}' +
+      '.spf-x:focus-visible{outline:3px solid #6366f1;outline-offset:1px}' +
+      '.spf-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(99,102,241,.15)}' +
+      '.spf-bar i{display:block;height:100%;transform-origin:left;background:linear-gradient(90deg,#4f46e5,#db2777);animation:spf-bar ' + (STAY_MS / 1000) + 's linear forwards;animation-play-state:paused}' +
+      '.spf-card.on .spf-bar i{animation-play-state:running}' +
+      '.spf-card.on.paused .spf-bar i{animation-play-state:paused}' +
+      '@keyframes spf-bar{from{transform:scaleX(1)}to{transform:scaleX(0)}}' +
+      '@media (prefers-reduced-motion:reduce){.spf-card{transition:none}}';
+    document.head.appendChild(s);
+  }
+  function build() {
+    if (el) return;
+    injectCss();
+    el = document.createElement('div');
+    el.id = 'sp-funny';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.innerHTML = '<div class="spf-card"><div class="spf-text"></div><button type="button" class="spf-x" aria-label="Close message">×</button><div class="spf-bar"><i></i></div></div>';
+    document.body.appendChild(el);
+    card = el.querySelector('.spf-card');
+    textEl = el.querySelector('.spf-text');
+    barEl = el.querySelector('.spf-bar i');
+    el.querySelector('.spf-x').addEventListener('click', function () {
+      hide();
+      closes++;
+      lsSet('sp_funny_closes', { d: today(), n: closes });
+      track('closed', card.getAttribute('data-pool'));
+      if (closes >= CLOSE_LIMIT) { stopped = true; clearTimeout(timer); }
+    });
+    card.addEventListener('pointerenter', function () {      // reading? keep it on screen
+      clearTimeout(hideT);
+      remaining = Math.max(STAY_MS - (Date.now() - shownAt), 3000);
+      card.classList.add('paused');
+    });
+    card.addEventListener('pointerleave', function () {
+      card.classList.remove('paused');
+      hideT = setTimeout(hide, remaining);
+    });
+  }
+  function track(action, pool) {
+    if (typeof gtag === 'function') { try { gtag('event', 'funny_message', { action: action, pool: pool }); } catch (e) {} }
+  }
+  function show(m) {
+    build();
+    textEl.textContent = m.text;
+    card.setAttribute('data-pool', m.pool);
+    barEl.style.animation = 'none'; void barEl.offsetWidth; barEl.style.animation = '';   // restart the timer bar
+    shownAt = Date.now(); remaining = STAY_MS;
+    card.classList.remove('paused');
+    requestAnimationFrame(function () { card.classList.add('on'); });
+    clearTimeout(hideT);
+    hideT = setTimeout(hide, STAY_MS);
+    track('shown', m.pool);
+  }
+  function hide() { if (card) card.classList.remove('on'); }
+
+  /* ---------- when is it a bad moment? ---------- */
+  function busy() {
+    if (document.hidden) return true;
+    var a = document.activeElement;
+    if (a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)) return true;
+    if (document.body.style.overflow === 'hidden') return true;
+    var lb = document.getElementById('cpg-lb');
+    if (lb && !lb.hidden) return true;
+    return false;
+  }
+
+  /* ---------- schedule ---------- */
+  function load() {
+    if (DATA) return Promise.resolve();
+    return fetch(DATA_URL, { cache: 'force-cache' })
+      .then(function (r) { if (!r.ok) throw new Error('no data'); return r.json(); })
+      .then(function (d) { DATA = d; });
+  }
+  function schedule(ms) { clearTimeout(timer); timer = setTimeout(tick, ms); }
+  function tick() {
+    if (stopped) return;
+    if (busy()) {                               // typing, tab hidden, full-screen preview...: try again shortly
+      if (++retries <= 6) { schedule(5000); return; }
+      retries = 0; schedule(EVERY_MS); return;
+    }
+    retries = 0;
+    load().then(function () {
+      var last = shown >= MAX_PER_VISIT;
+      var m = pick(last ? 'bye' : choosePool());
+      if (!m) { stopped = true; return; }
+      show(m); shown++;
+      if (last) { stopped = true; return; }     // goodbye shown, now stay quiet
+      schedule(EVERY_MS);
+    }).catch(function () { stopped = true; });  // data missing: stay silent, never break the page
+  }
+
+  watchHome();
+  schedule(FIRST_MS);
+})();
