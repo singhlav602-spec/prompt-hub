@@ -430,6 +430,108 @@
 /* Touch-friendly buttons: every control is at least 44px tall (it was 35-38px). */
 .cpg-seg button,.ads-view-all,.cpg-extra-clear,.ads-btn,.cpg-shuffle,#cpg-copy-all,#cpg-copy-short,#cpg-reset,.cpg-advanced-toggle{min-height:44px!important}
 .cpg-grid.is-wallpaper{display:block!important}
+
+/* =====================================================================
+   POLISH + STICKY PREVIEW  (added last so it wins over the older rules)
+   ===================================================================== */
+:root{--s-ind:#4f46e5;--s-vio:#7c3aed;--s-grad:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);--s-soft:rgba(99,102,241,.10);--s-line:#c9cde2;--s-card:#fff;--s-field:#f7f8fd;--s-hex:#eef0fb;--s-shadow:0 18px 40px -22px rgba(49,46,129,.45)}
+:root:not([data-theme="light"]){--s-line:#3a4160;--s-card:#161a29;--s-field:#1e2335;--s-hex:#242a40;--s-soft:rgba(129,140,248,.14);--s-shadow:0 18px 40px -22px rgba(0,0,0,.7)}
+
+/* 1) Sticky works only if html/body are not scroll containers. `clip` keeps sideways scroll blocked without that side effect. */
+@supports (overflow: clip){ html, body { overflow-x: clip !important; } }
+/* The site header was never actually sticky (same root cause) — keep it in normal flow so the preview gets the whole screen. */
+.site-header, .icon-nav-bar { position: relative !important; top: auto !important; }
+@supports (overflow: clip){ #cpg-controls.cpg-panel { overflow: clip !important; } }
+@supports not (overflow: clip){ #cpg-controls.cpg-panel { overflow: visible !important; } }
+
+/* 2) Preview lives inside the controls and stays pinned while you scroll through every colour/style control */
+#cpg-controls > .cpg-stage{
+  position: sticky !important; top: 0 !important; z-index: 40 !important;
+  display: grid !important; grid-template-columns: auto minmax(0,1fr); column-gap: 1rem; align-items: center;
+  margin: 0 !important; padding: .7rem 1.1rem !important; order: 0 !important;
+  background: var(--s-card); border-top: 1px solid var(--s-line); border-bottom: 1px solid var(--s-line);
+  box-shadow: 0 14px 22px -16px rgba(15,23,42,.55);
+}
+@supports (background: color-mix(in srgb, red 50%, blue)){
+  #cpg-controls > .cpg-stage{ background: color-mix(in srgb, var(--s-card) 93%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+}
+#cpg-controls > .cpg-stage[hidden]{ display: none !important; }
+#cpg-controls > .cpg-stage .cpg-poster{
+  grid-row: 1 / span 3; margin: 0 !important; max-width: none !important; max-height: none !important;
+  width: min(42vw, calc(126px * var(--arn))) !important; aspect-ratio: var(--ar) !important;
+  border-radius: 14px !important; box-shadow: 0 10px 22px -8px rgba(0,0,0,.55) !important;
+}
+@media (min-width: 920px){ #cpg-controls > .cpg-stage .cpg-poster{ width: min(280px, calc(150px * var(--arn))) !important; } }
+#cpg-controls > .cpg-stage .cpg-meta{ display: block !important; margin: 0 !important; padding: 0 !important; }
+#cpg-controls > .cpg-stage .cpg-meta::before{ content: "● LIVE PREVIEW"; display: block; margin-bottom: .3rem; font-size: .68rem; font-weight: 800; letter-spacing: .1em; color: var(--s-ind); }
+#cpg-controls > .cpg-stage .cpg-contrast{ font-size: .8rem !important; line-height: 1.35 !important; }
+#cpg-controls > .cpg-stage .cpg-note{ display: none !important; }
+
+/* 3) Look & feel */
+#cpg-controls.cpg-panel{ padding: 0 !important; border-radius: 22px !important; border: 1px solid var(--s-line) !important; background: var(--s-card) !important; box-shadow: var(--s-shadow) !important; }
+#cpg-controls .cpg-sec{ padding: 1.25rem 1.15rem !important; border-top: 1px solid var(--s-line) !important; }
+#cpg-controls > :first-child{ border-top: 0 !important; }
+#cpg-controls .cpg-h{ display: flex; align-items: center; gap: .6rem; margin: 0 0 1rem !important; font-size: 1.08rem !important; font-weight: 800 !important; letter-spacing: -.01em; }
+#cpg-controls .cpg-h::before{ content: ""; flex: none; width: 5px; height: 1.15em; border-radius: 6px; background: var(--s-grad); }
+#cpg-controls .cpg-label{ font-weight: 700; font-size: .86rem; }
+
+/* mode cards */
+#cpg-controls .cpg-mode-card{ position: relative; border-radius: 18px !important; border: 1.5px solid var(--s-line) !important; background: var(--s-card) !important; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+#cpg-controls .cpg-mode-card:hover{ transform: translateY(-2px); border-color: #818cf8 !important; }
+#cpg-controls .cpg-mode-card[aria-pressed="true"]{ border: 2px solid var(--s-ind) !important; background: linear-gradient(135deg, rgba(79,70,229,.16), rgba(124,58,237,.12)) !important; box-shadow: 0 12px 24px -14px rgba(79,70,229,.8) !important; }
+#cpg-controls .cpg-mode-card[aria-pressed="true"]::after{ content: "✓"; position: absolute; top: .55rem; right: .6rem; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--s-grad); color: #fff; font-size: .8rem; font-weight: 800; }
+
+/* segmented pills */
+#cpg-controls .cpg-seg button{ border-radius: 999px !important; border: 1.5px solid var(--s-line) !important; background: var(--s-field) !important; color: inherit; font-weight: 700; transition: all .15s ease; }
+#cpg-controls .cpg-seg button:hover{ border-color: #818cf8 !important; transform: translateY(-1px); }
+#cpg-controls .cpg-seg button[aria-pressed="true"]{ background: var(--s-grad) !important; border-color: transparent !important; color: #fff !important; box-shadow: 0 10px 18px -10px rgba(79,70,229,.9) !important; }
+
+/* palettes + colour pickers */
+#cpg-controls .cpg-pals{ gap: .65rem; }
+#cpg-controls .cpg-pal{ width: 54px !important; height: 54px !important; border-radius: 16px !important; border: 3px solid var(--s-card) !important; box-shadow: 0 0 0 1.5px var(--s-line), 0 10px 18px -10px rgba(15,23,42,.55); transition: transform .15s ease, box-shadow .15s ease; }
+#cpg-controls .cpg-pal:hover{ transform: translateY(-3px) scale(1.04); box-shadow: 0 0 0 2px var(--s-ind), 0 14px 22px -10px rgba(79,70,229,.7); }
+#cpg-controls .cpg-pals .cpg-btn2, #cpg-controls .cpg-shuffle{ border: 1.5px dashed var(--s-ind) !important; border-radius: 999px !important; color: var(--s-ind) !important; background: var(--s-soft) !important; font-weight: 800; }
+#cpg-controls .cpg-pals .cpg-btn2::before, #cpg-controls .cpg-shuffle::before{ content: "🎲 "; }
+#cpg-controls .cpg-colors{ gap: .9rem 1.2rem; }
+#cpg-controls .cpg-color{ gap: .6rem; padding: .35rem .8rem .35rem .35rem; border: 1.5px solid var(--s-line); border-radius: 999px; background: var(--s-field); }
+#cpg-controls .cpg-color input[type="color"]{ width: 48px !important; height: 48px !important; border: 3px solid var(--s-card) !important; border-radius: 50% !important; box-shadow: 0 0 0 1.5px var(--s-line), 0 6px 12px -6px rgba(0,0,0,.5); }
+#cpg-controls .cpg-hex{ padding: .25rem .6rem; border-radius: 999px; background: var(--s-hex); font-weight: 600; color: inherit; }
+
+/* sliders */
+#cpg-controls input[type="range"]{ -webkit-appearance: none; appearance: none; width: 100%; height: 30px; background: transparent; cursor: pointer; }
+#cpg-controls input[type="range"]::-webkit-slider-runnable-track{ height: 8px; border-radius: 999px; background: linear-gradient(90deg, rgba(79,70,229,.35), rgba(124,58,237,.35)); }
+#cpg-controls input[type="range"]::-moz-range-track{ height: 8px; border-radius: 999px; background: linear-gradient(90deg, rgba(79,70,229,.35), rgba(124,58,237,.35)); }
+#cpg-controls input[type="range"]::-webkit-slider-thumb{ -webkit-appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 50%; border: 4px solid #fff; background: var(--s-grad); box-shadow: 0 4px 10px rgba(79,70,229,.55); }
+#cpg-controls input[type="range"]::-moz-range-thumb{ width: 20px; height: 20px; border-radius: 50%; border: 4px solid #fff; background: #6d5ef0; box-shadow: 0 4px 10px rgba(79,70,229,.55); }
+
+/* fields */
+#cpg-controls .cpg-select, #cpg-controls .cpg-input{ border-radius: 14px !important; border: 1.5px solid var(--s-line) !important; background-color: var(--s-field) !important; min-height: 50px; }
+#cpg-controls .cpg-select:focus-visible, #cpg-controls .cpg-input:focus-visible{ outline: 3px solid rgba(99,102,241,.45) !important; outline-offset: 1px; border-color: var(--s-ind) !important; }
+#cpg-controls .cpg-advanced-toggle{ border-radius: 16px !important; border: 1.5px dashed var(--s-ind) !important; background: var(--s-soft) !important; }
+
+/* scene elements */
+#cpg-controls .cpg-extra-category{ border-radius: 16px !important; border: 1.5px solid var(--s-line) !important; background: var(--s-field); }
+#cpg-controls .cpg-extra-choice{ border-radius: 999px !important; border: 1.5px solid var(--s-line) !important; background: var(--s-card); transition: all .15s ease; }
+#cpg-controls .cpg-extra-choice:has(input:checked){ background: var(--s-grad) !important; border-color: transparent !important; color: #fff; box-shadow: 0 8px 14px -10px rgba(79,70,229,.9); }
+
+/* generate */
+#cpg-controls .cpg-generate{ background: linear-gradient(180deg, transparent, var(--s-soft)); }
+#cpg-generate{ min-height: 56px !important; border: 0 !important; border-radius: 18px !important; background: var(--s-grad) !important; color: #fff !important; font-size: 1.08rem !important; font-weight: 800 !important; box-shadow: 0 18px 30px -14px rgba(79,70,229,.9) !important; transition: transform .15s ease, box-shadow .15s ease; }
+#cpg-generate:hover{ transform: translateY(-2px); box-shadow: 0 22px 34px -14px rgba(79,70,229,1) !important; }
+#cpg-reset{ border-radius: 16px !important; }
+
+/* round colour swatches + a label that fits the small preview */
+#cpg-controls .cpg-color input[type="color"]::-webkit-color-swatch-wrapper{ padding: 0; }
+#cpg-controls .cpg-color input[type="color"]::-webkit-color-swatch{ border: 0; border-radius: 50%; }
+#cpg-controls .cpg-color input[type="color"]::-moz-color-swatch{ border: 0; border-radius: 50%; }
+#cpg-controls > .cpg-stage .cpg-preview-empty{ font-size: clamp(.5rem, 6.4cqw, .8rem) !important; letter-spacing: .04em !important; padding: .35rem !important; line-height: 1.3; }
+
+#cpg-controls > .cpg-extra-box{ margin: 0 !important; padding: 1.25rem 1.15rem !important; border: 0 !important; border-top: 1px solid var(--s-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+#cpg-controls .cpg-mode-card strong{ font-size: .98rem; }
+#cpg-controls .cpg-mode-card small{ line-height: 1.35; }
+
+/* the small preview doesn't need a caption (the LIVE PREVIEW label is next to it) */
+#cpg-controls > .cpg-stage .cpg-preview-empty{ display: none !important; }
 </style>
 </head>
 <body>
@@ -1528,6 +1630,11 @@
     }
     setStickyTop();
     window.addEventListener('resize', setStickyTop);
+    // The preview lives inside the controls panel, right under the mode cards, so it can stay pinned while you scroll.
+    var modeSection = $('h-design-mode').closest('.cpg-sec');
+    if (modeSection && stageEl) modeSection.after(stageEl);
+    var extraBox = document.querySelector('.cpg-extra-box'), feelSection = $('h-feel').closest('.cpg-sec');
+    if (extraBox && feelSection) feelSection.after(extraBox);
     window.__cpgRender = function () { render(); };
     syncInputs();
     render();
@@ -1561,42 +1668,7 @@
 </script>
 
 
-<script id="mobile-floating-preview-fix">
-(function(){
-  const stage=document.querySelector('.cpg-stage');
-  if(!stage) return;
-  const mq=window.matchMedia('(max-width:650px)');
-  let spacer=null, naturalTop=0, ticking=false;
-  function prepare(){
-    if(!mq.matches){
-      stage.classList.remove('cpg-preview-floating');
-      if(spacer){spacer.remove();spacer=null;}
-      return;
-    }
-    if(!spacer){
-      spacer=document.createElement('div');
-      spacer.className='cpg-preview-spacer';
-      spacer.setAttribute('aria-hidden','true');
-      stage.parentNode.insertBefore(spacer,stage);
-    }
-    spacer.style.height=stage.offsetHeight+'px';
-    naturalTop=spacer.getBoundingClientRect().top+window.scrollY;
-    update();
-  }
-  function update(){
-    if(!mq.matches || !spacer) return;
-    const shouldFloat=window.scrollY+84>=naturalTop;
-    stage.classList.toggle('cpg-preview-floating',shouldFloat);
-    spacer.style.height=shouldFloat ? stage.offsetHeight+'px' : '0px';
-  }
-  function onScroll(){if(ticking)return;ticking=true;requestAnimationFrame(()=>{update();ticking=false;});}
-  prepare();
-  window.addEventListener('scroll',onScroll,{passive:true});
-  window.addEventListener('resize',prepare,{passive:true});
-  if(mq.addEventListener) mq.addEventListener('change',prepare); else mq.addListener(prepare);
-  if(window.ResizeObserver){new ResizeObserver(()=>{if(!stage.classList.contains('cpg-preview-floating')){if(spacer)spacer.style.height=stage.offsetHeight+'px';}}).observe(stage);}
-})();
-</script>
+
 
 </body>
 </html>
