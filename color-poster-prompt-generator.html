@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1649081506405281" crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) — deferred until idle / first interaction, same pattern as every other page. -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VTZJKRQ7S6');
+
+    function loadGtagScript() {
+      if (window.__gtagScriptLoaded) return;
+      window.__gtagScriptLoaded = true;
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-VTZJKRQ7S6';
+      document.head.appendChild(s);
+    }
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadGtagScript, { timeout: 4000 });
+    } else {
+      setTimeout(loadGtagScript, 2000);
+    }
+    ['scroll', 'keydown', 'click', 'touchstart'].forEach(evt =>
+      window.addEventListener(evt, loadGtagScript, { once: true, passive: true })
+    );
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Design Prompt Studio — Free Wallpaper, Banner & Poster Prompt Generator | SmartPrompts</title>
+  <meta name="description" content="Create tailored AI prompts for wallpapers, website banners, text posters and clean backgrounds. Customize colors, composition, dimensions and text options for free." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://smart-prompt.in/color-poster-prompt-generator" />
+  <meta property="og:title" content="AI Design Prompt Studio — Wallpaper, Banner & Poster Prompts" />
+  <meta property="og:description" content="Build custom prompts for wallpapers, banners, posters and text-free backgrounds." />
+  <meta property="og:url" content="https://smart-prompt.in/color-poster-prompt-generator" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://smart-prompt.in/images/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://smart-prompt.in/images/og-image.jpg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#5b3fd6" />
+  <link rel="apple-touch-icon" href="/images/icon-180.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Color Poster Prompt Generator",
+    "url": "https://smart-prompt.in/color-poster-prompt-generator",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Does this tool create the poster image?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. The live preview shows your selected text and colors. This tool writes a detailed prompt for an AI image tool such as ChatGPT, Gemini, Ideogram or Midjourney; it does not render the final artwork itself." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use two colors mixed together for the text?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Switch the text color to Gradient, choose two colors, and the preview and the prompt will both use the blend. The background can be a gradient too." }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does the AI sometimes misspell my headline?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Image models can still slip on lettering. The prompt tells the AI to spell every letter exactly, and tools like ChatGPT, Gemini and Ideogram handle text best. If a letter is wrong, ask the AI to fix the spelling and keep everything else the same." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is the poster prompt generator free?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is free, needs no sign-up, and runs entirely in your browser." }
+      }
+    ]
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=optional" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=optional" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=optional" /></noscript>
+  <!-- Extra typefaces used only by this tool's poster preview (loaded without blocking render). -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Bebas+Neue&family=Pacifico&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Bebas+Neue&family=Pacifico&display=swap" /></noscript>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    /* Everything below is scoped with the cpg- prefix so it can't touch other pages. */
+    .cpg-wrap { max-width: 1080px; margin: 0 auto; padding: 2.4rem 1.25rem 4rem; }
+    .cpg-lead { color: var(--muted); font-size: 0.95rem; max-width: 620px; margin-top: 0.5rem; }
+
+    .cpg-grid { display: grid; gap: 1.5rem; margin-top: 1.75rem; }
+    .cpg-stage { order: -1; }
+    @media (min-width: 920px) {
+      .cpg-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 400px); align-items: start; }
+      .cpg-stage { order: 2; position: sticky; top: 96px; }
+    }
+
+    /* ---- Live poster ---- */
+    .cpg-poster {
+      --ar: 1 / 1; --arn: 1; --size: 11; --orb: rgba(255,255,255,.16);
+      aspect-ratio: var(--ar);
+      width: min(100%, calc(66vh * var(--arn)));
+      margin: 0 auto;
+      position: relative; overflow: hidden;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      container-type: inline-size;
+      box-shadow: 0 18px 44px rgba(0,0,0,.30);
+      transition: background .2s ease;
+    }
+    .cpg-poster::before, .cpg-poster::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; aspect-ratio: 1; }
+    .cpg-poster::before { width: 70%; left: -22%; top: -26%; background: radial-gradient(circle, var(--orb), transparent 66%); }
+    .cpg-poster::after  { width: 62%; right: -20%; bottom: -24%; background: radial-gradient(circle, var(--orb), transparent 66%); }
+    .cpg-copy { position: relative; z-index: 1; width: 100%; padding: 8cqw; display: flex; flex-direction: column; gap: 3.2cqw; text-align: center; align-items: center; }
+    .cpg-headline, .cpg-sub { display: inline-block; max-width: 100%; overflow-wrap: anywhere; font-synthesis: none; margin: 0; }
+    .cpg-headline { font-size: 7vw; font-size: calc(var(--size) * 1cqw); line-height: 1.08; }
+    .cpg-sub { font-size: 3vw; font-size: max(3.2cqw, calc(var(--size) * .38cqw)); line-height: 1.3; }
+    .cpg-empty { opacity: .45; }
+
+    .cpg-meta { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: center; justify-content: space-between; font-size: .82rem; color: var(--muted); }
+    .cpg-contrast { display: inline-flex; align-items: center; gap: .45rem; font-weight: 600; }
+    .cpg-contrast::before { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: currentColor; }
+    .cpg-contrast.good { color: #178a52; }
+    .cpg-contrast.ok   { color: #b7791f; }
+    .cpg-contrast.low  { color: #c53030; }
+    .cpg-note { font-size: .78rem; color: var(--muted); margin-top: .35rem; max-width: 46ch; }
+
+    /* ---- Controls ---- */
+    .cpg-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
+    .cpg-sec { padding: 1.15rem 1.25rem; border-top: 1px solid var(--border); }
+    .cpg-sec:first-child { border-top: 0; }
+    .cpg-h { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: .85rem; letter-spacing: 0; }
+    .cpg-field { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .85rem; }
+    .cpg-field:last-child { margin-bottom: 0; }
+    .cpg-label { font-size: .8rem; color: var(--muted); font-weight: 500; display: flex; justify-content: space-between; gap: .5rem; }
+    .cpg-input, .cpg-select {
+      width: 100%; background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: .65rem .8rem; font-family: inherit; font-size: .95rem;
+    }
+    .cpg-input:focus-visible, .cpg-select:focus-visible, .cpg-seg button:focus-visible, .cpg-pal:focus-visible,
+    .cpg-color input:focus-visible, .cpg-range:focus-visible, .cpg-toggle input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .cpg-seg { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .cpg-seg button {
+      font-family: var(--font-body); font-size: .85rem; font-weight: 500; color: var(--text);
+      background: var(--bg); border: 1px solid var(--border); border-radius: 999px;
+      padding: .45rem .9rem; cursor: pointer; line-height: 1.2;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .cpg-seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .cpg-seg.fonts button { font-size: 1rem; padding: .5rem 1rem; }
+
+    .cpg-colors { display: flex; flex-wrap: wrap; gap: .9rem 1.4rem; align-items: center; }
+    .cpg-color { display: inline-flex; align-items: center; gap: .55rem; }
+    .cpg-color input[type="color"] { width: 46px; height: 46px; padding: 0; border: 2px solid var(--border); border-radius: 12px; background: none; cursor: pointer; }
+    .cpg-hex { font-family: var(--font-mono); font-size: .82rem; color: var(--muted); text-transform: uppercase; }
+
+    .cpg-range { width: 100%; accent-color: var(--accent); }
+    .cpg-toggle { display: inline-flex; align-items: center; gap: .5rem; font-size: .9rem; cursor: pointer; }
+    .cpg-toggle input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
+
+    .cpg-pals { display: flex; flex-wrap: wrap; gap: .55rem; align-items: center; }
+    .cpg-pal {
+      width: 48px; height: 48px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; padding: 0;
+      font-family: var(--font-display); font-weight: 800; font-size: .95rem; display: grid; place-items: center;
+      transition: transform var(--transition), border-color var(--transition);
+    }
+    .cpg-pal:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .cpg-shuffle { font-family: var(--font-body); font-size: .82rem; font-weight: 600; color: var(--accent); background: none; border: 1px dashed var(--accent); border-radius: 999px; padding: .5rem .9rem; cursor: pointer; }
+
+    .cpg-two { display: grid; grid-template-columns: 1fr; gap: .85rem; }
+    @media (min-width: 520px) { .cpg-two { grid-template-columns: 1fr 1fr; } }
+
+    .cpg-generate { padding: 1.15rem 1.25rem 1.3rem; border-top: 1px solid var(--border); }
+    .cpg-generate .btn-primary { width: 100%; margin-top: .9rem; font-size: 1rem; padding: .9rem 1.6rem; }
+    .cpg-msg { margin-top: .6rem; font-size: .85rem; min-height: 1.2em; color: #c53030; }
+
+    .cpg-result { margin-top: 1.75rem; }
+    .cpg-result .prompt-text { padding: 1.25rem; font-size: .86rem; line-height: 1.8; }
+    .cpg-stale { font-size: .82rem; color: #b7791f; margin: -.5rem 0 1rem; }
+    .cpg-stale[hidden], .cpg-result[hidden], .cpg-sub[hidden], [hidden] { display: none !important; }
+    .cpg-tip { font-size: .86rem; color: var(--muted); max-width: 70ch; }
+
+    .cpg-info { margin-top: 3rem; max-width: 720px; }
+    .cpg-info h2 { font-family: var(--font-display); font-size: 1.25rem; margin: 2rem 0 .7rem; }
+    .cpg-info p, .cpg-info li { color: var(--muted); font-size: .95rem; line-height: 1.75; }
+    .cpg-info ol { padding-left: 1.2rem; }
+    .cpg-info details { border-top: 1px solid var(--border); padding: .8rem 0; }
+    .cpg-info summary { cursor: pointer; font-weight: 600; color: var(--text); font-size: .97rem; }
+    .cpg-info details p { margin-top: .5rem; }
+
+
+    .cpg-mode-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.55rem; }
+    .cpg-mode-card { border:1px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); padding:.8rem .65rem; text-align:left; cursor:pointer; font:inherit; min-height:72px; }
+    .cpg-mode-card strong { display:block; font-size:.9rem; }
+    .cpg-mode-card small { display:block; margin-top:.2rem; color:var(--muted); font-size:.75rem; line-height:1.35; }
+    .cpg-mode-card[aria-pressed="true"] { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); background:color-mix(in srgb, var(--accent) 8%, var(--bg)); }
+    .cpg-output-actions { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.75rem; }
+    .cpg-output-actions button { flex:1; min-width:120px; }
+    .cpg-preview-empty { position:relative; z-index:1; transform:translateY(-42px); padding:1rem; text-align:center; font-size:clamp(.85rem,3cqw,1.15rem); font-weight:700; letter-spacing:.04em; color:rgba(255,255,255,.82); text-shadow:0 2px 12px rgba(0,0,0,.22); }
+    .cpg-preview-empty[hidden] { display:none!important; }
+    @media (max-width:420px) { .cpg-mode-grid { grid-template-columns:1fr 1fr; } .cpg-mode-card { padding:.65rem .55rem; } }
+
+    /* Phones: keep a compact preview pinned under the site header while scrolling the controls. */
+    @media (max-width: 919px) {
+      .cpg-stage { position: sticky; top: var(--cpg-top, 152px); z-index: 20; align-self: start; background: var(--bg); margin: 0 -1.25rem; padding: .6rem 1.25rem .5rem; border-bottom: 1px solid var(--border); }
+      .cpg-poster { width: min(100%, calc(24vh * var(--arn))); border-radius: 12px; }
+      .cpg-note { display: none; }
+      .cpg-meta { margin-top: .5rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) { .cpg-poster, .cpg-pal, .cpg-seg button { transition: none; } }
+
+
+    /* Accessibility + control visibility polish: scoped to this tool only. */
+    .cpg-panel { overflow:hidden; box-shadow:0 8px 26px rgba(15,23,42,.07); }
+    .cpg-sec { padding:1.35rem 1.4rem; }
+    .cpg-sec + .cpg-sec { border-top:1px solid var(--border); }
+    .cpg-h { margin-bottom:1rem; }
+    .cpg-field { gap:.5rem; margin-bottom:1rem; }
+    .cpg-label { color:var(--text); font-size:.84rem; font-weight:700; }
+    .cpg-input, .cpg-select {
+      min-height:46px; border:1.5px solid #aab2c0; border-radius:10px;
+      background:var(--bg-card); color:var(--text); padding:.72rem .85rem;
+      box-shadow:inset 0 1px 2px rgba(15,23,42,.04);
+    }
+    .cpg-input::placeholder { color:#737d8e; opacity:1; }
+    .cpg-input:hover, .cpg-select:hover { border-color:#64748b; }
+    .cpg-input:focus, .cpg-select:focus { border-color:#5145cd; box-shadow:0 0 0 3px rgba(81,69,205,.16); outline:none; }
+
+    .cpg-seg { gap:.6rem; }
+    .cpg-seg button, .cpg-output-actions button {
+      min-height:42px; padding:.62rem 1rem; border:1.5px solid #aab2c0;
+      border-radius:10px; background:#f1f4f9; color:#202938; font-weight:700;
+      line-height:1.25; box-shadow:0 1px 2px rgba(15,23,42,.05);
+      transition:background .16s ease, color .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+    }
+    .cpg-seg button:hover, .cpg-output-actions button:hover { background:#e2e8f0; border-color:#64748b; transform:translateY(-1px); }
+    .cpg-seg button[aria-pressed="true"] {
+      background:#4338ca; border-color:#312e81; color:#fff;
+      box-shadow:0 3px 9px rgba(67,56,202,.25); outline:2px solid rgba(67,56,202,.12); outline-offset:1px;
+    }
+    .cpg-seg button[aria-pressed="true"]:hover { background:#3730a3; }
+    .cpg-seg.fonts button { min-width:76px; }
+    .cpg-mode-grid { gap:.75rem; }
+    .cpg-mode-card {
+      min-height:104px; padding:1rem; border:1.5px solid #aab2c0;
+      border-radius:14px; background:var(--bg-card); color:var(--text);
+      box-shadow:0 2px 7px rgba(15,23,42,.05); transition:all .16s ease;
+    }
+    .cpg-mode-card strong { font-size:.98rem; line-height:1.3; }
+    .cpg-mode-card small { color:var(--muted); font-size:.8rem; line-height:1.45; }
+    .cpg-mode-card:hover { border-color:#5145cd; transform:translateY(-2px); box-shadow:0 6px 16px rgba(15,23,42,.10); }
+    .cpg-mode-card[aria-pressed="true"] {
+      border:2px solid #4338ca; background:#eef2ff; color:#29216b;
+      box-shadow:0 0 0 3px rgba(67,56,202,.14), 0 5px 14px rgba(67,56,202,.10);
+    }
+    .cpg-mode-card[aria-pressed="true"] small { color:#3730a3; }
+    .cpg-pal { border:2px solid #64748b; box-shadow:0 2px 5px rgba(15,23,42,.12); }
+    .cpg-pal:focus-visible, .cpg-seg button:focus-visible, .cpg-mode-card:focus-visible,
+    .cpg-shuffle:focus-visible, .cpg-generate button:focus-visible, .cpg-output-actions button:focus-visible {
+      outline:3px solid #6366f1; outline-offset:3px;
+    }
+    .cpg-shuffle {
+      min-height:42px; padding:.65rem 1rem; border:1.5px solid #5145cd;
+      border-radius:10px; background:#fff; color:#3730a3; font-weight:750;
+      text-decoration:none; box-shadow:0 1px 3px rgba(15,23,42,.06);
+    }
+    .cpg-shuffle:hover { background:#eef2ff; border-color:#3730a3; }
+    .cpg-generate { padding:1.35rem 1.4rem 1.5rem; }
+    .cpg-generate .btn-primary, .cpg-result .btn-primary {
+      min-height:48px; border:1px solid #312e81; border-radius:11px;
+      background:#4338ca; color:#fff; font-weight:800; letter-spacing:.01em;
+      box-shadow:0 5px 14px rgba(67,56,202,.24); cursor:pointer;
+    }
+    .cpg-generate .btn-primary:hover, .cpg-result .btn-primary:hover { background:#3730a3; transform:translateY(-1px); }
+    .cpg-output-actions { gap:.75rem; }
+    .cpg-output-actions .cpg-shuffle { background:#fff; color:#3730a3; }
+    .cpg-colors { gap:1rem 1.5rem; }
+    .cpg-color input[type="color"] { border:2px solid #8b95a5; box-shadow:0 1px 4px rgba(15,23,42,.10); }
+    .cpg-range { min-height:26px; cursor:pointer; accent-color:#4338ca; }
+    .cpg-toggle { padding:.55rem .65rem; border:1px solid var(--border); border-radius:9px; background:var(--bg-card); }
+    .cpg-msg { font-weight:650; }
+    @media (max-width:600px) {
+      .cpg-sec { padding:1rem; }
+      .cpg-mode-grid { grid-template-columns:1fr 1fr; gap:.55rem; }
+      .cpg-mode-card { min-height:100px; padding:.8rem .7rem; }
+      .cpg-seg { gap:.5rem; }
+      .cpg-seg button { flex:0 1 auto; min-height:42px; padding:.62rem .78rem; }
+      .cpg-generate { padding:1rem; }
+      .cpg-output-actions { flex-direction:column; }
+      .cpg-output-actions button { width:100%; }
+    }
+    @media (prefers-color-scheme: dark) {
+      html[data-theme="dark"] .cpg-seg button,
+      html[data-theme="dark"] .cpg-output-actions button { background:#252b3a; color:#f8fafc; border-color:#657086; }
+      html[data-theme="dark"] .cpg-seg button:hover,
+      html[data-theme="dark"] .cpg-output-actions button:hover { background:#343c50; }
+      html[data-theme="dark"] .cpg-seg button[aria-pressed="true"] { background:#5145cd; border-color:#a5b4fc; color:#fff; }
+      html[data-theme="dark"] .cpg-mode-card { border-color:#657086; }
+      html[data-theme="dark"] .cpg-mode-card[aria-pressed="true"] { background:#28245c; border-color:#a5b4fc; color:#fff; }
+      html[data-theme="dark"] .cpg-mode-card[aria-pressed="true"] small { color:#dbeafe; }
+      html[data-theme="dark"] .cpg-shuffle, html[data-theme="dark"] .cpg-output-actions .cpg-shuffle { background:#252b3a; color:#c7d2fe; border-color:#818cf8; }
+      html[data-theme="dark"] .cpg-input, html[data-theme="dark"] .cpg-select { border-color:#657086; }
+    }
+
+
+
+
+    /* Extra scene / object selector */
+    .cpg-extra-box{margin:1.1rem 0;padding:1rem;border:1px solid var(--border);border-radius:14px;background:var(--bg-card)}
+    .cpg-extra-box h3{margin:0 0 .35rem;font-size:1.05rem;color:var(--text)}
+    .cpg-extra-box>p{margin:.2rem 0 .8rem;color:var(--muted);font-size:.86rem;line-height:1.5}
+    .cpg-extra-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+    .cpg-extra-choice{display:flex;align-items:flex-start;gap:.45rem;padding:.55rem .6rem;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text);font-size:.84rem;line-height:1.35;cursor:pointer}
+    .cpg-extra-choice input{margin-top:.15rem;accent-color:var(--accent);flex-shrink:0}
+    .cpg-extra-choice:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--bg))}
+    .cpg-extra-custom{width:100%;min-height:82px;resize:vertical;border:1px solid var(--border);border-radius:10px;padding:.75rem;background:var(--bg);color:var(--text);font:inherit;margin-top:.8rem}
+    .cpg-extra-count{font-size:.78rem;color:var(--muted);margin-top:.45rem}
+    @media(max-width:420px){.cpg-extra-grid{grid-template-columns:1fr 1fr}.cpg-extra-choice{font-size:.78rem;padding:.5rem}}
+
+    /* Compact searchable preset categories */
+    .cpg-extra-search-wrap{display:flex;gap:.45rem;align-items:center;margin:.45rem 0 .55rem}
+    .cpg-extra-search{min-width:0;flex:1;margin:0!important;min-height:40px!important}
+    .cpg-extra-clear{border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text);padding:.55rem .65rem;font:inherit;font-size:.76rem;font-weight:650;white-space:nowrap;cursor:pointer}
+    .cpg-extra-categories{display:flex;flex-direction:column;gap:.4rem}
+    .cpg-extra-category{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg)}
+    .cpg-extra-category[hidden],.cpg-extra-choice[hidden]{display:none!important}
+    .cpg-extra-category summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.68rem .75rem;cursor:pointer;font-size:.85rem;font-weight:750;color:var(--text);background:var(--bg-card)}
+    .cpg-extra-category summary::-webkit-details-marker{display:none}
+    .cpg-extra-category-title{display:flex;align-items:center;gap:.45rem}
+    .cpg-extra-category-meta{display:flex;align-items:center;gap:.5rem;color:var(--muted);font-size:.7rem;font-weight:600;white-space:nowrap}
+    .cpg-extra-chevron{font-size:1.05rem;transition:transform .15s ease}
+    .cpg-extra-category[open] .cpg-extra-chevron{transform:rotate(180deg)}
+    .cpg-extra-category.has-selection summary{border-left:3px solid var(--accent)}
+    .cpg-extra-category .cpg-extra-grid{padding:.45rem;gap:.35rem}
+    .cpg-extra-choice{padding:.38rem .45rem;font-size:.76rem;line-height:1.25;min-height:34px;align-items:center;gap:.4rem}
+    .cpg-extra-choice input{width:15px;height:15px;margin:.05rem 0 0;}
+    @media(max-width:420px){.cpg-extra-search-wrap{gap:.35rem}.cpg-extra-clear{padding:.5rem;font-size:.7rem}.cpg-extra-category summary{padding:.6rem;font-size:.8rem}.cpg-extra-category .cpg-extra-grid{gap:.3rem;padding:.35rem}.cpg-extra-choice{padding:.35rem;font-size:.72rem;overflow-wrap:anywhere}}
+
+    /* Premium featured wallpaper studio */
+    .ads-hero{margin:1.25rem 0 1.75rem;border:1px solid var(--border);border-radius:22px;overflow:hidden;background:#111020;color:#fff;box-shadow:0 18px 50px rgba(20,15,50,.18)}
+    .ads-hero-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.15rem 1.25rem;background:linear-gradient(110deg,#17152b,#24204a)}
+    .ads-eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.13em;color:#c4b5fd;font-weight:800}.ads-hero h2{font-size:clamp(1.25rem,3vw,1.8rem);margin:.2rem 0;color:#fff}.ads-hero p{margin:0;color:#d4d0eb;font-size:.9rem}
+    .ads-art{position:relative;min-height:260px;aspect-ratio:16/7;overflow:hidden;background:#050509 center 42%/cover no-repeat;isolation:isolate;transition:background-image .2s ease}#ads-art .ads-glow,#ads-art .ads-ribbon{display:none!important}
+    .ads-art:before{content:"";position:absolute;inset:-25%;background:radial-gradient(ellipse at 60% 50%,rgba(124,58,237,.55),transparent 35%),radial-gradient(ellipse at 28% 60%,rgba(14,165,233,.22),transparent 28%),radial-gradient(ellipse at 70% 20%,rgba(255,255,255,.12),transparent 22%);filter:blur(12px)}
+    .ads-ribbon{position:absolute;width:78%;height:38%;left:12%;top:30%;border:clamp(12px,3vw,34px) solid transparent;border-radius:50%;transform:rotate(-24deg);background:linear-gradient(#08080d,#08080d) padding-box,linear-gradient(120deg,#fff,#777b91,#f8fafc,#7145e8,#242036,#e5e7eb) border-box;box-shadow:0 0 28px rgba(167,139,250,.5),inset 0 0 20px rgba(255,255,255,.25)}
+    .ads-ribbon.two{width:60%;height:54%;left:32%;top:14%;transform:rotate(38deg);border-width:clamp(8px,2vw,24px);opacity:.78}.ads-glow{position:absolute;width:35%;height:80%;left:35%;top:10%;background:rgba(124,58,237,.26);filter:blur(40px);border-radius:50%}
+    .ads-hero-foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.25rem;flex-wrap:wrap}.ads-hero-foot strong{display:block;font-size:1rem}.ads-hero-foot small{display:block;color:#c8c5df;margin-top:.2rem}.ads-actions{display:flex;gap:.6rem;flex-wrap:wrap}.ads-btn{border:1px solid #77708f;border-radius:10px;padding:.7rem 1rem;font-weight:750;cursor:pointer;background:#292541;color:#fff;min-height:44px}.ads-btn.primary{background:#7c3aed;border-color:#a78bfa}.ads-btn:hover{filter:brightness(1.13)}
+    .ads-styles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:1rem 0}.ads-style{display:flex;flex-direction:column;text-align:left;gap:.45rem;min-width:0;padding:.65rem;border:2px solid var(--border);border-radius:14px;background:var(--bg-card);color:var(--text);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}.ads-style:hover{transform:translateY(-2px);border-color:var(--accent)}.ads-style[aria-pressed=true]{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.17);background:var(--bg)}.ads-swatch{height:110px;border-radius:9px;position:relative;overflow:hidden;background:#07070d center/cover no-repeat;display:block}.ads-swatch:before{content:none!important}.ads-style[data-style=glass] .ads-swatch{background:linear-gradient(135deg,#c4b5fd,#67e8f9,#fbcfe8)}.ads-style[data-style=glass] .ads-swatch:before{border:0;background:rgba(255,255,255,.5);backdrop-filter:blur(5px);width:45%;height:60%;left:28%;top:20%;transform:rotate(20deg);border-radius:16px}.ads-style[data-style=luxury] .ads-swatch{background:radial-gradient(circle,#47351b,#050505 70%)}.ads-style[data-style=luxury] .ads-swatch:before{border-color:#d6b56d;box-shadow:0 0 18px #b88932}.ads-style[data-style=neon] .ads-swatch{background:#080019}.ads-style[data-style=neon] .ads-swatch:before{border-color:#e879f9;box-shadow:0 0 24px #7c3aed}.ads-style[data-style=nature] .ads-swatch{background:linear-gradient(#60a5fa,#0f766e,#102d2c)}.ads-style[data-style=nature] .ads-swatch:before{border:0;width:0;height:0;left:35%;top:20%;border-left:28px solid transparent;border-right:28px solid transparent;border-bottom:62px solid #173d38;border-radius:0;transform:none;box-shadow:none}.ads-style[data-style=minimal] .ads-swatch{background:linear-gradient(135deg,#a5b4fc,#fbcfe8)}.ads-style[data-style=minimal] .ads-swatch:before{border:0;width:65%;height:18%;top:45%;background:rgba(255,255,255,.55);transform:rotate(-25deg);box-shadow:none}
+    .ads-style strong{font-size:.9rem;line-height:1.25}.ads-style small{font-size:.76rem;line-height:1.4;color:var(--muted)}.ads-style-info{padding:1rem;border:1px solid var(--border);border-radius:13px;background:var(--bg-card);margin:.75rem 0 1.25rem}.ads-style-info h3{margin:0 0 .35rem;font-size:1rem}.ads-style-info p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.6}.ads-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}.ads-options label{display:flex;flex-direction:column;gap:.4rem;font-size:.8rem;font-weight:700;color:var(--text)}.ads-options select{width:100%;min-height:44px;border:1px solid var(--border);border-radius:9px;padding:.6rem;background:var(--bg);color:var(--text)}.ads-fullscreen{position:fixed!important;inset:0!important;z-index:99999!important;border-radius:0!important;margin:0!important;display:flex;flex-direction:column;justify-content:center;background:#050509!important}.ads-fullscreen .ads-hero-top,.ads-fullscreen .ads-hero-foot{flex-shrink:0}.ads-fullscreen .ads-art{flex:1;aspect-ratio:auto;min-height:0}.ads-fullscreen .ads-ribbon{width:70%;height:38%;left:15%;top:30%}.ads-close-full{display:none}.ads-fullscreen .ads-close-full{display:inline-flex}
+    @media(max-width:650px){.ads-styles{grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.ads-swatch{height:68px}.ads-options{grid-template-columns:1fr}.ads-art{aspect-ratio:4/5;min-height:300px}.ads-hero-top{align-items:flex-start}.ads-hero-foot{align-items:flex-start}.ads-actions{width:100%}.ads-btn{flex:1}.ads-fullscreen .ads-art{aspect-ratio:auto}}
+
+  
+
+/* Compact studio layout: reduce scrolling without removing existing tools */
+.cpg-wrap{max-width:1120px!important;padding-left:clamp(12px,2.5vw,26px)!important;padding-right:clamp(12px,2.5vw,26px)!important}
+.prompt-page-title{margin:.55rem 0 .3rem!important;font-size:clamp(1.45rem,3vw,2rem)!important}
+.cpg-lead{margin:.25rem 0 .85rem!important;max-width:70ch;font-size:.92rem!important;line-height:1.5!important}
+.ads-hero{margin:.65rem 0 .85rem!important;border-radius:16px!important;box-shadow:0 8px 24px rgba(20,15,50,.12)!important}
+.ads-hero-top{padding:.75rem .9rem!important}.ads-hero h2{font-size:1.15rem!important}.ads-hero p{font-size:.82rem!important}
+.ads-art{aspect-ratio:16/5!important;min-height:150px!important;max-height:320px!important}
+.ads-hero-foot{padding:.65rem .9rem!important;gap:.65rem!important}.ads-hero-foot small{font-size:.72rem!important}.ads-btn{min-height:40px!important;padding:.55rem .75rem!important}
+#ads-style-heading{margin:.75rem 0 .4rem!important;font-size:1.1rem!important}
+.ads-styles{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:.55rem!important;margin:.5rem 0!important}
+.ads-style{padding:.45rem!important;gap:.3rem!important;border-radius:11px!important;border-width:1px!important}
+.ads-swatch{height:78px!important;border-radius:7px!important}.ads-style strong{font-size:.78rem!important;line-height:1.2!important}.ads-style small{font-size:.68rem!important;line-height:1.25!important}
+.ads-style-info{margin:.5rem 0 .65rem!important;padding:.65rem .75rem!important}.ads-style-info h3{font-size:.9rem!important}.ads-style-info p{font-size:.78rem!important;line-height:1.45!important}
+.ads-options{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:.5rem!important}.ads-options label{font-size:.72rem!important;gap:.25rem!important}.ads-options select{min-height:38px!important;padding:.4rem!important;font-size:.8rem!important}
+.cpg-grid{gap:.8rem!important;margin-top:.8rem!important}.cpg-panel{padding:clamp(.7rem,1.8vw,1.1rem)!important;border-radius:14px!important}
+.cpg-sec{margin:0 0 .8rem!important;padding:0 0 .65rem!important}.cpg-h{font-size:1rem!important;margin:0 0 .55rem!important}.cpg-field{margin:.45rem 0!important}.cpg-label{font-size:.82rem!important;margin-bottom:.3rem!important}.cpg-input,.cpg-select{min-height:40px!important;padding:.55rem .7rem!important;font-size:.9rem!important}.cpg-mode-grid{gap:.5rem!important}.cpg-mode-card{padding:.65rem!important;min-height:unset!important;border-radius:11px!important}.cpg-mode-card strong{font-size:.9rem!important}.cpg-mode-card small{font-size:.75rem!important;line-height:1.3!important}
+.cpg-extra-box{margin:.65rem 0!important;padding:.7rem!important}.cpg-extra-box>p{font-size:.78rem!important;margin:.15rem 0 .5rem!important}.cpg-extra-choice{padding:.42rem .48rem!important;font-size:.76rem!important}.cpg-extra-custom{min-height:64px!important;margin-top:.5rem!important}.cpg-extra-count{font-size:.7rem!important}
+.cpg-seg{gap:.4rem!important}.cpg-seg button{min-height:38px!important;padding:.45rem .65rem!important;font-size:.82rem!important}.cpg-pals{gap:.45rem!important}.cpg-pals button{min-width:44px!important;min-height:44px!important}
+/* Keep the long preset list tucked away until requested. */
+.ads-styles.is-collapsed .ads-style:nth-child(n+5){display:none!important}
+.ads-view-all{display:block;margin:.35rem auto .65rem;padding:.48rem .85rem;border:1px solid var(--border);border-radius:999px;background:var(--bg-card);color:var(--text);font-weight:750;cursor:pointer}
+.cpg-advanced-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;padding:.7rem .8rem;margin:.25rem 0 .65rem;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--text);font-weight:750;cursor:pointer}
+.cpg-advanced-toggle span{color:var(--muted);font-size:.78rem;font-weight:500}
+.cpg-advanced-content[hidden]{display:none!important}
+@media(max-width:650px){
+ .cpg-wrap{padding-left:12px!important;padding-right:12px!important}
+ .ads-art{aspect-ratio:16/7!important;min-height:145px!important;max-height:225px!important}
+ .ads-styles{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:.4rem!important}
+ .ads-swatch{height:66px!important}.ads-style{padding:.35rem!important}.ads-style strong{font-size:.72rem!important}.ads-style small{display:none!important}
+ .ads-options{grid-template-columns:repeat(2,minmax(0,1fr))!important}.ads-options label:last-child{grid-column:1/-1}
+ .ads-hero-top{padding:.65rem .75rem!important}.ads-hero-foot{padding:.6rem .75rem!important}.ads-hero-foot>div:first-child{width:100%}.ads-actions{width:100%!important}.ads-btn{font-size:.8rem!important}
+ .cpg-grid{display:block!important}.cpg-panel{padding:.7rem!important}.cpg-extra-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .cpg-mode-card{padding:.55rem!important}.cpg-mode-card small{font-size:.7rem!important}
+ .cpg-seg{flex-wrap:wrap!important}.cpg-seg button{flex:1 1 calc(50% - .4rem)!important}
+}
+
+
+
+/* Mobile floating live preview: pin to the top-right only after the preview reaches the viewport. */
+@media (max-width:650px){
+  .cpg-stage.cpg-preview-floating{
+    position:fixed!important; top:78px!important; right:8px!important; left:auto!important;
+    width:112px!important; max-width:30vw!important; margin:0!important; padding:7px!important;
+    z-index:9990!important; background:var(--bg-card)!important; border:1px solid var(--border)!important;
+    border-radius:13px!important; box-shadow:0 8px 26px rgba(15,23,42,.24)!important;
+  }
+  .cpg-stage.cpg-preview-floating .cpg-poster{
+    width:100%!important; max-width:100%!important; max-height:142px!important; aspect-ratio:3/4!important;
+    border-radius:8px!important; box-shadow:none!important; margin:0 auto!important;
+  }
+  .cpg-stage.cpg-preview-floating .cpg-copy{padding:5cqw!important;gap:2cqw!important}
+  .cpg-stage.cpg-preview-floating .cpg-headline{font-size:8cqw!important}
+  .cpg-stage.cpg-preview-floating .cpg-sub{font-size:4cqw!important}
+  .cpg-stage.cpg-preview-floating .cpg-preview-empty{font-size:9px!important;letter-spacing:0!important;padding:.2rem!important;transform:none!important}
+  .cpg-stage.cpg-preview-floating .cpg-meta{font-size:.65rem!important;gap:.2rem!important;margin-top:.35rem!important}
+  .cpg-stage.cpg-preview-floating .cpg-note{display:none!important}
+  .cpg-stage.cpg-preview-floating .cpg-contrast{font-size:.65rem!important;line-height:1.2!important}
+  .cpg-stage.cpg-preview-floating .cpg-contrast::before{width:6px;height:6px;flex-shrink:0}
+  .cpg-stage.cpg-preview-floating::before{content:'LIVE PREVIEW';display:block;font-size:8px;font-weight:800;letter-spacing:.05em;color:var(--muted);margin:0 0 5px}
+  .cpg-preview-spacer{display:block;width:100%;pointer-events:none}
+}
+
+  
+/* Touch-friendly buttons: every control is at least 44px tall (it was 35-38px). */
+.cpg-seg button,.ads-view-all,.cpg-extra-clear,.ads-btn,.cpg-shuffle,#cpg-copy-all,#cpg-copy-short,#cpg-reset,.cpg-advanced-toggle{min-height:44px!important}
+.cpg-grid.is-wallpaper{display:block!important}
+</style>
+</head>
+<body>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved !== 'dark') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
+
+  <!-- ======= HEADER ======= -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="site-logo">
+        <img class="site-logo-mark" src="/favicon.png" width="30" height="30" alt="SmartPrompts logo">
+        <span class="site-logo-text">
+          SmartPrompts
+          <small>The Ultimate ChatGPT Prompt Library</small>
+        </span>
+      </a>
+
+      <nav class="site-nav">
+        <a href="/" class="site-nav-link">Home</a>
+        <a href="/#category-browse" class="site-nav-link">Categories</a>
+        <a href="/trending-prompts" class="site-nav-link">Trending</a>
+        <a href="/blog" class="site-nav-link">Blog</a>
+        <!-- Gallery paused for now (R2 migration pending) — <a href="/gallery" class="site-nav-link">Gallery</a> -->
+        <a href="/videos" class="site-nav-link">Videos</a>
+        <a href="/seo-tool" class="site-nav-link">SEO Tool</a>
+        <a href="/prompt-improver" class="site-nav-link">Prompt Improver</a>
+        <a href="/image-prompt-generator" class="site-nav-link">Image Prompt Generator</a>
+        <a href="/submit" class="site-nav-link">Submit Prompt</a>
+        <a href="/about" class="site-nav-link">About</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="/" class="icon-btn" aria-label="Search prompts" title="Search prompts">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </a>
+        <a href="/saved" class="icon-btn" aria-label="Saved prompts" title="Saved prompts">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">
+          <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
+        <a href="#" class="btn-login">Login</a>
+        <a href="#" class="btn-signup">Sign Up</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="icon-nav-bar">
+    <a href="/" class="icon-nav-item">
+      <span class="icon-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg></span>
+      <span class="icon-nav-label">Home</span>
+    </a>
+    <a href="/trending-prompts" class="icon-nav-item">
+      <span class="icon-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1-.5-2-1-3 2 1 3 3 3 6a6 6 0 0 1-12 0c0-4 2-5 4-10z"/></svg></span>
+      <span class="icon-nav-label">Trending</span>
+    </a>
+    <a href="/blog" class="icon-nav-item">
+      <span class="icon-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></span>
+      <span class="icon-nav-label">Blog</span>
+    </a>
+    <a href="/videos" class="icon-nav-item">
+      <span class="icon-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="14" height="14" rx="2"/><path d="M21 8.5l-4.5 3.5 4.5 3.5v-7z"/></svg></span>
+      <span class="icon-nav-label">Videos</span>
+    </a>
+    <button type="button" class="icon-nav-item icon-nav-more active" id="icon-nav-more-btn">
+      <span class="icon-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></span>
+      <span class="icon-nav-label">More</span>
+    </button>
+  </div>
+
+  <main class="cpg-wrap">
+    <h1 class="prompt-page-title">AI Design Prompt Studio</h1>
+    <p class="cpg-lead">Choose a visual style, customize it, and create a ready-to-use AI prompt for wallpapers, banners, posters and clean backgrounds.</p>
+
+    <section class="ads-hero" id="ads-featured" aria-label="Featured wallpaper preview">
+      <div class="ads-hero-top"><div><div class="ads-eyebrow">Featured wallpaper · No text</div><h2 id="ads-preview-title">Liquid Chrome AMOLED</h2><p id="ads-preview-sub">Deep black · Polished chrome · Electric violet light</p></div><button class="ads-btn ads-close-full" id="ads-close-full" type="button">✕ Close preview</button></div>
+      <div class="ads-art" id="ads-art" role="img" aria-label="Abstract liquid chrome wallpaper preview"><span class="ads-glow"></span><span class="ads-ribbon"></span><span class="ads-ribbon two"></span></div>
+      <div class="ads-hero-foot"><div><strong id="ads-preview-format">Mobile wallpaper · 9:16</strong><small>Preview concept only — the AI image tool creates the final artwork from your prompt.</small></div><div class="ads-actions"><button class="ads-btn" id="ads-fullscreen" type="button">⛶ Full screen</button><button class="ads-btn primary" id="ads-jump-generate" type="button">✦ Customize & generate</button></div></div>
+    </section>
+    <section aria-labelledby="ads-style-heading"><h2 id="ads-style-heading" class="cpg-h">Choose your wallpaper style</h2>
+      <div class="ads-styles" id="ads-styles">
+        <button type="button" class="ads-style" data-style="chrome" aria-pressed="true"><span class="ads-swatch" aria-hidden="true"></span><strong>Liquid Chrome AMOLED</strong><small>Glossy silver ribbons with molten orange light</small></button>
+        <button type="button" class="ads-style" data-style="moltenwave" aria-pressed="false"><span class="ads-swatch" aria-hidden="true"></span><strong>Molten Chrome Wave</strong><small>Metallic ocean wave with glowing amber highlights</small></button>
+        <button type="button" class="ads-style" data-style="blackchrome" aria-pressed="false"><span class="ads-swatch" aria-hidden="true"></span><strong>Black Chrome Flow</strong><small>Glossy black liquid metal with fine orange accents</small></button>
+        <button type="button" class="ads-style" data-style="violet" aria-pressed="false"><span class="ads-swatch" aria-hidden="true"></span><strong>Violet Neon Flow</strong><small>Dark glossy curves with electric violet-blue reflections</small></button>
+        <button type="button" class="ads-style" data-style="glass" aria-pressed="false"><span class="ads-swatch" aria-hidden="true"></span><strong>Pastel Glassmorphism</strong><small>Iridescent glass, soft pink, lavender and cyan</small></button>
+        <button type="button" class="ads-style" data-style="silk" aria-pressed="false"><span class="ads-swatch" aria-hidden="true"></span><strong>Blue Silk Waves</strong><small>Elegant translucent blue ribbons on AMOLED black</small></button>
+        <button type="button" class="ads-style" data-style="cosmic" aria-pressed="false"><span class="ads-swatch" aria-hidden="true"></span><strong>Cosmic Galaxy</strong><small>Deep-space nebula, stars and luminous blue-violet clouds</small></button>
+        <button type="button" class="ads-style" data-style="neon" aria-pressed="false"><span class="ads-swatch" aria-hidden="true"></span><strong>Neon Cyberpunk</strong><small>Glossy neon tunnels, cyan light and orange-pink sparks</small></button>
+      </div>
+      <button type="button" class="ads-view-all" id="ads-view-all" aria-expanded="false">＋ View all wallpaper styles</button>
+      <div class="ads-style-info"><h3 id="ads-style-name">Liquid Chrome AMOLED Wallpaper</h3><p id="ads-style-description">A futuristic, text-free wallpaper with flowing liquid-metal sculptures, polished silver surfaces, electric-violet reflections and a deep AMOLED-black background. Ideal for dark home screens and premium lock screens.</p></div>
+      <div class="ads-options"><label>Wallpaper format<select id="ads-format" data-bind="canvasTarget"><option value="story">Mobile · 9:16</option><option value="desktop">Desktop · 16:9</option><option value="ultrawide">Ultrawide · 21:9</option><option value="square">Square · 1:1</option></select></label><label>Lock-screen safe area<select id="ads-safe" data-bind="safeArea"><option value="top">Keep top clear for clock</option><option value="center">Keep center clear</option><option value="bottom">Keep bottom clear</option><option value="none">No reserved safe area</option></select></label><label>Visual detail<select id="ads-detail" data-bind="detailLevel"><option value="rich intricate detail">High detail</option><option value="balanced with tasteful details">Balanced</option><option value="refined and minimal">Minimal</option></select></label></div>
+    </section>
+
+    <div class="cpg-grid">
+
+      <!-- ======= CONTROLS ======= -->
+      <div class="cpg-panel" id="cpg-controls">
+
+        <section class="cpg-sec" aria-labelledby="h-text">
+          <h2 class="cpg-h" id="h-text">Your text</h2>
+          <div class="cpg-field">
+            <label class="cpg-label" for="cpg-headline-input"><span>Headline</span><span id="cpg-hl-count">0/70</span></label>
+            <input class="cpg-input" type="text" id="cpg-headline-input" data-bind="headline" maxlength="70" placeholder="e.g. Grand Opening Sale" autocomplete="off" />
+          </div>
+          <div class="cpg-field">
+            <label class="cpg-label" for="cpg-sub-input"><span>Supporting line (optional)</span><span id="cpg-sb-count">0/100</span></label>
+            <input class="cpg-input" type="text" id="cpg-sub-input" data-bind="sub" maxlength="100" placeholder="e.g. Flat 50% off this weekend only" autocomplete="off" />
+          </div>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-design-mode">
+          <h2 class="cpg-h" id="h-design-mode">What do you want to create?</h2>
+          <div class="cpg-mode-grid" id="cpg-design-modes">
+            <button type="button" class="cpg-mode-card" data-design-mode="wallpaper" aria-pressed="false"><strong>▧ Wallpaper</strong><small>Mobile, desktop and 4K backgrounds</small></button>
+            <button type="button" class="cpg-mode-card" data-design-mode="banner" aria-pressed="false"><strong>▱ Banner</strong><small>Website hero, channel and promo banners</small></button>
+            <button type="button" class="cpg-mode-card" data-design-mode="poster" aria-pressed="true"><strong>▣ Text poster</strong><small>Promotional, event and social posters</small></button>
+            <button type="button" class="cpg-mode-card" data-design-mode="background" aria-pressed="false"><strong>◌ Clean background</strong><small>Artwork only, add your own text later</small></button>
+          </div>
+          <section class="cpg-extra-box" aria-labelledby="cpg-extra-title">
+            <h3 id="cpg-extra-title">Add elements to your design</h3>
+            <p>Choose one or more things to include with your wallpaper, poster, banner or background. You can also describe your own idea below.</p>
+            <div class="cpg-extra-grid" id="cpg-extra-grid"></div>
+            <label class="cpg-label" for="cpg-extra-custom" style="display:block;margin-top:.85rem">Custom elements / scene (optional)</label>
+            <textarea id="cpg-extra-custom" class="cpg-extra-custom" data-bind="customScene" maxlength="500" placeholder="e.g. A small blue bird sitting on a branch in a misty forest, golden morning sunlight..."></textarea>
+            <div class="cpg-extra-count"><span id="cpg-extra-selected-count">0</span> preset options selected · You can combine presets with your own description.</div>
+          </section>
+          <div class="cpg-field" style="margin-top:1rem;">
+            <label class="cpg-label" for="cpg-text-mode">Text on design</label>
+            <select class="cpg-select" id="cpg-text-mode" data-bind="textMode">
+              <option value="none">No Text — clean artwork only</option>
+              <option value="overlay">Text Overlay</option>
+              <option value="3d">Text + 3D Effects</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-target">
+          <h2 class="cpg-h" id="h-target">Canvas target and dimensions</h2>
+          <div class="cpg-field">
+            <label class="cpg-label" for="cpg-target">Design for</label>
+            <select class="cpg-select" id="cpg-target" data-bind="canvasTarget">
+              <option value="square">Square social post — 1080 × 1080</option>
+              <option value="portrait">Portrait post — 1080 × 1350</option>
+              <option value="story">Story / mobile wallpaper — 1080 × 1920</option>
+              <option value="desktop">Desktop wallpaper — 3840 × 2160</option><option value="ultrawide">Ultrawide wallpaper — 3440 × 1440</option>
+              <option value="website">Website hero banner — 1920 × 800</option>
+              <option value="wide">Wide banner — 1920 × 1080</option>
+              <option value="youtube">YouTube thumbnail — 1280 × 720</option>
+              <option value="channel">YouTube channel banner — 2560 × 1440</option>
+            </select>
+          </div>
+          <p class="cpg-note" id="cpg-dimension-note">Target dimensions are included in the generated prompt. AI image tools may return a nearby supported size.</p>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-shape">
+          <h2 class="cpg-h" id="h-shape">Aspect ratio</h2>
+          <div class="cpg-seg" data-seg="shape" role="group" aria-labelledby="h-shape">
+            <button type="button" data-val="1:1">Square 1:1</button>
+            <button type="button" data-val="4:5">Portrait 4:5</button>
+            <button type="button" data-val="9:16">Story 9:16</button>
+            <button type="button" data-val="16:9">Banner 16:9</button>
+          </div>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-pal">
+          <h2 class="cpg-h" id="h-pal">Start from a palette</h2>
+          <div class="cpg-pals" id="cpg-pals"></div>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-bg">
+          <h2 class="cpg-h" id="h-bg">Background color</h2>
+          <div class="cpg-field">
+            <div class="cpg-seg" data-seg="bgMode" role="group" aria-label="Background type">
+              <button type="button" data-val="solid">One color</button>
+              <button type="button" data-val="gradient">Mixed gradient</button>
+            </div>
+          </div>
+          <div class="cpg-colors">
+            <label class="cpg-color"><input type="color" data-bind="bgA" aria-label="Background color 1" /><span class="cpg-hex" data-hex="bgA"></span></label>
+            <label class="cpg-color" data-show="bgGrad"><input type="color" data-bind="bgB" aria-label="Background color 2" /><span class="cpg-hex" data-hex="bgB"></span></label>
+          </div>
+          <div class="cpg-field" data-show="bgGrad" style="margin-top:.9rem;">
+            <label class="cpg-label" for="cpg-angle"><span>Gradient direction</span><span id="cpg-angle-val">135°</span></label>
+            <input class="cpg-range" type="range" id="cpg-angle" data-bind="angle" min="0" max="360" step="15" />
+          </div>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-tc">
+          <h2 class="cpg-h" id="h-tc">Text color</h2>
+          <div class="cpg-field">
+            <div class="cpg-seg" data-seg="txMode" role="group" aria-label="Text color type">
+              <button type="button" data-val="solid">One color</button>
+              <button type="button" data-val="gradient">Mixed colors</button>
+            </div>
+          </div>
+          <div class="cpg-colors">
+            <label class="cpg-color"><input type="color" data-bind="txA" aria-label="Text color 1" /><span class="cpg-hex" data-hex="txA"></span></label>
+            <label class="cpg-color" data-show="txGrad"><input type="color" data-bind="txB" aria-label="Text color 2" /><span class="cpg-hex" data-hex="txB"></span></label>
+          </div>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-type">
+          <h2 class="cpg-h" id="h-type">Text style</h2>
+          <div class="cpg-field">
+            <span class="cpg-label">Font</span>
+            <div class="cpg-seg fonts" data-seg="font" role="group" aria-label="Font">
+              <button type="button" data-val="modern" style="font-family:'Sora',sans-serif;font-weight:700;">Modern</button>
+              <button type="button" data-val="elegant" style="font-family:'Playfair Display',serif;font-weight:700;">Elegant</button>
+              <button type="button" data-val="bold" style="font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.04em;">Bold</button>
+              <button type="button" data-val="script" style="font-family:'Pacifico',cursive;">Script</button>
+            </div>
+          </div>
+          <div class="cpg-two">
+            <div class="cpg-field">
+              <span class="cpg-label">Weight</span>
+              <div class="cpg-seg" data-seg="weight" role="group" aria-label="Weight">
+                <button type="button" data-val="600">Medium</button>
+                <button type="button" data-val="700">Bold</button>
+                <button type="button" data-val="800">Black</button>
+              </div>
+            </div>
+            <div class="cpg-field">
+              <span class="cpg-label">Alignment</span>
+              <div class="cpg-seg" data-seg="align" role="group" aria-label="Alignment">
+                <button type="button" data-val="left">Left</button>
+                <button type="button" data-val="center">Center</button>
+                <button type="button" data-val="right">Right</button>
+              </div>
+            </div>
+          </div>
+          <div class="cpg-two">
+            <div class="cpg-field">
+              <label class="cpg-label" for="cpg-size"><span>Headline size</span><span id="cpg-size-val">11</span></label>
+              <input class="cpg-range" type="range" id="cpg-size" data-bind="size" min="5" max="20" step="0.5" />
+            </div>
+            <div class="cpg-field">
+              <label class="cpg-label" for="cpg-spacing"><span>Letter spacing</span><span id="cpg-spacing-val">0</span></label>
+              <input class="cpg-range" type="range" id="cpg-spacing" data-bind="spacing" min="-3" max="20" step="1" />
+            </div>
+          </div>
+          <div class="cpg-field">
+            <span class="cpg-label">Effect</span>
+            <div class="cpg-seg" data-seg="effect" role="group" aria-label="Text effect">
+              <button type="button" data-val="none">None</button>
+              <button type="button" data-val="soft">Soft shadow</button>
+              <button type="button" data-val="glow">Glow</button>
+              <button type="button" data-val="hard">3D shadow</button>
+            </div>
+          </div>
+          <label class="cpg-toggle"><input type="checkbox" data-bind="caps" /> Use CAPITAL LETTERS</label>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-feel">
+          <h2 class="cpg-h" id="h-feel">Design feel</h2>
+          <div class="cpg-two">
+            <div class="cpg-field">
+              <label class="cpg-label" for="cpg-purpose">Poster for</label>
+              <select class="cpg-select" id="cpg-purpose" data-bind="purpose">
+                <option value="sale">Sale or offer</option>
+                <option value="event">Event invitation</option>
+                <option value="social">Social media post</option>
+                <option value="youtube">YouTube thumbnail</option>
+                <option value="business">Business promotion</option>
+                <option value="festival">Festival greeting</option>
+                <option value="quote">Motivational quote</option>
+              </select>
+            </div>
+            <div class="cpg-field">
+              <label class="cpg-label" for="cpg-mood">Style</label>
+              <select class="cpg-select" id="cpg-mood" data-bind="mood">
+                <option value="modern">Modern minimal</option>
+                <option value="glass">Glassmorphism</option>
+                <option value="neon">Neon glow</option>
+                <option value="3d">Glossy 3D</option>
+                <option value="luxury">Luxury</option>
+                <option value="flat">Flat illustration</option>
+                <option value="retro">Retro print</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="cpg-sec" aria-labelledby="h-composition">
+          <h2 class="cpg-h" id="h-composition">Composition and atmosphere</h2>
+          <div class="cpg-two">
+            <div class="cpg-field">
+              <label class="cpg-label" for="cpg-composition">Composition</label>
+              <select class="cpg-select" id="cpg-composition" data-bind="composition">
+                <option value="balanced">Balanced focal composition</option>
+                <option value="left-space">Subject on left, open space on right</option>
+                <option value="right-space">Subject on right, open space on left</option>
+                <option value="center">Centered symmetrical composition</option>
+                <option value="top-space">Artwork low, open space at top</option>
+                <option value="immersive">Full-bleed immersive composition</option>
+              </select>
+            </div>
+            <div class="cpg-field">
+              <label class="cpg-label" for="cpg-negative">Negative space</label>
+              <select class="cpg-select" id="cpg-negative" data-bind="negativeSpace">
+                <option value="generous">Generous clean negative space</option>
+                <option value="moderate">Moderate breathing room</option>
+                <option value="minimal">Dense, edge-to-edge artwork</option>
+              </select>
+            </div>
+          </div>
+          <div class="cpg-two">
+            <div class="cpg-field">
+              <label class="cpg-label" for="cpg-lighting">Lighting</label>
+              <select class="cpg-select" id="cpg-lighting" data-bind="lighting">
+                <option value="soft studio lighting">Soft studio lighting</option>
+                <option value="cinematic directional lighting">Cinematic directional lighting</option>
+                <option value="glowing neon light">Glowing neon light</option>
+                <option value="natural daylight">Natural daylight</option>
+                <option value="dramatic rim lighting">Dramatic rim lighting</option>
+                <option value="subtle ambient light">Subtle ambient light</option>
+              </select>
+            </div>
+            <div class="cpg-field">
+              <label class="cpg-label" for="cpg-detail">Visual detail</label>
+              <select class="cpg-select" id="cpg-detail" data-bind="detailLevel">
+                <option value="refined and minimal">Refined and minimal</option>
+                <option value="balanced with tasteful details">Balanced details</option>
+                <option value="rich intricate detail">Rich intricate detail</option>
+              </select>
+            </div>
+          </div>
+          <div class="cpg-field">
+            <label class="cpg-label" for="cpg-negative-prompt">Avoid / negative prompt (optional)</label>
+            <textarea class="cpg-input" id="cpg-negative-prompt" data-bind="negativePrompt" rows="2" maxlength="500" placeholder="e.g. clutter, harsh noise, oversaturated colors, distorted objects"></textarea>
+          </div>
+          <div class="cpg-field">
+            <label class="cpg-label" for="cpg-variations">Prompt variations</label>
+            <select class="cpg-select" id="cpg-variations" data-bind="variations">
+              <option value="1">1 prompt</option>
+              <option value="3">3 prompt variations</option>
+            </select>
+          </div>
+        </section>
+
+        <div class="cpg-generate">
+          <span class="cpg-label" style="margin-bottom:.4rem;">Write the prompt for</span>
+          <div class="cpg-seg" data-seg="target" role="group" aria-label="Prompt format">
+            <button type="button" data-val="chat">ChatGPT, Gemini, Ideogram</button>
+            <button type="button" data-val="mj">Midjourney (short)</button>
+          </div>
+          <button type="button" class="btn-primary" id="cpg-generate">✨ Generate prompt</button>
+          <button type="button" class="cpg-shuffle" id="cpg-reset" style="width:100%;margin-top:.6rem;">↺ Reset all settings</button>
+          <div class="cpg-msg" id="cpg-msg" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <!-- ======= LIVE PREVIEW ======= -->
+      <aside class="cpg-stage" aria-label="Live poster preview">
+        <div class="cpg-poster" id="cpg-poster">
+          <div class="cpg-copy" id="cpg-copy">
+            <div class="cpg-preview-empty" id="cpg-preview-empty" hidden>TEXT-FREE DESIGN PREVIEW</div>
+            <h2 class="cpg-headline" id="cpg-headline"></h2>
+            <p class="cpg-sub" id="cpg-sub"></p>
+          </div>
+        </div>
+        <div class="cpg-meta">
+          <span class="cpg-contrast" id="cpg-contrast" role="status" aria-live="polite"></span>
+        </div>
+        <p class="cpg-note">The preview shows your text and colors only. The AI adds the artwork, lighting and layout around them.</p>
+      </aside>
+    </div>
+
+    <!-- ======= RESULT ======= -->
+    <div class="cpg-result" id="cpg-result" hidden>
+      <div class="cpg-stale" id="cpg-stale" hidden>You changed something after generating. Press Generate prompt again to update it.</div>
+      <div class="prompt-box">
+        <div class="prompt-box-header">
+          <div class="prompt-box-label">Your poster prompt</div>
+          <button class="copy-btn" id="cpg-copy-btn" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="prompt-text" id="cpg-output"></div>
+        <div class="cpg-output-actions"><button type="button" class="btn-primary" id="cpg-copy-all">Copy prompt(s)</button><button type="button" class="cpg-shuffle" id="cpg-copy-short">Copy short prompt</button></div>
+      </div>
+      <p class="cpg-tip">Paste it into your AI image tool. If a letter comes out wrong, reply with: “Fix the spelling of the headline and keep everything else the same.”</p>
+    </div>
+
+    <!-- ======= HELP / SEO COPY ======= -->
+    <section class="cpg-info">
+      <h2>How it works</h2>
+      <ol>
+        <li>Choose a design mode. Add a headline only when you want text on the design; No Text mode works for wallpapers and clean backgrounds.</li>
+        <li>Choose a target canvas, background and text colors, then customize composition, negative space and lighting.</li>
+        <li>When text is enabled, choose typography and effects, then check the contrast note under the preview.</li>
+        <li>Press Generate prompt, copy it, and paste it into your AI image tool.</li>
+      </ol>
+
+      <h2>Questions</h2>
+      <details>
+        <summary>Does this tool create the poster image?</summary>
+        <p>No. The live preview shows your selected text and colors. This tool writes a detailed prompt for an AI image tool such as ChatGPT, Gemini, Ideogram or Midjourney; it does not render the final artwork itself.</p>
+      </details>
+      <details>
+        <summary>Can I use two colors mixed together for the text?</summary>
+        <p>Yes. Switch the text color to Mixed colors, choose two colors, and the preview and the prompt will both use the blend. The background can be a gradient too.</p>
+      </details>
+      <details>
+        <summary>Why does the AI sometimes misspell my headline?</summary>
+        <p>Image models can still slip on lettering. The prompt tells the AI to spell every letter exactly, and tools like ChatGPT, Gemini and Ideogram handle text best. If a letter is wrong, ask the AI to fix the spelling and keep everything else the same.</p>
+      </details>
+      <details>
+        <summary>Is the poster prompt generator free?</summary>
+        <p>Yes. It is free, needs no sign-up, and runs entirely in your browser.</p>
+      </details>
+    </section>
+  </main>
+
+  <!-- ======= FOOTER ======= -->
+  <footer class="site-footer">
+    <p>SmartPrompts &mdash; A free, open AI prompt library &mdash; Built with ♥ and vanilla JS</p>
+    <p><a href="/about">About</a> · <a href="/blog">Blog</a> · <a href="/videos">Videos</a> · <a href="/submit">Submit a Prompt</a> · <a href="/contact">Contact</a> · <a href="/privacy-policy">Privacy Policy</a></p>
+  </footer>
+
+  <script src="/script.js"></script>
+  <script>
+  /* Color Poster Prompt Generator — runs fully in the browser. No API calls, no database. */
+  (function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+
+    /* ---------- Data ---------- */
+    var SHAPES = {
+      '1:1':  { css: '1 / 1',  n: 1,      size: 'square 1:1 (1080 × 1080 px)',     ar: '1:1' },
+      '4:5':  { css: '4 / 5',  n: 0.8,    size: 'portrait 4:5 (1080 × 1350 px)',    ar: '4:5' },
+      '9:16': { css: '9 / 16', n: 0.5625, size: 'vertical story 9:16 (1080 × 1920 px)', ar: '9:16' },
+      '16:9': { css: '16 / 9', n: 1.7778, size: 'wide banner 16:9 (1920 × 1080 px)', ar: '16:9' },
+      '21:9': { css: '21 / 9', n: 2.3333, size: 'ultrawide 21:9 (3440 × 1440 px)', ar: '21:9' },
+      '2.4:1': { css: '2.4 / 1', n: 2.4, size: 'website hero 2.4:1 (1920 × 800 px)', ar: '2.4:1' }
+    };
+    var TARGETS = {
+      square: { shape:'1:1', dims:'1080 × 1080 px', label:'square 1:1 social canvas' },
+      portrait: { shape:'4:5', dims:'1080 × 1350 px', label:'portrait 4:5 canvas' },
+      story: { shape:'9:16', dims:'1080 × 1920 px', label:'vertical 9:16 mobile canvas' },
+      desktop: { shape:'16:9', dims:'3840 × 2160 px (4K)', label:'wide 16:9 desktop wallpaper canvas' },
+      ultrawide: { shape:'21:9', dims:'3440 × 1440 px', label:'ultrawide 21:9 desktop wallpaper canvas' },
+      website: { shape:'2.4:1', dims:'1920 × 800 px', label:'wide website hero banner canvas' },
+      wide: { shape:'16:9', dims:'1920 × 1080 px', label:'wide 16:9 banner canvas' },
+      youtube: { shape:'16:9', dims:'1280 × 720 px', label:'YouTube thumbnail canvas' },
+      channel: { shape:'16:9', dims:'2560 × 1440 px', label:'YouTube channel banner canvas with important content inside the central safe area' }
+    };
+    var COMPOSITION = {
+      balanced: 'Use a balanced focal composition with clear hierarchy.',
+      'left-space': 'Place the main artwork on the left and preserve a large clean text-safe area on the right.',
+      'right-space': 'Place the main artwork on the right and preserve a large clean text-safe area on the left.',
+      center: 'Use a centered, symmetrical composition with deliberate visual balance.',
+      'top-space': 'Keep the main artwork in the lower portion and preserve generous uncluttered space at the top.',
+      immersive: 'Use an immersive full-bleed composition while keeping the main subject readable and visually coherent.'
+    };
+    var MODE_DETAILS = {
+      wallpaper: 'Create a wallpaper background designed for comfortable viewing behind app icons or desktop widgets; avoid busy details where icons or clock elements may sit.',
+      banner: 'Create a wide banner with a clear visual hierarchy, controlled focal point, and a practical safe area for optional website or platform text.',
+      poster: 'Create a polished poster with strong hierarchy and a deliberate focal point, suitable for promotional or social use.',
+      background: 'Create clean standalone artwork only, with no typography, so a designer can add text later in a separate editor.'
+    };
+
+    var FONTS = {
+      modern:  { css: "'Sora', sans-serif",               desc: 'a clean, modern geometric sans-serif typeface (similar to Sora or Poppins)', short: 'clean modern sans-serif lettering' },
+      elegant: { css: "'Playfair Display', serif",        desc: 'an elegant high-contrast serif typeface (similar to Playfair Display)',      short: 'elegant high-contrast serif lettering' },
+      bold:    { css: "'Bebas Neue', Impact, sans-serif", desc: 'a tall, bold condensed display typeface (similar to Bebas Neue)',            short: 'tall bold condensed display lettering' },
+      script:  { css: "'Pacifico', cursive",              desc: 'flowing brush-style script lettering (similar to Pacifico)',                 short: 'flowing brush script lettering' }
+    };
+    var WEIGHT_WORD = { 600: 'medium-weight', 700: 'bold', 800: 'extra-bold' };
+    var PURPOSE = {
+      sale: 'promotional sale or offer', event: 'event invitation', social: 'social media post',
+      youtube: 'YouTube thumbnail', business: 'business promotion', festival: 'festival greeting', quote: 'motivational quote'
+    };
+    var MOOD = {
+      modern: { name: 'modern minimal',   detail: 'Clean, modern, minimal layout with smooth shapes, soft gradients and plenty of negative space.' },
+      glass:  { name: 'glassmorphism',    detail: 'Glassmorphism feel: frosted translucent panels, soft background blur, delicate light borders and gentle depth.' },
+      neon:   { name: 'neon glow',        detail: 'Futuristic neon feel: glowing light trails, soft bloom and luminous edges that stand out against the darker tones.' },
+      '3d':   { name: 'glossy 3D',        detail: 'Glossy 3D feel: realistic soft lighting, subtle depth and smooth shiny abstract 3D shapes around the text.' },
+      luxury: { name: 'luxury',           detail: 'Premium luxury feel: refined spacing, elegant highlights, subtle texture and sophisticated lighting.' },
+      flat:   { name: 'flat illustration',detail: 'Flat modern illustration feel: bold geometric shapes, a clean vector look and a playful but tidy composition.' },
+      retro:  { name: 'retro print',      detail: 'Retro poster feel: vintage grain, bold shapes and nostalgic print textures.' }
+    };
+    var EFFECT_WORD = {
+      none: 'The lettering is clean and flat with no heavy effects.',
+      soft: 'The lettering has a soft, subtle drop shadow for depth.',
+      glow: 'The lettering has a soft glowing halo around it.',
+      hard: 'The lettering has a bold, hard-edged 3D shadow offset behind it.'
+    };
+    var PRESETS = [
+      { n: 'Royal night',  bg: ['#1e1b4b', '#5b3fd6'], tx: ['#ffffff', '#fde68a'] },
+      { n: 'Sunset pop',   bg: ['#ff5f6d', '#ffc371'], tx: ['#ffffff', '#ffffff'] },
+      { n: 'Ocean calm',   bg: ['#0ea5e9', '#1e3a8a'], tx: ['#ffffff', '#a5f3fc'] },
+      { n: 'Gold on black',bg: ['#111111', '#2b2b2b'], tx: ['#f5d76e', '#c9a227'] },
+      { n: 'Neon pink',    bg: ['#12002b', '#3b0a69'], tx: ['#ff4ecd', '#ffd36e'] },
+      { n: 'Mint fresh',   bg: ['#d1fae5', '#6ee7b7'], tx: ['#064e3b', '#064e3b'] },
+      { n: 'Peach cream',  bg: ['#fff1e6', '#ffd6c0'], tx: ['#7c2d12', '#7c2d12'] },
+      { n: 'Bold red',     bg: ['#b91c1c', '#7f1d1d'], tx: ['#ffffff', '#fde68a'] }
+    ];
+    var DIRS = [['bottom','top'],['bottom-left','top-right'],['left','right'],['top-left','bottom-right'],
+                ['top','bottom'],['top-right','bottom-left'],['right','left'],['bottom-right','top-left']];
+
+    /* ---------- State ---------- */
+    var S = {
+      headline: 'Grand Opening Sale', sub: 'Flat 50% off this weekend only',
+      designMode: 'wallpaper', textMode: 'none', canvasTarget: 'story', wallStyle: 'chrome', safeArea: 'top', extras: [], customScene: '', composition: 'balanced', negativeSpace: 'generous', lighting: 'soft studio lighting', detailLevel: 'balanced with tasteful details', negativePrompt: '', variations: '1',
+      shape: '9:16',
+      bgMode: 'gradient', bgA: '#1e1b4b', bgB: '#5b3fd6', angle: 135,
+      txMode: 'gradient', txA: '#ffffff', txB: '#fde68a',
+      font: 'modern', weight: 800, align: 'center', size: 11, spacing: 0, caps: true, effect: 'soft',
+      purpose: 'sale', mood: 'modern', target: 'chat'
+    };
+    var generated = false;
+    var DEFAULTS = JSON.parse(JSON.stringify(S));
+
+    /* ---------- Color helpers ---------- */
+    function rgb(hex) {
+      var h = hex.replace('#', '');
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    }
+    function rgba(hex, a) { var c = rgb(hex); return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+    function lum(hex) {
+      var c = rgb(hex).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    }
+    function ratio(a, b) {
+      var la = lum(a), lb = lum(b);
+      return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+    }
+    function hsl(hex) {
+      var c = rgb(hex).map(function (v) { return v / 255; });
+      var mx = Math.max(c[0], c[1], c[2]), mn = Math.min(c[0], c[1], c[2]);
+      var d = mx - mn, l = (mx + mn) / 2, h = 0, s = 0;
+      if (d) {
+        s = d / (1 - Math.abs(2 * l - 1));
+        if (mx === c[0]) h = ((c[1] - c[2]) / d) % 6;
+        else if (mx === c[1]) h = (c[2] - c[0]) / d + 2;
+        else h = (c[0] - c[1]) / d + 4;
+        h *= 60; if (h < 0) h += 360;
+      }
+      return { h: h, s: s, l: l };
+    }
+    function colorName(hex) {
+      var o = hsl(hex), h = o.h, s = o.s, l = o.l;
+      if (l < 0.08) return 'black';
+      if (l > 0.95) return 'white';
+      if (s < 0.12) {
+        if (l < 0.25) return 'charcoal';
+        if (l < 0.6) return 'gray';
+        if (l < 0.85) return 'light gray';
+        return 'off-white';
+      }
+      if (h >= 10 && h < 50 && l < 0.33) return (l < 0.2 ? 'dark ' : '') + 'brown';
+      var hue;
+      if (h < 15 || h >= 345) hue = 'red';
+      else if (h < 40) hue = 'orange';
+      else if (h < 50) hue = 'gold';
+      else if (h < 70) hue = 'yellow';
+      else if (h < 90) hue = 'lime green';
+      else if (h < 150) hue = 'green';
+      else if (h < 185) hue = 'teal';
+      else if (h < 205) hue = 'cyan';
+      else if (h < 225) hue = 'sky blue';
+      else if (h < 255) hue = 'blue';
+      else if (h < 275) hue = 'indigo';
+      else if (h < 300) hue = 'purple';
+      else if (h < 335) hue = (l > 0.6 ? 'pink' : 'magenta');
+      else hue = (l > 0.6 ? 'rose pink' : 'crimson');
+      var tone = '';
+      if (l < 0.2) tone = 'very dark ';
+      else if (l < 0.35) tone = 'deep ';
+      else if (l > 0.85) tone = 'pale ';
+      else if (l > 0.68) tone = 'light ';
+      var sat = (s < 0.35) ? 'muted ' : ((s > 0.85 && l >= 0.35 && l <= 0.68) ? 'vivid ' : '');
+      return (tone + sat + hue).trim();
+    }
+    function describe(hex) { return colorName(hex) + ' (' + hex.toUpperCase() + ')'; }
+
+    /* ---------- Preview ---------- */
+    var poster = $('cpg-poster'), copy = $('cpg-copy'), hl = $('cpg-headline'), sb = $('cpg-sub');
+
+    function bgCss() {
+      return S.bgMode === 'gradient' ? 'linear-gradient(' + S.angle + 'deg, ' + S.bgA + ', ' + S.bgB + ')' : S.bgA;
+    }
+    function effectCss() {
+      var glowB = S.txMode === 'gradient' ? S.txB : S.txA;
+      switch (S.effect) {
+        case 'soft': return 'drop-shadow(0 0.06em 0.12em rgba(0,0,0,.38))';
+        case 'glow': return 'drop-shadow(0 0 0.14em ' + rgba(S.txA, .9) + ') drop-shadow(0 0 0.45em ' + rgba(glowB, .7) + ')';
+        case 'hard': return 'drop-shadow(0.05em 0.05em 0 rgba(0,0,0,.42))';
+        default: return 'none';
+      }
+    }
+    function paintText(el) {
+      if (S.txMode === 'gradient') {
+        el.style.backgroundImage = 'linear-gradient(90deg, ' + S.txA + ', ' + S.txB + ')';
+        el.style.webkitBackgroundClip = 'text';
+        el.style.backgroundClip = 'text';
+        el.style.webkitTextFillColor = 'transparent';
+        el.style.color = 'transparent';
+      } else {
+        el.style.backgroundImage = 'none';
+        el.style.webkitBackgroundClip = 'border-box';
+        el.style.backgroundClip = 'border-box';
+        el.style.webkitTextFillColor = S.txA;
+        el.style.color = S.txA;
+      }
+    }
+    function worstContrast() {
+      var t = S.txMode === 'gradient' ? [S.txA, S.txB] : [S.txA];
+      var b = S.bgMode === 'gradient' ? [S.bgA, S.bgB] : [S.bgA];
+      var min = Infinity;
+      t.forEach(function (tc) { b.forEach(function (bc) { min = Math.min(min, ratio(tc, bc)); }); });
+      return min;
+    }
+    function render() {
+      S.shape = (TARGETS[S.canvasTarget] || TARGETS.square).shape;
+      var shape = SHAPES[S.shape], f = FONTS[S.font];
+      poster.style.background = bgCss();
+      poster.style.setProperty('--orb', rgba(S.txA, 0.16));
+      poster.style.setProperty('--ar', shape.css);
+      poster.style.setProperty('--arn', shape.n);
+      poster.style.setProperty('--size', S.size);
+
+      var a = S.align;
+      copy.style.textAlign = a;
+      copy.style.alignItems = a === 'left' ? 'flex-start' : (a === 'right' ? 'flex-end' : 'center');
+
+      var textEnabled = textOn();
+      var hasHl = S.headline.trim().length > 0;
+      hl.textContent = hasHl ? S.headline : 'Your headline here';
+      hl.classList.toggle('cpg-empty', !hasHl);
+      hl.hidden = !textEnabled;
+      sb.textContent = S.sub;
+      sb.hidden = !textEnabled || S.sub.trim().length === 0;
+      $('cpg-preview-empty').hidden = textEnabled;
+      document.querySelectorAll('#h-text, #h-tc, #h-type').forEach(function (el) { var sec = el.closest('.cpg-sec'); if (sec) sec.hidden = !textEnabled; });
+      document.querySelectorAll('[data-design-mode]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.designMode === S.designMode)); });
+      var textMode = document.getElementById('cpg-text-mode');
+      if (textMode) textMode.disabled = S.designMode === 'background';
+      if (S.designMode === 'background' && S.textMode !== 'none') S.textMode = 'none';
+      var target = TARGETS[S.canvasTarget] || TARGETS.square;
+      var note = $('cpg-dimension-note'); if (note) note.textContent = 'Target: ' + target.dims + '. Aspect ratio: ' + target.shape + '. AI image tools may return a nearby supported size.';
+
+      [hl, sb].forEach(function (el) {
+        el.style.fontFamily = f.css;
+        el.style.textTransform = S.caps ? 'uppercase' : 'none';
+        el.style.letterSpacing = (S.spacing / 100) + 'em';
+        el.style.filter = effectCss();
+        paintText(el);
+      });
+      hl.style.fontWeight = S.weight;
+      sb.style.fontWeight = 600;
+
+      // contrast note
+      var r = worstContrast(), c = $('cpg-contrast');
+      var label = r.toFixed(1) + ':1';
+      if (r >= 4.5) { c.className = 'cpg-contrast good'; c.textContent = 'Easy to read — contrast ' + label; }
+      else if (r >= 3) { c.className = 'cpg-contrast ok'; c.textContent = 'Readable for big text — contrast ' + label; }
+      else { c.className = 'cpg-contrast low'; c.textContent = 'Hard to read — contrast ' + label + '. Try a lighter or darker text color.'; }
+
+      // controls that depend on mode
+      document.querySelectorAll('[data-show="bgGrad"]').forEach(function (e) { e.hidden = S.bgMode !== 'gradient'; });
+      document.querySelectorAll('[data-show="txGrad"]').forEach(function (e) { e.hidden = S.txMode !== 'gradient'; });
+      document.querySelectorAll('[data-hex]').forEach(function (e) { e.textContent = S[e.dataset.hex]; });
+      $('cpg-angle-val').textContent = S.angle + '°';
+      $('cpg-size-val').textContent = S.size;
+      $('cpg-spacing-val').textContent = S.spacing;
+      $('cpg-hl-count').textContent = S.headline.length + '/70';
+      $('cpg-sb-count').textContent = S.sub.length + '/100';
+
+      document.querySelectorAll('[data-seg]').forEach(function (g) {
+        var key = g.dataset.seg;
+        g.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.val === String(S[key]))); });
+      });
+
+      renderStudio();
+      if (generated) $('cpg-stale').hidden = false;
+    }
+
+    function syncInputs() {
+      document.querySelectorAll('[data-bind]').forEach(function (el) {
+        var v = S[el.dataset.bind];
+        if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
+      });
+    }
+
+    /* ---------- Wiring ---------- */
+    document.querySelectorAll('[data-bind]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var k = el.dataset.bind;
+        if (el.type === 'checkbox') S[k] = el.checked;
+        else if (el.type === 'range') S[k] = Number(el.value);
+        else S[k] = el.value;
+        if (k === 'shape') {
+          var match = Object.keys(TARGETS).find(function(key){ return TARGETS[key].shape === S.shape; });
+          if (match) S.canvasTarget = match;
+        }
+        if (k === 'canvasTarget') S.shape = (TARGETS[S.canvasTarget] || TARGETS.square).shape;
+        if (k === 'canvasTarget' || k === 'detailLevel') syncInputs();
+        if (k === 'textMode' && S.textMode === 'none') { /* no text required */ }
+        render();
+      });
+    });
+    document.querySelectorAll('[data-seg]').forEach(function (g) {
+      g.addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) return;
+        var k = g.dataset.seg;
+        S[k] = (k === 'weight') ? Number(b.dataset.val) : b.dataset.val;
+        if (k === 'shape') {
+          var shapeTarget = ({'1:1':'square','4:5':'portrait','9:16':'story','16:9':'wide'})[S.shape];
+          if (shapeTarget) S.canvasTarget = shapeTarget;
+          else if (S.shape === '2.4:1') S.canvasTarget = 'website';
+          syncInputs();
+        }
+        render();
+      });
+    });
+
+    function applyPreset(p) {
+      S.bgMode = 'gradient'; S.bgA = p.bg[0]; S.bgB = p.bg[1];
+      S.txMode = (p.tx[0] === p.tx[1]) ? 'solid' : 'gradient'; S.txA = p.tx[0]; S.txB = p.tx[1];
+      syncInputs(); render();
+    }
+    var palWrap = $('cpg-pals');
+    PRESETS.forEach(function (p) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'cpg-pal';
+      b.style.background = 'linear-gradient(135deg,' + p.bg[0] + ',' + p.bg[1] + ')';
+      b.style.color = p.tx[0];
+      b.textContent = 'Aa';
+      b.title = p.n; b.setAttribute('aria-label', 'Use palette ' + p.n);
+      b.addEventListener('click', function () { applyPreset(p); });
+      palWrap.appendChild(b);
+    });
+    var shuffle = document.createElement('button');
+    shuffle.type = 'button'; shuffle.className = 'cpg-shuffle'; shuffle.textContent = 'Surprise me';
+    shuffle.addEventListener('click', function () { applyPreset(PRESETS[Math.floor(Math.random() * PRESETS.length)]); });
+    palWrap.appendChild(shuffle);
+
+    /* ---------- Prompt builder ---------- */
+    function bgDesc() {
+      if (S.bgMode === 'solid') return 'a solid ' + describe(S.bgA);
+      var d = DIRS[Math.round(((S.angle % 360) + 360) % 360 / 45) % 8];
+      return 'a smooth gradient blending from ' + describe(S.bgA) + ' at the ' + d[0] + ' to ' + describe(S.bgB) + ' at the ' + d[1];
+    }
+    function textDesc() {
+      if (S.txMode === 'solid') return describe(S.txA);
+      return 'a smooth color blend from ' + describe(S.txA) + ' on the left to ' + describe(S.txB) + ' on the right, applied across the lettering';
+    }
+    function sizeWord() {
+      if (S.size < 8) return 'modest in size';
+      if (S.size < 12) return 'large';
+      if (S.size < 16) return 'very large';
+      return 'huge, filling most of the poster width';
+    }
+    function spacingWord() {
+      if (S.spacing < 2) return 'tight letter-spacing';
+      if (S.spacing < 7) return 'normal letter-spacing';
+      return 'wide, airy letter-spacing';
+    }
+    function alignWord() { return S.align === 'center' ? 'centered' : S.align + '-aligned'; }
+
+    /* ---------- Wallpaper styles (preview images are in /images/wallpapers/) ---------- */
+    var IMG = '/images/wallpapers/';
+    var WALL = {
+      chrome: { name: 'Liquid Chrome AMOLED Wallpaper', short: 'Molten orange · Polished silver · Deep black',
+        desc: 'A dramatic sculptural wallpaper with intertwined polished chrome ribbons and glowing molten-orange highlights on a near-black background. Bold, premium and especially striking on AMOLED displays.',
+        prompt: 'intertwined sculptural liquid-metal ribbons, polished dark chrome and silver surfaces, molten orange and amber luminous inner edges, realistic glossy reflections, deep pure-black background, dramatic premium 3D lighting, elegant composition' },
+      violet: { name: 'Violet Neon Flow Wallpaper', short: 'Glossy black · Electric violet · Blue highlights',
+        desc: 'Glossy flowing abstract forms curve through a dark scene with electric-blue and violet reflections. Sleek, futuristic and cinematic.',
+        prompt: 'sleek flowing glossy abstract curves, deep midnight-black and navy background, luminous electric-blue and violet reflections, subtle magenta rim light, smooth reflective material, dramatic flowing composition, premium futuristic 3D wallpaper' },
+      glass: { name: 'Pastel Glassmorphism Wallpaper', short: 'Iridescent glass · Pastel pink · Cyan glow',
+        desc: 'Dreamy translucent glass forms with pearlescent reflections, lavender-pink gradients and bright cyan highlights for a soft futuristic look.',
+        prompt: 'translucent iridescent glass sculptures and spheres, pastel lavender pink and cyan gradients, pearlescent reflections, soft diffused light, delicate refraction, luminous airy atmosphere, refined abstract 3D art' },
+      silk: { name: 'Blue Silk Waves Wallpaper', short: 'AMOLED black · Blue ribbons · Soft violet glow',
+        desc: 'Flowing translucent blue and violet ribbons sweep across a deep-black background, leaving generous negative space and elegant movement.',
+        prompt: 'translucent flowing silk-like light ribbons, deep AMOLED-black negative space, cool sapphire blue cyan and subtle violet edges, smooth elegant curves, soft luminous reflections, minimal cinematic abstract composition' },
+      cosmic: { name: 'Cosmic Galaxy Wallpaper', short: 'Nebula clouds · Starfield · Electric blue and violet',
+        desc: 'An immersive deep-space scene filled with glowing blue-violet nebula clouds, tiny stars and dramatic cosmic depth.',
+        prompt: 'spectacular deep-space nebula, luminous electric-blue and violet cosmic clouds, dense fine starfield, subtle galactic swirls, rich indigo shadows, radiant cyan glow, immense atmospheric depth, ultra-detailed cinematic space photography' },
+      neon: { name: 'Neon Cyberpunk Wallpaper', short: 'Neon cyan · Magenta reflections · Orange sparks',
+        desc: 'A high-energy abstract neon scene with glossy reflective tunnels, cyan and magenta light trails and warm orange sparks against a dark futuristic background.',
+        prompt: 'futuristic glossy neon tunnel and flowing reflective surfaces, electric cyan blue and hot magenta lighting, vivid orange sparks and glowing particles, deep navy shadows, cinematic depth, high contrast, polished cyberpunk abstract art' },
+      moltenwave: { name: 'Molten Chrome Wave Wallpaper', short: 'Molten amber · Chrome ocean · Black negative space',
+        desc: 'A dramatic metallic ocean wave made from polished black chrome and molten orange light, with sparkling droplets and a bright low horizon. Designed for a premium, high-contrast wallpaper.',
+        prompt: 'a spectacular curling ocean wave sculpted from polished liquid chrome and molten amber-orange metal, reflective black and silver surfaces, fine suspended droplets and sparkling spray, glowing golden horizon, deep pure-black negative space, dramatic cinematic lighting, ultra-detailed premium 3D render' },
+      blackchrome: { name: 'Black Chrome Flow Wallpaper', short: 'Glossy graphite · Silver curves · Amber accents',
+        desc: 'A refined close-up of flowing black liquid metal, smooth silver-gray ribbons, tiny water droplets and restrained amber highlights on a dark graphite background.',
+        prompt: 'abstract macro composition of flowing glossy black liquid metal and graphite chrome, smooth sculpted silver-gray waves, subtle warm amber-orange rim highlights, tiny realistic water droplets and microtexture, dramatic studio reflections, deep charcoal-black background, sophisticated premium 3D wallpaper' }
+    };
+    var WALL_LABEL = { story: 'mobile wallpaper', desktop: 'desktop wallpaper', ultrawide: 'ultrawide wallpaper', square: 'square wallpaper' };
+    var FORMAT_COMP = { story: 'vertical full-bleed composition', desktop: 'wide horizontal full-bleed composition', ultrawide: 'ultra-wide panoramic full-bleed composition', square: 'balanced square full-bleed composition' };
+    var SAFE_TEXT = {
+      top: 'Keep the top portion visually quiet and low-detail for the lock-screen clock and widgets.',
+      center: 'Keep the center portion visually quiet and low-detail for the lock-screen clock and widgets.',
+      bottom: 'Keep the bottom portion visually quiet and low-detail for lock-screen controls and widgets.',
+      none: 'No reserved safe area is needed.'
+    };
+    var SAFE_SHORT = { top: 'top area kept quiet for the lock-screen clock', center: 'center area kept quiet', bottom: 'bottom area kept quiet', none: '' };
+    var COMP_SHORT = {
+      balanced: 'balanced focal composition', 'left-space': 'subject on the left with clean open space on the right',
+      'right-space': 'subject on the right with clean open space on the left', center: 'centered symmetrical composition',
+      'top-space': 'artwork low with open space at the top', immersive: 'full-bleed immersive composition'
+    };
+    var VARIANTS = [
+      'Variation direction: emphasize elegant layered depth and subtle atmospheric gradients.',
+      'Variation direction: use a more minimal editorial layout, refined geometry and restrained highlights.',
+      'Variation direction: use a more cinematic focal point, richer dimensional lighting and premium texture.'
+    ];
+    var VARIANTS_SHORT = ['layered depth and atmospheric gradients', 'minimal editorial geometry and restrained highlights', 'cinematic focal point with rich dimensional lighting'];
+    var PURPOSE_NOUN = { sale: 1, event: 1, social: 0, youtube: 0, business: 1, festival: 1, quote: 1 };
+
+    /* ---------- Scene elements (every item is reachable — the old range split dropped the last 3) ---------- */
+    var EXTRAS = [
+      { name: 'Nature & Landscapes', icon: '🌿', items: ['Natural forest','Misty pine forest','Tropical rainforest','Autumn forest','Snowy forest','Mountain landscape','Waterfall','River and stream','Lake reflection','Ocean waves','Beach at sunset','Desert dunes','Flower garden','Cherry blossoms','Wildflowers','Green meadow','Moss and stones','Sun rays through trees','Water lily pond','Lotus flowers','Bamboo grove'] },
+      { name: 'Birds & Animals', icon: '🦋', items: ['Birds in flight','Small songbird on a branch','Kingfisher','Peacock feathers','Eagle in the sky','Owls in a forest','Butterflies','Fireflies','Deer in the woods','Fox in the forest','Rabbit in a meadow','Wolf silhouette','Horse running','Cat silhouette','Dog in a field'] },
+      { name: 'Sky & Weather', icon: '🌌', items: ['Moon and stars','Milky Way galaxy','Aurora borealis','Floating clouds','Sunrise glow','Sunset horizon','Rain and droplets','Soft fog','Lightning storm','Snowfall'] },
+      { name: 'Fantasy & Architecture', icon: '🏯', items: ['Crystal formations','Glowing mushrooms','Fantasy castle','Ancient temple','Japanese torii gate','Cozy cabin'] },
+      { name: 'Abstract & 3D', icon: '✨', items: ['Abstract glass spheres','Liquid chrome ribbons','Neon light trails','Golden particles','Floating petals','Geometric shapes','Silk ribbons','Iridescent bubbles','3D metallic sculpture','Minimal gradient glow','Soft bokeh lights'] }
+    ];
+    var extraGrid = $('cpg-extra-grid'), categoryNodes = [];
+    var searchWrap = document.createElement('div');
+    searchWrap.className = 'cpg-extra-search-wrap';
+    searchWrap.innerHTML = '<input type="search" id="cpg-extra-search" class="cpg-input cpg-extra-search" placeholder="Search elements…" aria-label="Search design elements"><button type="button" id="cpg-extra-clear" class="cpg-extra-clear">Clear selected</button>';
+    extraGrid.before(searchWrap);
+    extraGrid.classList.add('cpg-extra-categories');
+    EXTRAS.forEach(function (cat, ci) {
+      var details = document.createElement('details'); details.className = 'cpg-extra-category'; details.open = ci === 0;
+      var summary = document.createElement('summary');
+      summary.innerHTML = '<span class="cpg-extra-category-title"><span aria-hidden="true">' + cat.icon + '</span> ' + cat.name + '</span><span class="cpg-extra-category-meta"><span class="cpg-extra-category-count">' + cat.items.length + '</span><span class="cpg-extra-chevron">⌄</span></span>';
+      var grid = document.createElement('div'); grid.className = 'cpg-extra-grid';
+      details.appendChild(summary); details.appendChild(grid); extraGrid.appendChild(details);
+      categoryNodes.push({ details: details, grid: grid, total: cat.items.length, first: ci === 0 });
+      cat.items.forEach(function (label) {
+        var wrap = document.createElement('label'); wrap.className = 'cpg-extra-choice';
+        var input = document.createElement('input'); input.type = 'checkbox'; input.value = label;
+        var text = document.createElement('span'); text.textContent = label;
+        wrap.appendChild(input); wrap.appendChild(text); grid.appendChild(wrap);
+      });
+    });
+    function updateExtrasUi() {
+      $('cpg-extra-selected-count').textContent = S.extras.length;
+      categoryNodes.forEach(function (c) {
+        var n = c.grid.querySelectorAll('input:checked').length;
+        c.details.querySelector('.cpg-extra-category-count').textContent = n ? n + ' selected' : c.total;
+        c.details.classList.toggle('has-selection', n > 0);
+      });
+    }
+    extraGrid.addEventListener('change', function (e) {
+      if (e.target.type !== 'checkbox') return;
+      S.extras = Array.prototype.map.call(extraGrid.querySelectorAll('input:checked'), function (i) { return i.value; });
+      updateExtrasUi(); render();
+    });
+    $('cpg-extra-search').addEventListener('input', function () {
+      var q = this.value.trim().toLowerCase();
+      categoryNodes.forEach(function (c) {
+        var matches = 0;
+        c.grid.querySelectorAll('.cpg-extra-choice').forEach(function (ch) {
+          var show = ch.textContent.toLowerCase().indexOf(q) > -1; ch.hidden = !show; if (show) matches++;
+        });
+        c.details.hidden = matches === 0;
+        if (q && matches) c.details.open = true;
+        if (!q && !c.details.classList.contains('has-selection')) c.details.open = c.first;
+      });
+    });
+    $('cpg-extra-clear').addEventListener('click', function () {
+      extraGrid.querySelectorAll('input:checked').forEach(function (i) { i.checked = false; });
+      S.extras = []; updateExtrasUi(); render();
+    });
+
+    /* ---------- Wallpaper hero + style gallery ---------- */
+    var hero = $('ads-featured'), art = $('ads-art');
+    var gallerySection = $('ads-style-heading').closest('section');
+    var stageEl = document.querySelector('.cpg-stage'), gridEl = document.querySelector('.cpg-grid');
+    document.querySelectorAll('.ads-style').forEach(function (b) {
+      var sw = b.querySelector('.ads-swatch');
+      if (sw) sw.style.backgroundImage = "url('" + IMG + b.dataset.style + "-thumb.webp')";
+      b.addEventListener('click', function () { S.wallStyle = b.dataset.style; render(); });
+    });
+    var viewAll = $('ads-view-all'), styleList = $('ads-styles');
+    function setGalleryOpen(open) {
+      styleList.classList.toggle('is-collapsed', !open);
+      viewAll.setAttribute('aria-expanded', String(open));
+      viewAll.textContent = open ? '− Show fewer styles' : '＋ View all wallpaper styles';
+    }
+    setGalleryOpen(false);
+    viewAll.addEventListener('click', function () { setGalleryOpen(styleList.classList.contains('is-collapsed')); });
+
+    function openFull() { hero.classList.add('ads-fullscreen'); document.body.style.overflow = 'hidden'; $('ads-close-full').focus(); }
+    function closeFull() { if (!hero.classList.contains('ads-fullscreen')) return; hero.classList.remove('ads-fullscreen'); document.body.style.overflow = ''; $('ads-fullscreen').focus(); }
+    $('ads-fullscreen').addEventListener('click', openFull);
+    $('ads-close-full').addEventListener('click', closeFull);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeFull(); });
+    $('ads-jump-generate').addEventListener('click', function () {
+      $('cpg-controls').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    var WALL_FORMAT_LABEL = { story: 'Mobile wallpaper · 9:16', desktop: 'Desktop wallpaper · 16:9', ultrawide: 'Ultrawide wallpaper · 21:9', square: 'Square wallpaper · 1:1' };
+    function hideSection(headingId, hide) { var h = $(headingId), sec = h && h.closest('.cpg-sec'); if (sec) sec.hidden = hide; }
+    function renderStudio() {
+      var mode = S.designMode, wp = mode === 'wallpaper', x = WALL[S.wallStyle] || WALL.chrome;
+      // The style gallery and preview only matter for wallpapers; the poster preview only matters for the other modes.
+      hero.hidden = !wp; gallerySection.hidden = !wp;
+      if (stageEl) stageEl.hidden = wp;
+      if (gridEl) gridEl.classList.toggle('is-wallpaper', wp);
+      // Colour / size controls do nothing for a style-based wallpaper, so they are hidden instead of left as dead buttons.
+      ['h-pal', 'h-bg', 'h-feel', 'h-target', 'h-shape'].forEach(function (id) { hideSection(id, wp); });
+      var advT = document.querySelector('.cpg-advanced-toggle'), advC = document.querySelector('.cpg-advanced-content');
+      if (advT) { advT.hidden = wp; if (advC) advC.hidden = wp || advT.getAttribute('aria-expanded') !== 'true'; }
+      var purpose = $('cpg-purpose') && $('cpg-purpose').closest('.cpg-field'); if (purpose) purpose.hidden = mode === 'background';
+      var textMode = $('cpg-text-mode'), tmField = textMode && textMode.closest('.cpg-field, label, div'); if (textMode) textMode.disabled = (mode === 'wallpaper' || mode === 'background');
+      if (!wp) return;
+      $('ads-preview-title').textContent = x.name;
+      $('ads-preview-sub').textContent = x.short;
+      $('ads-style-name').textContent = x.name;
+      $('ads-style-description').textContent = x.desc;
+      $('ads-preview-format').textContent = WALL_FORMAT_LABEL[S.canvasTarget] || 'Wallpaper';
+      art.style.backgroundImage = "url('" + IMG + S.wallStyle + ".webp')";
+      art.style.backgroundPosition = 'center 42%';
+      art.style.backgroundSize = 'cover';
+      art.setAttribute('aria-label', x.name + ' image preview');
+      document.querySelectorAll('.ads-style').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.style === S.wallStyle)); });
+    }
+
+    /* ---------- Prompt builders ---------- */
+    function wallLabel() { return WALL_LABEL[S.canvasTarget] || 'wallpaper'; }
+    function purposeLabel() {
+      var base = PURPOSE[S.purpose] || PURPOSE.sale;
+      return PURPOSE_NOUN[S.purpose] === 0 ? base : base + ' ' + (S.designMode === 'banner' ? 'banner' : 'poster');
+    }
+    function extrasList() { return S.extras.concat(S.customScene.trim() ? [S.customScene.trim()] : []); }
+    function textOn() { return S.textMode !== 'none' && (S.designMode === 'poster' || S.designMode === 'banner'); }
+
+    function buildChat(vi) {
+      var t = TARGETS[S.canvasTarget] || TARGETS.square, mode = S.designMode, m = MOOD[S.mood], f = FONTS[S.font], tOn = textOn(), w = WALL[S.wallStyle] || WALL.chrome;
+      var h = S.headline.trim(), sub = S.sub.trim(), L = [];
+      if (mode === 'wallpaper') {
+        L.push('Create a premium ' + wallLabel() + ' in ' + t.dims + ', aspect ratio ' + t.shape + '.');
+        L.push('');
+        L.push('STYLE: ' + w.name + '.');
+        L.push(w.prompt + '.');
+        L.push(w.desc);
+        L.push('');
+        L.push('TEXT RULE: Absolutely no text, letters, numbers, typography, captions, logos, signatures, UI elements or watermarks anywhere in the image. Create artwork only.');
+        L.push('');
+      } else {
+        if (mode === 'background') L.push('Create clean, professional background artwork in ' + t.dims + ', aspect ratio ' + t.shape + '. Use a ' + m.name + ' design style.');
+        else L.push('Create a stunning, modern, professional ' + purposeLabel() + ' in ' + t.dims + ', aspect ratio ' + t.shape + '. Use a ' + m.name + ' design style.');
+        L.push('');
+        if (tOn) {
+          L.push('TEXT ON THE DESIGN (spell every letter exactly as written; do not add extra words):');
+          L.push('Headline: "' + h + '"');
+          if (sub) L.push('Supporting line: "' + sub + '"');
+        } else {
+          L.push('TEXT RULE: Absolutely no text, letters, numbers, typography, captions, labels, logos, signatures or watermarks anywhere in the image. Create artwork only.');
+        }
+        L.push('');
+        L.push('COLORS (use exactly this palette):');
+        L.push('- Background: ' + bgDesc() + '.');
+        if (tOn) L.push('- Text color: ' + textDesc() + '.');
+        L.push('Build the design from these colors and their natural tints and shades so it feels cohesive and premium.');
+        L.push('');
+        if (tOn) {
+          var effect = S.textMode === '3d' ? EFFECT_WORD.hard : EFFECT_WORD[S.effect];
+          L.push('TYPOGRAPHY:');
+          L.push('Use ' + f.desc + ', ' + WEIGHT_WORD[S.weight] + ', ' + (S.caps ? 'in ALL CAPS' : 'with the exact capitalization written above') + ', ' + alignWord() + ', with ' + spacingWord() + '. ' + effect + ' The headline is ' + sizeWord() + ' and is the main focal point' + (sub ? '; the supporting line is clearly smaller.' : '.'));
+          L.push('');
+        }
+      }
+      L.push('DESIGN AND COMPOSITION:');
+      L.push(MODE_DETAILS[mode] + ' ' + (COMPOSITION[S.composition] || COMPOSITION.balanced) + (mode === 'wallpaper' ? ' Use a ' + FORMAT_COMP[S.canvasTarget] + '. ' + SAFE_TEXT[S.safeArea] : ''));
+      L.push('Negative space: ' + S.negativeSpace + '. Lighting: ' + S.lighting + '. Detail level: ' + S.detailLevel + '.');
+      if (vi > 0) L.push(VARIANTS[(vi - 1) % VARIANTS.length]);
+      if (mode === 'wallpaper') L.push('Strong focal design, edge-to-edge artwork, careful balance and a polished professional finish.');
+      else L.push(m.detail + ' Strong visual hierarchy, generous breathing room, deliberate edge margins, polished professional composition, no clutter.');
+      var ex = extrasList();
+      if (ex.length) {
+        L.push('');
+        L.push('ADDITIONAL ELEMENTS TO INCLUDE: ' + ex.join('; ') + '. Integrate these elements naturally into the composition, keep them clear, and make them match the selected style, lighting, palette and perspective.');
+      }
+      L.push('');
+      L.push('QUALITY:');
+      L.push('Ultra-sharp, crisp edges, high-resolution 4K-quality detail, professional finish, cohesive lighting and carefully controlled contrast.');
+      if (tOn) L.push('Keep all lettering highly legible with strong contrast against the background.');
+      if (S.negativePrompt.trim()) L.push('AVOID: ' + S.negativePrompt.trim() + '.');
+      else if (tOn) L.push('AVOID: misspelled or garbled letters, extra random text, watermarks, blurry text, low contrast and clutter.');
+      else L.push('AVOID: all text, letters, typography, logos, watermarks, visual clutter, low-resolution details and accidental borders.');
+      return L.join('\n');
+    }
+
+    /* One-paragraph prompt. plain=true -> normal English (no Midjourney flags). */
+    function buildShort(vi, plain) {
+      var t = TARGETS[S.canvasTarget] || TARGETS.square, mode = S.designMode, m = MOOD[S.mood], f = FONTS[S.font], tOn = textOn(), w = WALL[S.wallStyle] || WALL.chrome;
+      var h = S.headline.trim(), sub = S.sub.trim(), parts = [];
+      if (mode === 'wallpaper') {
+        parts.push('premium ' + wallLabel(), w.name.replace(/ Wallpaper$/, '') + ' style', w.prompt);
+      } else {
+        var bg = S.bgMode === 'solid' ? 'solid ' + describe(S.bgA) : 'gradient from ' + describe(S.bgA) + ' to ' + describe(S.bgB);
+        var tx = S.txMode === 'solid' ? describe(S.txA) : 'blend of ' + describe(S.txA) + ' and ' + describe(S.txB);
+        parts.push(mode === 'background' ? 'clean text-free background artwork' : purposeLabel(), m.name + ' style', 'background ' + bg);
+        if (tOn) parts.push('headline text "' + h + '"' + (sub ? ' with smaller line "' + sub + '"' : '') + ', text color ' + tx + ', ' + f.short + (S.caps ? ', all caps' : '') + ', ' + WEIGHT_WORD[S.weight] + ' ' + alignWord() + ' text');
+      }
+      if (plain) parts.push(t.dims);
+      if (!tOn) parts.push('absolutely no text, letters, logos or watermarks');
+      parts.push(COMP_SHORT[S.composition]);
+      if (mode === 'wallpaper') { parts.push(FORMAT_COMP[S.canvasTarget]); if (SAFE_SHORT[S.safeArea]) parts.push(SAFE_SHORT[S.safeArea]); }
+      parts.push('negative space ' + S.negativeSpace, S.lighting, S.detailLevel);
+      var ex = extrasList();
+      if (ex.length) parts.push('featuring ' + ex.join(', '));
+      if (vi > 0) parts.push(VARIANTS_SHORT[(vi - 1) % VARIANTS_SHORT.length]);
+      parts.push('premium lighting, crisp high-resolution details');
+      var neg = S.negativePrompt.trim();
+      if (plain) { if (neg) parts.push('avoid ' + neg); return parts.join(', ') + '. Aspect ratio ' + t.shape + '.'; }
+      return parts.join(', ') + (neg ? ' --no ' + neg : '') + ' --ar ' + t.shape + ' --style raw';
+    }
+
+    /* ---------- Generate / modes / reset / copy ---------- */
+    var msg = $('cpg-msg'), result = $('cpg-result'), out = $('cpg-output');
+    $('cpg-generate').addEventListener('click', function () {
+      if (textOn() && !S.headline.trim()) {
+        msg.textContent = 'Add a headline, or choose “No text” to generate artwork without lettering.';
+        $('cpg-headline-input').focus();
+        return;
+      }
+      msg.textContent = '';
+      var count = Number(S.variations) || 1, prompts = [];
+      for (var i = 0; i < count; i++) prompts.push((count > 1 ? 'VARIATION ' + (i + 1) + '\n\n' : '') + (S.target === 'mj' ? buildShort(i, false) : buildChat(i)));
+      out.textContent = prompts.join('\n\n' + '—'.repeat(28) + '\n\n');
+      result.hidden = false;
+      $('cpg-stale').hidden = true;
+      generated = true;
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      result.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    });
+
+    var MODE_TARGET = { wallpaper: 'story', banner: 'website', poster: 'square', background: 'desktop' };
+    document.querySelectorAll('[data-design-mode]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var m = button.dataset.designMode;
+        S.designMode = m;
+        S.canvasTarget = MODE_TARGET[m];
+        S.composition = m === 'banner' ? 'left-space' : 'balanced';
+        if (m === 'wallpaper' || m === 'background') S.textMode = 'none';
+        else if (S.textMode === 'none') S.textMode = 'overlay';
+        syncInputs(); render();
+      });
+    });
+
+    $('cpg-reset').addEventListener('click', function () {
+      S = JSON.parse(JSON.stringify(DEFAULTS));
+      generated = false;
+      extraGrid.querySelectorAll('input:checked').forEach(function (i) { i.checked = false; });
+      $('cpg-extra-search').value = '';
+      categoryNodes.forEach(function (c) { c.details.hidden = false; c.details.open = c.first; c.grid.querySelectorAll('.cpg-extra-choice').forEach(function (ch) { ch.hidden = false; }); });
+      setGalleryOpen(false); closeFull();
+      updateExtrasUi(); syncInputs(); render();
+      result.hidden = true; msg.textContent = '';
+    });
+
+    function copyText(value, button, successLabel, labelEl) {
+      var el = labelEl || button, old = el.textContent;
+      function done() { button.classList.add('copied'); el.textContent = successLabel; setTimeout(function () { button.classList.remove('copied'); el.textContent = old; }, 1700); }
+      function fallback() {
+        var ta = document.createElement('textarea'); ta.value = value; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(value).then(done, fallback); else fallback();
+    }
+    $('cpg-copy-btn').addEventListener('click', function () { copyText(out.textContent, this, 'Copied!', this.querySelector('span')); });
+    $('cpg-copy-all').addEventListener('click', function () { copyText(out.textContent, this, 'Copied!'); });
+    $('cpg-copy-short').addEventListener('click', function () { copyText(buildShort(0, S.target !== 'mj'), this, 'Short prompt copied!'); });
+
+    /* ---------- Go ---------- */
+    function setStickyTop() {
+      var hd = document.querySelector('.site-header'), bar = document.querySelector('.icon-nav-bar');
+      var top = hd ? hd.offsetHeight : 0;
+      if (bar && getComputedStyle(bar).display !== 'none') top = (parseFloat(getComputedStyle(bar).top) || top) + bar.offsetHeight;
+      document.documentElement.style.setProperty('--cpg-top', top + 'px');
+    }
+    setStickyTop();
+    window.addEventListener('resize', setStickyTop);
+    window.__cpgRender = function () { render(); };
+    syncInputs();
+    render();
+  })();
+  </script>
+
+
+
+
+
+
+<script id="compact-studio-interactions">
+(function(){
+  const gallery=document.getElementById('ads-styles');
+  const view=document.getElementById('ads-view-all');
+  // Keep the more technical controls available, but collapsed initially to reduce mobile scrolling.
+  const panel=document.getElementById('cpg-controls');
+  if(!panel || panel.querySelector('.cpg-advanced-toggle')) return;
+  const advancedTitles=['Canvas target and dimensions','Aspect ratio'];
+  const sections=Array.from(panel.querySelectorAll(':scope > .cpg-sec'));
+  const advanced=sections.filter(sec=>advancedTitles.some(t=>sec.querySelector('h2')?.textContent.trim()===t));
+  if(!advanced.length) return;
+  const toggle=document.createElement('button');toggle.type='button';toggle.className='cpg-advanced-toggle';toggle.setAttribute('aria-expanded','false');toggle.innerHTML='Advanced settings <span>Canvas size · aspect ratio　＋</span>';
+  const content=document.createElement('div');content.className='cpg-advanced-content';content.hidden=true;
+  advanced[0].parentNode.insertBefore(toggle,advanced[0]);
+  advanced.forEach(sec=>content.appendChild(sec));
+  toggle.after(content);
+  toggle.addEventListener('click',function(){const open=content.hidden;content.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.querySelector('span').textContent=open?'Tap to collapse　−':'Canvas size · aspect ratio　＋';});
+  if(window.__cpgRender) window.__cpgRender();
+})();
+</script>
+
+
+<script id="mobile-floating-preview-fix">
+(function(){
+  const stage=document.querySelector('.cpg-stage');
+  if(!stage) return;
+  const mq=window.matchMedia('(max-width:650px)');
+  let spacer=null, naturalTop=0, ticking=false;
+  function prepare(){
+    if(!mq.matches){
+      stage.classList.remove('cpg-preview-floating');
+      if(spacer){spacer.remove();spacer=null;}
+      return;
+    }
+    if(!spacer){
+      spacer=document.createElement('div');
+      spacer.className='cpg-preview-spacer';
+      spacer.setAttribute('aria-hidden','true');
+      stage.parentNode.insertBefore(spacer,stage);
+    }
+    spacer.style.height=stage.offsetHeight+'px';
+    naturalTop=spacer.getBoundingClientRect().top+window.scrollY;
+    update();
+  }
+  function update(){
+    if(!mq.matches || !spacer) return;
+    const shouldFloat=window.scrollY+84>=naturalTop;
+    stage.classList.toggle('cpg-preview-floating',shouldFloat);
+    spacer.style.height=shouldFloat ? stage.offsetHeight+'px' : '0px';
+  }
+  function onScroll(){if(ticking)return;ticking=true;requestAnimationFrame(()=>{update();ticking=false;});}
+  prepare();
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',prepare,{passive:true});
+  if(mq.addEventListener) mq.addEventListener('change',prepare); else mq.addListener(prepare);
+  if(window.ResizeObserver){new ResizeObserver(()=>{if(!stage.classList.contains('cpg-preview-floating')){if(spacer)spacer.style.height=stage.offsetHeight+'px';}}).observe(stage);}
+})();
+</script>
+
+</body>
+</html>

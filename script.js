@@ -2581,7 +2581,7 @@ function initIconNavBar() {
   const isBlog = path.includes('blog');
   const isGallery = path.includes('gallery') && !path.includes('gallery-item');
   const isVideos = path.includes('video');
-  const isMore = path.includes('submit') || path.includes('about') || path.includes('seo-tool') || path.includes('prompt-improver') || path.includes('image-prompt-generator');
+  const isMore = path.includes('submit') || path.includes('about') || path.includes('seo-tool') || path.includes('prompt-improver') || path.includes('image-prompt-generator') || path.includes('color-poster-prompt-generator');
 
   const items = [
     {
@@ -2645,6 +2645,7 @@ function initIconNavBar() {
     <a href="/seo-tool" class="site-nav-link">SEO Tool</a>
     <a href="/prompt-improver" class="site-nav-link">Prompt Improver</a>
     <a href="/image-prompt-generator" class="site-nav-link">Image Prompt Generator</a>
+    <a href="/color-poster-prompt-generator" class="site-nav-link">Design Prompt Studio</a>
     <a href="/submit" class="site-nav-link">Submit Prompt</a>
     <a href="/about" class="site-nav-link">About</a>
   `;
