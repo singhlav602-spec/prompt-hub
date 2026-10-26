@@ -42,6 +42,13 @@ async function fetchDiscoveryPrompts() {
    Fire-and-forget: never awaited by callers, and failures are silent. ---- */
 function trackPromptView(slug) {
   try {
+    /* Count a prompt once per browser session (refresh / coming back doesn't count again) — saves D1 writes. */
+    try {
+      const seen = JSON.parse(sessionStorage.getItem('sp_viewed') || '[]');
+      if (seen.indexOf(slug) > -1) return;
+      seen.push(slug);
+      sessionStorage.setItem('sp_viewed', JSON.stringify(seen.slice(-300)));
+    } catch (e) { /* storage blocked: just count it */ }
     fetch('/api/track-view', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1448,9 +1455,12 @@ async function initPromptPage() {
   const copyBtn = document.getElementById('copy-btn');
   if (copyBtn) {
     copyBtn.addEventListener('click', () => {
-      copyToClipboard(prompt.prompt, copyBtn);
+      copyToClipboard(window.__currentPromptText || prompt.prompt, copyBtn);   // filled-in text when the visitor typed something
     });
   }
+
+  /* --- Fill the blanks: boxes for every [BLANK]. Copy keeps working whether or not they are filled. --- */
+  if (window.spFillBlanks) window.spFillBlanks(prompt.prompt);
 
   const detailLikeBtn = document.getElementById('detail-like-btn');
   if (detailLikeBtn) {
@@ -2756,7 +2766,7 @@ document.addEventListener('DOMContentLoaded', () => {
   var STAY_MS = 7000;                         // must stay >= 6000
   var MAX_PER_VISIT = MAXQ ? parseInt(MAXQ[1], 10) : 10;
   var CLOSE_LIMIT = 3;
-  var DATA_URL = '/funny-messages.json';
+  var DATA_URL = '/funny-messages.json?v=2';
 
   var DATA = null, SEEN = {}, shown = 0, closes = 0, stopped = false, retries = 0;
   var timer = null, hideT = null, shownAt = 0, remaining = STAY_MS, el = null, card = null, textEl = null, barEl = null;
@@ -2948,4 +2958,230 @@ document.addEventListener('DOMContentLoaded', () => {
 
   watchHome();
   schedule(FIRST_MS);
+})();
+
+/* =========================================================================
+   SmartPrompts — Fill the Blanks
+   Finds every [BLANK] in a prompt on its own, builds one box per blank, and updates the
+   prompt live while the visitor types. 100% in the browser: no D1, no API.
+   - The Copy button is never hidden or disabled. Unfilled blanks are copied exactly as they are.
+   - Same blank name used twice in a prompt = one box fills both.
+   - Short answers (topic, product...) are remembered in this browser only, so the next prompt is pre-filled.
+   - Prompts with no [blank] are left completely untouched.
+   ========================================================================= */
+(function () {
+  'use strict';
+
+  var RX = /\[[^\[\]]{2,80}\]/g;                 // same pattern the page already uses to highlight blanks
+  var STORE = 'sp_fill_vals';
+  var NO_SAVE = /paste|code|describe|list |text|data|notes|feedback|prompt|premise|travel/;  // long / private answers are never saved
+  var TEXTAREA = /^(paste |describe |list |text$|code$|data description|premise|travel details)/;
+  var NUMERIC = /^(number|amount|hours|hours available|years|team size|user count)$/;
+  var ACRONYMS = { ai: 'AI', seo: 'SEO', url: 'URL', cta: 'CTA', kpi: 'KPI', api: 'API', ui: 'UI', ux: 'UX', faq: 'FAQ', roi: 'ROI', b2b: 'B2B', b2c: 'B2C', pdf: 'PDF', sql: 'SQL' };
+
+  /* Hand-written examples for the 100+ names that appear most often. Everything else gets an automatic hint. */
+  var HINTS = {
+    'topic': 'e.g. healthy breakfast ideas', 'product': 'e.g. wireless earbuds', 'number': 'e.g. 5',
+    'site type': 'e.g. portfolio, online store', 'product/service': 'e.g. yoga classes', 'niche': 'e.g. fitness for busy moms',
+    'text': 'Paste the text here', 'subject': 'e.g. photosynthesis', 'duration': 'e.g. 30 minutes, 7 days',
+    'destination': 'e.g. Goa, Jaipur', 'describe experience': 'e.g. 3 years teaching in a school', 'app type': 'e.g. to-do app, food delivery',
+    'project type': 'e.g. mobile app, blog', 'skill': 'e.g. Excel, public speaking', 'product type': 'e.g. skincare, gadgets',
+    'business type': 'e.g. bakery, travel agency', 'content type': 'e.g. reel, blog post', 'industry': 'e.g. education, healthcare',
+    'team size': 'e.g. 8', 'job title': 'e.g. marketing manager', 'target role': 'e.g. data analyst', 'person': 'e.g. a college student',
+    'service type': 'e.g. web design', 'grade level': 'e.g. class 8', 'brand': 'e.g. your brand name', 'situation': 'e.g. I missed a deadline',
+    'use case': 'e.g. customer support', 'goal': 'e.g. get 1,000 followers', 'data type': 'e.g. sales data', 'company': 'e.g. your company name',
+    'ai tool': 'e.g. ChatGPT', 'field': 'e.g. computer science', 'timeframe': 'e.g. next 30 days', 'task': 'e.g. plan a trip',
+    'task type': 'e.g. email writing', 'amount': 'e.g. 10,000', 'time period': 'e.g. last 3 months', 'list tasks': 'One task per line',
+    'product/service type': 'e.g. online course', 'brand name': 'e.g. your brand name', 'role': 'e.g. teacher', 'page type': 'e.g. landing page',
+    'video topic': 'e.g. how to learn English fast', 'character': 'e.g. a brave young girl', 'paste code': 'Paste your code here',
+    'project': 'e.g. school science project', 'store type': 'e.g. clothing store', 'feature': 'e.g. dark mode', 'question': 'e.g. How does inflation work?',
+    'platform': 'e.g. Instagram, YouTube', 'frequency': 'e.g. every week', 'brand type': 'e.g. fashion, tech', 'role type': 'e.g. remote, full-time',
+    'startup stage': 'e.g. idea stage, seed', 'context': 'e.g. for a school presentation', 'scene': 'e.g. a rainy street at night',
+    'product category': 'e.g. kitchen appliances', 'campaign type': 'e.g. festival sale', 'theme': 'e.g. travel, minimal', 'metric': 'e.g. conversion rate',
+    'company type': 'e.g. startup, agency', 'audience type': 'e.g. college students', 'product a': 'e.g. first product', 'product b': 'e.g. second product',
+    'location': 'e.g. Mumbai', 'topic/niche': 'e.g. personal finance', 'paste prompt': 'Paste your prompt here', 'area': 'e.g. marketing',
+    'design type': 'e.g. logo, poster', 'setting': 'e.g. a village fair', 'audience': 'e.g. beginners', 'service': 'e.g. home cleaning',
+    'problem': 'e.g. low website traffic', 'premise': 'e.g. a robot learns to paint', 'page topic': 'e.g. best study tips',
+    'person/relationship': 'e.g. my best friend', 'describe idea': 'e.g. an app that reminds you to drink water', 'activity type': 'e.g. yoga, running',
+    'new tool': 'e.g. Notion', 'data description': 'e.g. monthly sales by region', 'option a': 'e.g. first option', 'option b': 'e.g. second option',
+    'habit': 'e.g. wake up at 5 am', 'job role': 'e.g. content writer', 'fitness goal': 'e.g. lose 5 kg', 'character a': 'e.g. a detective',
+    'character b': 'e.g. a thief', 'startup idea': 'e.g. an app for local tutors', 'list features': 'One feature per line', 'hours': 'e.g. 3',
+    'paste feedback': 'Paste the feedback here', 'person/role': 'e.g. a new manager', 'describe decision': 'e.g. should I switch jobs?',
+    'hours available': 'e.g. 2', 'date': 'e.g. 15 August', 'years': 'e.g. 3', 'list characters': 'One character per line',
+    'color palette': 'e.g. navy, white, gold', 'startup': 'e.g. a food-delivery startup', 'skill/topic': 'e.g. Python', 'travel details': 'e.g. 4 days, budget ₹20,000',
+    'code': 'Paste your code here', 'keyword': 'e.g. best budget phones', 'city': 'e.g. Pune', 'idea': 'e.g. a podcast about history',
+    'target audience': 'e.g. working professionals', 'genre': 'e.g. mystery, comedy', 'assignment type': 'e.g. essay', 'language': 'e.g. Hindi, English',
+    'paste notes': 'Paste your notes here'
+  };
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function norm(token) { return token.slice(1, -1).toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function track(action, n) { if (typeof gtag === 'function') { try { gtag('event', 'fill_blanks', { action: action, filled: n }); } catch (e) {} } }
+  function load() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; } }
+  function save(map) { try { localStorage.setItem(STORE, JSON.stringify(map)); } catch (e) {} }
+
+  /* Turn a bracket name into a friendly label + hint, whatever the name is. */
+  function describe(key, raw) {
+    var inner = raw.slice(1, -1).trim(), example = '', base = inner;
+    var m = inner.match(/^(.*?)[,(]?\s*(?:e\.g\.|for example)[:.\s]\s*(.+?)\)?$/i);   // "[body area, e.g. hips, shoulders]"
+    if (m && m[1].trim()) { base = m[1].trim(); example = m[2].trim(); }
+    base = base.replace(/[\s\u2014\u2013:,\-]+$/, '');                      // "SEED IDEA —" -> "SEED IDEA"
+    var words = base.replace(/\s+/g, ' ').toLowerCase().split(' ').map(function (w, i) {
+      if (ACRONYMS[w]) return ACRONYMS[w];
+      return i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+    });
+    var label = words.join(' ').replace(/\s*\/\s*/g, ' / ');
+    var hint = HINTS[key] || (example ? 'e.g. ' + example.replace(/^e\.g\.\s*/i, '') : 'Type your ' + label.toLowerCase());
+    var multi = TEXTAREA.test(key);
+    return { key: key, raw: raw, label: label, hint: hint, multi: multi, numeric: NUMERIC.test(key), save: !NO_SAVE.test(key) };
+  }
+
+  window.spFillBlanks = function (promptText) {
+    try { init(String(promptText || '')); } catch (e) { /* the feature must never break the page */ }
+  };
+
+  function init(text) {
+    var promptEl = document.getElementById('prompt-text');
+    var box = promptEl && promptEl.closest('.prompt-box');
+    if (!promptEl || !box || !box.parentNode) return;
+    if (document.getElementById('sp-fill')) return;                 // already built
+
+    var tokens = text.match(RX);
+    if (!tokens || !tokens.length) return;                          // no blanks: leave the page exactly as it is
+
+    var fields = [], byKey = {};
+    tokens.forEach(function (t) {
+      var k = norm(t);
+      if (!byKey[k]) { byKey[k] = describe(k, t); fields.push(byKey[k]); }
+    });
+
+    var saved = load(), vals = {}, prefilled = 0, active = null;
+    fields.forEach(function (f) {
+      if (f.save && saved[f.key]) { vals[f.key] = saved[f.key]; prefilled++; } else { vals[f.key] = ''; }
+    });
+
+    injectCss();
+
+    /* ---- panel ---- */
+    var panel = document.createElement('div');
+    panel.className = 'spf-fill'; panel.id = 'sp-fill';
+    panel.innerHTML =
+      '<button type="button" class="spf-fill-head" aria-expanded="true" aria-controls="sp-fill-body">' +
+        '<span class="spf-fill-title">✍️ Fill in the blanks <b>(' + fields.length + ')</b></span>' +
+        '<span class="spf-fill-status" id="sp-fill-status" aria-live="polite"></span>' +
+        '<span class="spf-fill-chev" aria-hidden="true">⌄</span>' +
+      '</button>' +
+      '<div class="spf-fill-body" id="sp-fill-body"><div class="spf-fields"></div>' +
+        '<p class="spf-fill-note">Copy works any time. Blanks you leave empty are copied as they are.</p>' +
+        '<div class="spf-fill-saved" id="sp-fill-saved" hidden>Some boxes were filled from your earlier answers. <button type="button" id="sp-fill-clear">Clear all</button></div>' +
+      '</div>';
+    var list = panel.querySelector('.spf-fields');
+
+    fields.forEach(function (f, i) {
+      var id = 'sp-f-' + i, last = i === fields.length - 1;
+      var wrap = document.createElement('label');
+      wrap.className = 'spf-field'; wrap.setAttribute('for', id);
+      var lab = document.createElement('span'); lab.className = 'spf-label'; lab.textContent = f.label;
+      var inp = document.createElement(f.multi ? 'textarea' : 'input');
+      inp.id = id; inp.className = 'spf-input'; inp.placeholder = f.hint; inp.value = vals[f.key];
+      inp.setAttribute('data-key', f.key); inp.maxLength = f.multi ? 4000 : 200; inp.autocomplete = 'off';
+      if (f.multi) { inp.rows = 3; }
+      else { inp.type = 'text'; inp.setAttribute('enterkeyhint', last ? 'done' : 'next'); if (f.numeric) inp.setAttribute('inputmode', 'decimal'); }
+      wrap.appendChild(lab); wrap.appendChild(inp); list.appendChild(wrap);
+
+      inp.addEventListener('input', function () {
+        vals[f.key] = inp.value;
+        if (f.save) { var s = load(); if (inp.value.trim()) s[f.key] = inp.value.trim().slice(0, 60); else delete s[f.key]; save(s); }
+        if (!started) { started = true; track('started', 0); }
+        render();
+      });
+      inp.addEventListener('focus', function () { active = f.key; render(); });
+      inp.addEventListener('blur', function () { active = null; render(); });
+      if (!f.multi) inp.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var next = list.querySelectorAll('.spf-input')[i + 1];
+        if (next) next.focus(); else inp.blur();
+      });
+    });
+
+    box.parentNode.insertBefore(panel, box);                       // the panel sits right above the prompt box
+
+    var started = false;
+    var statusEl = panel.querySelector('#sp-fill-status');
+    var savedNote = panel.querySelector('#sp-fill-saved');
+    savedNote.hidden = prefilled === 0;
+
+    panel.querySelector('.spf-fill-head').addEventListener('click', function () {
+      var open = this.getAttribute('aria-expanded') !== 'true';
+      this.setAttribute('aria-expanded', String(open));
+      panel.classList.toggle('is-closed', !open);
+    });
+    panel.querySelector('#sp-fill-clear').addEventListener('click', function () {
+      fields.forEach(function (f) { vals[f.key] = ''; });
+      list.querySelectorAll('.spf-input').forEach(function (i) { i.value = ''; });
+      var s = load(); fields.forEach(function (f) { delete s[f.key]; }); save(s);
+      savedNote.hidden = true; render();
+    });
+
+    function filledCount() { return fields.filter(function (f) { return vals[f.key].trim(); }).length; }
+
+    function render() {
+      var out = '', last = 0, m, plain = '';
+      RX.lastIndex = 0;
+      while ((m = RX.exec(text))) {
+        var key = norm(m[0]), v = (vals[key] || '').trim();
+        var before = text.slice(last, m.index);
+        out += esc(before); plain += before;
+        var on = active === key ? ' placeholder-active' : '';
+        if (v) { out += '<span class="placeholder-filled' + on + '">' + esc(v) + '</span>'; plain += v; }
+        else { out += '<span class="placeholder-token' + on + '">' + esc(m[0]) + '</span>'; plain += m[0]; }
+        last = m.index + m[0].length;
+      }
+      out += esc(text.slice(last)); plain += text.slice(last);
+      promptEl.innerHTML = out;
+      window.__currentPromptText = plain;                           // Copy and "Open in AI" both read this
+      var n = filledCount();
+      statusEl.textContent = n + ' of ' + fields.length + ' filled';
+      panel.classList.toggle('is-done', n === fields.length);
+    }
+
+    /* count how often people copy a filled prompt (Google Analytics event, free) */
+    var copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) copyBtn.addEventListener('click', function () { track('copied', filledCount()); });
+
+    render();
+  }
+
+  function injectCss() {
+    if (document.getElementById('sp-fill-css')) return;
+    var s = document.createElement('style');
+    s.id = 'sp-fill-css';
+    s.textContent =
+      '.spf-fill{margin:0 0 1rem;border:1.5px solid rgba(99,102,241,.5);border-radius:16px;background:var(--bg-card,#fff);box-shadow:0 10px 26px -18px rgba(49,46,129,.6);overflow:hidden}' +
+      '.spf-fill-head{width:100%;display:flex;align-items:center;gap:.7rem;padding:.85rem 1rem;border:0;background:linear-gradient(90deg,rgba(79,70,229,.12),rgba(219,39,119,.08));color:var(--text,#111);font:700 .95rem/1.2 var(--font-body,system-ui,sans-serif);cursor:pointer;text-align:left}' +
+      '.spf-fill-head:focus-visible{outline:3px solid #6366f1;outline-offset:-3px}' +
+      '.spf-fill-title b{color:#4f46e5;font-weight:800}' +
+      ':root:not([data-theme="light"]) .spf-fill-title b{color:#a5b4fc}' +
+      '.spf-fill-status{margin-left:auto;font-size:.78rem;font-weight:700;color:var(--muted,#667);white-space:nowrap}' +
+      '.spf-fill.is-done .spf-fill-status{color:#178a52}' +
+      '.spf-fill-chev{font-size:1.1rem;transition:transform .2s ease}' +
+      '.spf-fill.is-closed .spf-fill-chev{transform:rotate(-90deg)}' +
+      '.spf-fill-body{padding:.9rem 1rem 1rem}' +
+      '.spf-fill.is-closed .spf-fill-body{display:none}' +
+      '.spf-fields{display:grid;gap:.75rem}' +
+      '@media(min-width:720px){.spf-fields{grid-template-columns:1fr 1fr}.spf-field:has(textarea){grid-column:1/-1}}' +
+      '.spf-field{display:flex;flex-direction:column;gap:.3rem}' +
+      '.spf-label{font-size:.82rem;font-weight:700;color:var(--text,#111)}' +
+      '.spf-input{width:100%;box-sizing:border-box;min-height:46px;padding:.6rem .8rem;border:1.5px solid var(--border,#c9cde2);border-radius:12px;background:var(--bg,#fff);color:var(--text,#111);font:inherit;font-size:16px}' +
+      'textarea.spf-input{min-height:84px;resize:vertical;line-height:1.5}' +
+      '.spf-input::placeholder{color:var(--muted,#778);opacity:.9}' +
+      '.spf-input:focus{outline:3px solid rgba(99,102,241,.45);outline-offset:1px;border-color:#6366f1}' +
+      '.spf-fill-note{margin:.8rem 0 0;font-size:.8rem;color:var(--muted,#667)}' +
+      '.spf-fill-saved{margin-top:.5rem;font-size:.8rem;color:var(--muted,#667)}' +
+      '.spf-fill-saved button{border:0;background:none;color:#4f46e5;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:.2rem}' +
+      '.placeholder-filled{display:inline;background:rgba(23,138,82,.14);color:inherit;border:1px solid rgba(23,138,82,.45);border-radius:4px;padding:.05rem .35rem;font-weight:600;white-space:pre-wrap;word-break:break-word}' +
+      '.placeholder-active{outline:2px solid #6366f1;outline-offset:1px;box-shadow:0 0 0 4px rgba(99,102,241,.2)}';
+    document.head.appendChild(s);
+  }
 })();
