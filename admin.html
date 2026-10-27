@@ -509,7 +509,12 @@ async function api(path, opts = {}) {
 }
 
 function escapeHtml(s) {
-  const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /* ---- Sidebar navigation ---- */
@@ -680,7 +685,7 @@ async function loadList() {
         </div>
         <div class="row">
           <button class="secondary" onclick="editPrompt(${p.id})">Edit</button>
-          <button class="danger" onclick="deletePrompt(${p.id}, '${escapeHtml(p.title).replace(/'/g, "\\'")}')">Delete</button>
+          <button class="danger" onclick="deletePrompt(${p.id}, ${escapeHtml(JSON.stringify(p.title))})">Delete</button>
         </div>
       </div>
     </div>
@@ -868,7 +873,7 @@ function renderUrlsList(list) {
         <div class="row">
           ${item.type === 'static'
             ? '<span class="stat">Static page — edit in code</span>'
-            : `<button class="secondary" onclick="editFromUrlsList('${item.type}', ${item.id}, '${escapeHtml(item.title).replace(/'/g, "\\'")}')">Edit</button>`}
+            : `<button class="secondary" onclick="editFromUrlsList('${item.type}', ${item.id}, ${escapeHtml(JSON.stringify(item.title))})">Edit</button>`}
         </div>
       </div>
     </div>
@@ -940,7 +945,7 @@ async function loadBlogList() {
         <div class="row">
           <button class="secondary" onclick="toggleBlogPin(${p.id}, ${p.pinned ? 'true' : 'false'})">${p.pinned ? 'Unpin' : 'Pin'}</button>
           <button class="secondary" onclick="editBlogPost(${p.id})">Edit</button>
-          <button class="danger" onclick="deleteBlogPost(${p.id}, '${escapeHtml(p.title).replace(/'/g, "\\'")}')">Delete</button>
+          <button class="danger" onclick="deleteBlogPost(${p.id}, ${escapeHtml(JSON.stringify(p.title))})">Delete</button>
         </div>
       </div>
     </div>
@@ -1089,7 +1094,7 @@ async function loadGalleryList() {
         </div>
         <div class="row">
           <button class="secondary" onclick="editGalleryItem(${g.id})">Edit</button>
-          <button class="danger" onclick="deleteGalleryItem(${g.id}, '${escapeHtml(g.title).replace(/'/g, "\\'")}')">Delete</button>
+          <button class="danger" onclick="deleteGalleryItem(${g.id}, ${escapeHtml(JSON.stringify(g.title))})">Delete</button>
         </div>
       </div>
     </div>
@@ -1262,7 +1267,7 @@ async function loadVideosList() {
         </div>
         <div class="row">
           <button class="secondary" onclick="editVideoItem(${v.id})">Edit</button>
-          <button class="danger" onclick="deleteVideoItem(${v.id}, '${escapeHtml(v.title).replace(/'/g, "\\'")}')">Delete</button>
+          <button class="danger" onclick="deleteVideoItem(${v.id}, ${escapeHtml(JSON.stringify(v.title))})">Delete</button>
         </div>
       </div>
     </div>
@@ -1434,7 +1439,7 @@ async function loadSearchGaps() {
         <div class="meta">Searched ${r.total} time${r.total === 1 ? '' : 's'} · last seen ${escapeHtml(r.last_seen)}</div>
       </div>
       <div class="row">
-        <button onclick="createPromptFromGap('${escapeHtml(r.query).replace(/'/g, "\\'")}')">✨ Generate with AI</button>
+        <button onclick="createPromptFromGap(${escapeHtml(JSON.stringify(r.query))})">✨ Generate with AI</button>
       </div>
     </div>
   `).join('');
