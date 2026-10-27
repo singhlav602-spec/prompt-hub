@@ -719,6 +719,15 @@ function renderGrid(prompts, container, searchTerm = '', activeCategory = 'All',
 
 /* ---- Copy to Clipboard ---- */
 async function copyToClipboard(text, btn) {
+  // GA4: count every copy (page path + prompt slug). Never blocks the copy.
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'copy_prompt', {
+        page_path: location.pathname,
+        slug: new URLSearchParams(location.search).get('slug') || ''
+      });
+    }
+  } catch (e) {}
   try {
     await navigator.clipboard.writeText(text);
     const original = btn.innerHTML;
@@ -1378,6 +1387,15 @@ async function initPromptPage() {
             </button>
           </div>
           <div class="prompt-text" id="prompt-text">${highlightPlaceholders(escapeHtml(prompt.prompt))}</div>
+          <div class="prompt-box-footer" style="margin-top:1.25rem">
+            <button class="copy-btn" id="copy-btn-bottom" style="width:100%;justify-content:center;padding:0.75rem 1.1rem;font-size:0.9rem">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              <span>Copy Prompt</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1452,12 +1470,14 @@ async function initPromptPage() {
   `;
 
   /* --- Wire up copy button --- */
-  const copyBtn = document.getElementById('copy-btn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => {
-      copyToClipboard(window.__currentPromptText || prompt.prompt, copyBtn);   // filled-in text when the visitor typed something
-    });
-  }
+  ['copy-btn', 'copy-btn-bottom'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        copyToClipboard(window.__currentPromptText || prompt.prompt, btn);   // filled-in text when the visitor typed something
+      });
+    }
+  });
 
   /* --- Fill the blanks: boxes for every [BLANK]. Copy keeps working whether or not they are filled. --- */
   if (window.spFillBlanks) window.spFillBlanks(prompt.prompt);
@@ -3147,8 +3167,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* count how often people copy a filled prompt (Google Analytics event, free) */
-    var copyBtn = document.getElementById('copy-btn');
-    if (copyBtn) copyBtn.addEventListener('click', function () { track('copied', filledCount()); });
+    ['copy-btn', 'copy-btn-bottom'].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (b) b.addEventListener('click', function () { track('copied', filledCount()); });
+    });
 
     render();
   }
