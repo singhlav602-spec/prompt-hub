@@ -2311,6 +2311,7 @@ body {
   .prompt-box-header { padding: 0.85rem 1.1rem; }
   .prompt-text { padding: 1.25rem; font-size: 0.85rem; }
   .copy-btn span { display: none; }
+  #copy-btn-bottom span { display: inline; }   /* bottom button keeps its 'Copy Prompt' label on phones */
 
   .related-grid { grid-template-columns: 1fr; }
 
@@ -2549,3 +2550,9 @@ body {
   transition: transform var(--transition), opacity var(--transition);
 }
 .pwa-header-btn:hover { transform: translateY(-1px); opacity: 0.92; }
+
+/* Bottom copy button under the prompt text */
+.prompt-box-footer {
+  margin-top: 0 !important;
+  padding: 0 1.25rem 1.25rem;
+}
