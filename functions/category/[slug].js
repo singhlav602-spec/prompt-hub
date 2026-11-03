@@ -20,6 +20,76 @@ import { getCategoryCounts } from '../_category-counts.js';
 
 const DOMAIN = 'https://smart-prompt.in';
 
+// Old category URLs that were merged into a bigger category (see the category
+// merge). A request for one of these is redirected (301) ONLY when that category
+// no longer exists in the database, so a category that was kept (or skipped during
+// the merge) keeps working exactly as before.
+const MERGED_CATEGORY_REDIRECTS = {
+ "ai-art": "ai-image",
+ "ai-image-video": "ai-image",
+ "ai-image-editing": "ai-image",
+ "ai-image-generation": "ai-image",
+ "create-breathtaking": "ai-image",
+ "image-generation": "ai-image",
+ "image-and-video": "ai-image",
+ "images": "ai-image",
+ "ai": "ai-tools",
+ "artificial-intelligence": "ai-tools",
+ "animation": "ai-video-prompts",
+ "video-generation": "ai-video-prompts",
+ "operations": "business",
+ "presentations": "business",
+ "project-management": "business",
+ "recruitment": "career",
+ "design-creativity": "design",
+ "web-design": "design",
+ "history": "education",
+ "knowledge": "education",
+ "study": "education",
+ "teaching": "education",
+ "email-marketing": "email",
+ "beauty": "fashion",
+ "event-planning": "festivals",
+ "events": "festivals",
+ "personal-finance": "finance",
+ "food": "food-lifestyle",
+ "food-cooking": "food-lifestyle",
+ "healthcare": "health",
+ "sports": "health",
+ "shopping-lifestyle": "home-lifestyle",
+ "professional": "linkedin",
+ "advertising": "marketing",
+ "affiliate-marketing": "marketing",
+ "podcasting": "podcast",
+ "ai-control": "prompt-engineering",
+ "ai-prompt-generator": "prompt-engineering",
+ "ai-prompts": "prompt-engineering",
+ "smart-prompts": "prompt-engineering",
+ "analysis": "research",
+ "product-reviews": "reviews",
+ "seo-marketing": "seo",
+ "seo-technical-seo": "seo",
+ "advice": "self-improvement",
+ "personal-development": "self-improvement",
+ "twitter": "social-media",
+ "sci-fi-futuristic": "story",
+ "nature": "travel",
+ "content-writing": "writing",
+ "writing-content": "writing",
+ "writing-content-creation": "writing",
+ "influencer-creator": "youtube",
+ "vlogging": "youtube",
+ "youtube-analytics": "youtube",
+ "youtube-branding": "youtube",
+ "youtube-content": "youtube",
+ "youtube-design": "youtube",
+ "youtube-growth": "youtube",
+ "youtube-production": "youtube",
+ "youtube-research": "youtube",
+ "youtube-seo": "youtube",
+ "youtube-strategy": "youtube"
+};
+
 export async function onRequestGet(context) {
   const { request, env, params } = context;
   const url = new URL(request.url);
@@ -60,6 +130,10 @@ export async function onRequestGet(context) {
     }
   } catch (e) {
     dbOk = false; // DB hiccup — don't take the page down over it, serve the shell as-is below.
+  }
+
+  if (dbOk && !categoryName && Object.prototype.hasOwnProperty.call(MERGED_CATEGORY_REDIRECTS, slug)) {
+    return Response.redirect(`${DOMAIN}/category/${MERGED_CATEGORY_REDIRECTS[slug]}`, 301);
   }
 
   if (dbOk && !categoryName) {
