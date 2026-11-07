@@ -142,6 +142,24 @@ const CARD_COLORS = ['purple', 'blue', 'green', 'orange', 'pink', 'teal'];
    the exact `category` string used in prompts.json; __default__ covers
    any category not listed here (e.g. a brand-new one added later via
    the admin panel) so this never breaks. */
+// --- Page-specific helpers for the prompt detail page ---------------------
+// Everything here is derived from the prompt's own text (never invented), so
+// each prompt page gets text that is actually about that prompt.
+function promptRoleText(text) {
+  const m = String(text).match(/\b(?:act as|you are|take the role of)\s+(?:an?\s+|the\s+)?([^.,;:\n\[\]]{3,60})/i);
+  if (!m) return '';
+  const r = m[1].trim().replace(/\s+/g, ' ');
+  return r.length >= 3 ? r : '';
+}
+function promptFieldHint(field) {
+  const inner = String(field).replace(/^\[|\]$/g, '').trim();
+  const parts = inner.split('/').map(p => p.trim()).filter(Boolean);
+  if (parts.length >= 2 && parts.length <= 6 && parts.every(p => p.length <= 25)) {
+    return 'choose one: ' + parts.map(p => p.toLowerCase()).join(', ');
+  }
+  return 'add your own ' + inner.toLowerCase();
+}
+
 const CATEGORY_USE_CASES = {
   'AI Image': ['Content creators', 'Designers', 'Social media marketers', 'Digital artists', 'Advertisers'],
   'Coding': ['Developers', 'Students', 'Software engineers', 'Bootcamp learners', 'Technical writers'],
@@ -1269,26 +1287,6 @@ async function initPromptPage() {
   }
   ldBreadcrumbScript.textContent = JSON.stringify(ldBreadcrumb);
 
-  /* --- FAQ JSON-LD: mirrors the visible FAQ content exactly, so it's legitimate structured data --- */
-  const ldFaq = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      { "@type": "Question", "name": "Is this prompt free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — every prompt on SmartPrompts is free to use, copy, and customize." } },
-      { "@type": "Question", "name": "Which AI models does it work with?", "acceptedAnswer": { "@type": "Answer", "text": "This is a plain-text prompt, so it works with ChatGPT, Gemini, Claude, Grok, DeepSeek, and most other AI chat tools." } },
-      { "@type": "Question", "name": "How do I get better output?", "acceptedAnswer": { "@type": "Answer", "text": `Fill in the placeholder fields with specific, real details instead of vague ones — for a ${prompt.category} prompt like this, the more precise your input, the closer the AI's result will match what you actually need.` } },
-      { "@type": "Question", "name": "Can I use the output commercially?", "acceptedAnswer": { "@type": "Answer", "text": "The prompt itself is free to use for any purpose. What you can do with the AI's output depends on the terms of the AI tool you use it with." } }
-    ]
-  };
-  let ldFaqScript = document.getElementById('ld-json-faq');
-  if (!ldFaqScript) {
-    ldFaqScript = document.createElement('script');
-    ldFaqScript.type = 'application/ld+json';
-    ldFaqScript.id = 'ld-json-faq';
-    document.head.appendChild(ldFaqScript);
-  }
-  ldFaqScript.textContent = JSON.stringify(ldFaq);
-
   const placeholderCount = (prompt.prompt.match(/\[[^\[\]]{2,80}\]/g) || []).length;
   window.__currentPromptText = prompt.prompt;
 
@@ -1300,6 +1298,21 @@ async function initPromptPage() {
   let difficulty = 'Beginner';
   if (placeholderCount >= 4 || wordCount > 60) difficulty = 'Advanced';
   else if (placeholderCount >= 2 || wordCount > 30) difficulty = 'Intermediate';
+
+  /* --- Page-specific copy, built only from this prompt's own text --- */
+  const roleText = promptRoleText(prompt.prompt);
+  const previewLine = String(prompt.preview || prompt.prompt.slice(0, 140)).trim();
+  const aboutText = `${previewLine}${/[.!?]$/.test(previewLine) ? '' : '.'}`
+    + (roleText ? ` It asks the AI to act as ${roleText}.` : '')
+    + ` The prompt is ${wordCount} words long`
+    + (placeholderCount > 0
+        ? ` and has ${placeholderCount} field${placeholderCount === 1 ? '' : 's'} where you add your own details.`
+        : ' and works as it is, with no fields to fill in.');
+  const fieldNames = variables.slice(0, 2).map(v => escapeHtml(v));
+  const fieldExtra = variables.length > 2 ? ` and ${variables.length - 2} more` : '';
+  const howToUseHTML = placeholderCount > 0
+    ? `1. Copy the prompt above.<br>2. Replace the highlighted fields (${fieldNames.join(', ')}${fieldExtra}) with your own details.<br>3. Paste it into your AI chat and adjust the result if needed.`
+    : `1. Copy the prompt above.<br>2. Paste it into your AI chat as it is.<br>3. Adjust the result if needed.`;
 
   const shareUrl = encodeURIComponent(pageUrl);
   const shareText = encodeURIComponent(`${prompt.title} — free AI prompt on SmartPrompts`);
@@ -1407,16 +1420,13 @@ async function initPromptPage() {
       ` : ''}
 
       <div class="prompt-info-section animate-fade-up" style="animation-delay:180ms">
-        <h2 class="info-heading">What this prompt does</h2>
-        <p class="info-text">${escapeHtml(prompt.preview || prompt.prompt.slice(0, 140))} It's a free ${escapeHtml(prompt.category)} prompt — fill in the details and get a ready-to-use result in seconds.</p>
+        <h2 class="info-heading">About this prompt</h2>
+        <p class="info-text">${escapeHtml(aboutText)}</p>
 
         <h2 class="info-heading">How to use it</h2>
-        <p class="info-text">${placeholderCount > 0
-          ? `Replace the ${placeholderCount} highlighted placeholder${placeholderCount === 1 ? '' : 's'} above with your own details, then copy the prompt and paste it into your AI chat.`
-          : `Copy the prompt above and paste it directly into your AI chat — no edits needed.`}</p>
+        <p class="info-text">${howToUseHTML}</p>
 
-        <h2 class="info-heading">Best for</h2>
-        <p class="info-text-sm">Tap a tool to open it — ChatGPT opens with this prompt pre-filled; others copy the prompt for you to paste.</p>
+        <h2 class="info-heading">Open it in an AI tool</h2>
         <div class="chip-row">
           ${AI_TOOLS.map(t => `<button type="button" class="chip chip-ai" onclick="openInAI('${t.key}')">${t.name}</button>`).join('')}
         </div>
@@ -1427,31 +1437,10 @@ async function initPromptPage() {
         </div>
 
         ${variables.length > 0 ? `
-        <h2 class="info-heading">Prompt variables</h2>
-        <div class="chip-row">
-          ${variables.map(v => `<span class="chip chip-var">${escapeHtml(v)}</span>`).join('')}
-        </div>
+        <h2 class="info-heading">Fields to fill in</h2>
+        ${variables.slice(0, 12).map(v => `<p class="info-text-sm"><strong>${escapeHtml(v)}</strong> — ${escapeHtml(promptFieldHint(v))}</p>`).join('')}
+        ${variables.length > 12 ? `<p class="info-text-sm">…and ${variables.length - 12} more fields in the prompt.</p>` : ''}
         ` : ''}
-      </div>
-
-      <div class="prompt-info-section animate-fade-up" style="animation-delay:210ms">
-        <h2 class="info-heading">FAQ</h2>
-        <div class="faq-item">
-          <div class="faq-q">Is this prompt free?</div>
-          <div class="faq-a">Yes — every prompt on SmartPrompts is free to use, copy, and customize.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-q">Which AI models does it work with?</div>
-          <div class="faq-a">This is a plain-text prompt, so it works with ChatGPT, Gemini, Claude, Grok, DeepSeek, and most other AI chat tools.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-q">How do I get better output?</div>
-          <div class="faq-a">Fill in the placeholder fields with specific, real details instead of vague ones — for a ${escapeHtml(prompt.category)} prompt like this, the more precise your input, the closer the AI's result will match what you actually need.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-q">Can I use the output commercially?</div>
-          <div class="faq-a">The prompt itself is free to use for any purpose. What you can do with the AI's output depends on the terms of the AI tool you use it with — check that tool's own usage policy.</div>
-        </div>
       </div>
 
       <div class="prompt-info-section animate-fade-up" style="animation-delay:230ms">
@@ -1462,7 +1451,7 @@ async function initPromptPage() {
           <a class="share-btn" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}">Facebook</a>
           <a class="share-btn" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}">X</a>
         </div>
-        <a class="report-link" href="mailto:REPLACE_WITH_YOUR_EMAIL@example.com?subject=${encodeURIComponent('Issue with prompt: ' + prompt.title)}">Prompt not working? Report it →</a>
+        <a class="report-link" href="mailto:wabvault52@gmail.com?subject=${encodeURIComponent('Issue with prompt: ' + prompt.title)}">Prompt not working? Report it →</a>
       </div>
 
       ${relatedHTML}
