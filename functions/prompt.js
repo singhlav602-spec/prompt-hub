@@ -60,10 +60,30 @@ export async function onRequestGet(context) {
 
   const description = `${row.preview || String(row.prompt).slice(0, 140)} Free ${row.category} prompt — copy & use instantly.`;
 
-  return injectSeoTags(assetResponse, {
+  const seoResponse = await injectSeoTags(assetResponse, {
     url: `${DOMAIN}/prompt?slug=${encodeURIComponent(slug)}`,
     title: `${row.title} — Free ChatGPT Prompt | SmartPrompts`,
     ogTitle: `${row.title} — Free ChatGPT Prompt`,
     description,
   });
+
+  // Thin / near-duplicate prompts listed in prompt_noindex stay viewable for
+  // visitors but are told not to be indexed (header + meta tag). If the table
+  // doesn't exist yet, the lookup just fails and the page is indexed as normal.
+  let noindex = false;
+  try {
+    const hit = await env.DB.prepare('SELECT 1 AS x FROM prompt_noindex WHERE slug = ? LIMIT 1').bind(slug).first();
+    noindex = !!hit;
+  } catch (e) { /* table not created yet */ }
+
+  if (!noindex) return seoResponse;
+
+  const html = (await seoResponse.text()).replace(
+    /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+    '<meta name="robots" content="noindex, follow" />'
+  );
+  const headers = new Headers(seoResponse.headers);
+  headers.set('X-Robots-Tag', 'noindex, follow');
+  headers.delete('Content-Length');
+  return new Response(html, { status: 200, headers });
 }
