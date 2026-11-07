@@ -49,9 +49,18 @@ export async function onRequestGet(context) {
 
   // Every prompt currently in the live database
   try {
-    const { results: prompts } = await env.DB.prepare(
-      'SELECT DISTINCT slug FROM prompts'
-    ).all();
+    // Prompts listed in prompt_noindex (thin / near-duplicate pages) are kept
+    // out of the sitemap. If that table doesn't exist yet, fall back to
+    // listing every prompt as before.
+    let prompts;
+    try {
+      await env.DB.prepare('CREATE TABLE IF NOT EXISTS prompt_noindex (slug TEXT PRIMARY KEY)').run();
+      ({ results: prompts } = await env.DB.prepare(
+        'SELECT DISTINCT slug FROM prompts WHERE slug NOT IN (SELECT slug FROM prompt_noindex)'
+      ).all());
+    } catch (e) {
+      ({ results: prompts } = await env.DB.prepare('SELECT DISTINCT slug FROM prompts').all());
+    }
     for (const p of prompts) {
       urls.push(urlEntry(`${DOMAIN}/prompt?slug=${encodeURIComponent(p.slug)}`, today, 'monthly', '0.7'));
     }
