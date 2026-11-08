@@ -78,10 +78,16 @@ export async function onRequestGet(context) {
 
   if (!noindex) return seoResponse;
 
-  const html = (await seoResponse.text()).replace(
-    /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
-    '<meta name="robots" content="noindex, follow" />'
-  );
+  // These pages are also kept free of AdSense: the ad script is removed so no
+  // ads are requested on them and the AdSense crawler has no ad code to follow
+  // here. Visitors still see the full prompt page exactly as before.
+  const html = (await seoResponse.text())
+    .replace(
+      /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+      '<meta name="robots" content="noindex, follow" />'
+    )
+    .replace(/<script[^>]*adsbygoogle\.js[^>]*>\s*<\/script>\s*/gi, '')
+    .replace(/<ins[^>]*class="[^"]*adsbygoogle[^"]*"[\s\S]*?<\/ins>/gi, '');
   const headers = new Headers(seoResponse.headers);
   headers.set('X-Robots-Tag', 'noindex, follow');
   headers.delete('Content-Length');
